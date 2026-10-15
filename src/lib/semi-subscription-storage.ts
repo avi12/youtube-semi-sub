@@ -39,10 +39,10 @@ export function mergeSemiSubscription({ previous, channel, filter, now }: {
   return subscription;
 }
 
-export function saveSemiSubscription({ channel, filter }: {
-  channel: ChannelInfo;
-  filter: TitleFilter;
-}) {
+export function saveSemiSubscription({ channel, filter }: Pick<
+  Parameters<typeof mergeSemiSubscription>[0],
+  "channel" | "filter"
+>) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
     mutator(subscriptions) {
@@ -81,10 +81,7 @@ export function restoreSemiSubscription(subscription: SemiSubscription) {
 }
 
 /** Replaces the filter of a channel that is still semi-subscribed; a removed one stays removed */
-export function setSemiSubscriptionFilter({ channelId, filter }: {
-  channelId: string;
-  filter: TitleFilter;
-}) {
+export function setSemiSubscriptionFilter({ channelId, filter }: Pick<SemiSubscription, "channelId" | "filter">) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
     mutator(subscriptions) {

@@ -177,10 +177,7 @@ function isSameGuideItems({ current, next }: {
   });
 }
 
-function placeSemiEntries({ items, entries }: {
-  items: unknown[];
-  entries: unknown[];
-}) {
+function placeSemiEntries({ items, entries }: Parameters<typeof patchGuideItems>[0]) {
   const ownItems = items.filter(item => !isSemiGuideEntryItem(item));
   const iHeader = ownItems.findIndex(isSubscriptionsHeaderItem);
   const iInsert = iHeader === -1 ? 0 : iHeader + 1;
@@ -219,10 +216,8 @@ function readSubscriptionsSection(item: unknown) {
   };
 }
 
-function withEntriesInSubscriptionsSection({ items, iSection, entries }: {
-  items: unknown[];
+function withEntriesInSubscriptionsSection({ items, iSection, entries }: Parameters<typeof patchGuideItems>[0] & {
   iSection: number;
-  entries: unknown[];
 }) {
   const subscriptions = readSubscriptionsSection(items[iSection]);
   if (!subscriptions) {
@@ -252,10 +247,7 @@ function withEntriesInSubscriptionsSection({ items, iSection, entries }: {
 }
 
 /** Without a Subscriptions section (signed out, or no subscriptions yet) the channels get a section of their own */
-function withSemiSection({ items, entries }: {
-  items: unknown[];
-  entries: unknown[];
-}) {
+function withSemiSection({ items, entries }: Parameters<typeof patchGuideItems>[0]) {
   const isEmpty = entries.length === 0;
   if (isEmpty) {
     return items;

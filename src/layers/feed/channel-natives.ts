@@ -1,3 +1,4 @@
+import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/page/innertube";
 import { z } from "@/lib/zod";
 import { rendererFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
@@ -94,10 +95,7 @@ function findLoadedNatives(channelId: string) {
   return entry?.result ?? null;
 }
 
-export function findNativeRenderer({ channelId, videoId }: {
-  channelId: string;
-  videoId: string;
-}) {
+export function findNativeRenderer({ channelId, videoId }: Pick<FeedVideo, "channelId" | "videoId">) {
   return findLoadedNatives(channelId)?.renderersByVideoId.get(videoId) ?? null;
 }
 

@@ -150,9 +150,7 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
 }
 
 /** Pours the band back into the runs: every run keeps its length, the last one absorbs the difference */
-export function reflowBandIntoRuns({ contents, runs, band }: {
-  contents: readonly unknown[];
-  runs: InlineRun[];
+export function reflowBandIntoRuns({ contents, runs, band }: Parameters<typeof extractBand>[0] & {
   band: readonly unknown[];
 }) {
   const result: unknown[] = [];

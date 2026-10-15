@@ -20,7 +20,7 @@ export const officialSubscriptionChangeSchema = z.object({
   channelId: z.string(),
   isSubscribed: z.boolean()
 });
-type OfficialSubscriptionChange = z.infer<typeof officialSubscriptionChangeSchema>;
+export type OfficialSubscriptionChange = z.infer<typeof officialSubscriptionChangeSchema>;
 
 export enum PageMessage {
   getPageState = "getPageState",

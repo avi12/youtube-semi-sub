@@ -16,10 +16,10 @@ function desiredFeedVideos(state: PageState) {
   return state.isExtensionEnabled ? state.feedVideos : [];
 }
 
-export function recordFeedChange({ insertedIds, removedIds }: {
-  insertedIds: readonly string[];
-  removedIds: readonly string[];
-}) {
+export function recordFeedChange({ insertedIds, removedIds }: Pick<
+  NonNullable<ReturnType<typeof composeFeedContents>>,
+  "insertedIds" | "removedIds"
+>) {
   for (const videoId of insertedIds) {
     insertedVideoIds.add(videoId);
   }
@@ -52,11 +52,7 @@ export function planForPageState({ contents, state, removedVideoIds }: {
   });
 }
 
-export function composeForPageState({ contents, state, removedVideoIds }: {
-  contents: readonly unknown[];
-  state: PageState;
-  removedVideoIds: ReadonlySet<string>;
-}) {
+export function composeForPageState({ contents, state, removedVideoIds }: Parameters<typeof planForPageState>[0]) {
   return composeFeedContents({
     contents,
     videos: desiredFeedVideos(state),
@@ -64,10 +60,7 @@ export function composeForPageState({ contents, state, removedVideoIds }: {
     removedVideoIds,
     now: Date.now(),
     locale: pageLocale(),
-    findNative: video => findNativeRenderer({
-      channelId: video.channelId,
-      videoId: video.videoId
-    }),
+    findNative: findNativeRenderer,
     findAvatarUrl: findLoadedAvatarUrl
   });
 }

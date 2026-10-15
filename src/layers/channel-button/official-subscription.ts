@@ -1,4 +1,4 @@
-import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import { type OfficialSubscriptionChange, PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { parseJson } from "@/lib/utils/json";
 import { z } from "@/lib/zod";
@@ -24,10 +24,7 @@ export function getObservedOfficialSubscription(channelId: string) {
   return subscribedByChannel.get(channelId);
 }
 
-export function setObservedOfficialSubscription({ channelId, isSubscribed }: {
-  channelId: string;
-  isSubscribed: boolean;
-}) {
+export function setObservedOfficialSubscription({ channelId, isSubscribed }: OfficialSubscriptionChange) {
   const isUnchanged = subscribedByChannel.get(channelId) === isSubscribed;
   if (isUnchanged) {
     return;

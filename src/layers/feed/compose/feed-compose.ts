@@ -18,12 +18,8 @@ export function composeFeedContents({
   locale,
   findNative,
   findAvatarUrl
-}: {
-  contents: readonly unknown[];
-  videos: readonly FeedVideo[];
+}: Parameters<typeof planFeedBand>[0] & {
   subscriptions: SemiSubscriptions;
-  removedVideoIds: ReadonlySet<string>;
-  now: number;
   locale: string;
   findNative: (video: FeedVideo) => VideoRenderer | null;
   findAvatarUrl: (channelId: string) => string | null;

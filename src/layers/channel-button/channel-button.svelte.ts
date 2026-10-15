@@ -48,10 +48,7 @@ type Target = z.infer<typeof targetSchema>;
 let cachedPageData: unknown = null;
 let cachedPageChannel: PageChannel | null = null;
 
-function readPageChannelOnce({ pageData, kind }: {
-  pageData: unknown;
-  kind: PageKind;
-}) {
+function readPageChannelOnce({ pageData, kind }: Parameters<typeof readPageChannel>[0]) {
   const isCached = pageData === cachedPageData && cachedPageChannel?.kind === kind;
   if (isCached) {
     return cachedPageChannel;

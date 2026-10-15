@@ -23,10 +23,7 @@
   const error = $derived(getReadableFilterError(filter));
   const enabledAdvancedFlags = $derived(ADVANCED_FILTER_FLAGS.filter(flag => filter.flags.includes(flag)).join(""));
 
-  function setFlag({ flag, isEnabled }: {
-    flag: FilterFlag;
-    isEnabled: boolean;
-  }) {
+  function setFlag({ flag, isEnabled }: Omit<Parameters<typeof setFilterFlag>[0], "flags">) {
     filter = {
       ...filter,
       flags: setFilterFlag({

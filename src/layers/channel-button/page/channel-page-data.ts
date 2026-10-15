@@ -27,6 +27,7 @@ const pageDataSchema = z.looseObject({
   response: z.unknown().optional(),
   playerResponse: z.unknown().optional()
 });
+type PageData = z.infer<typeof pageDataSchema>;
 
 const videoDetailsSchema = z.looseObject({
   videoDetails: z.looseObject({
@@ -252,10 +253,7 @@ function toChannelInfo(candidate: ChannelInfo) {
   return withoutAvatar.success ? withoutAvatar.data : null;
 }
 
-function readWatchChannel({ response, playerResponse }: {
-  response: unknown;
-  playerResponse: unknown;
-}) {
+function readWatchChannel({ response, playerResponse }: PageData) {
   const parsedDetails = videoDetailsSchema.safeParse(playerResponse);
   const videoDetails = parsedDetails.success ? parsedDetails.data.videoDetails : null;
   const parsedContents = watchContentsSchema.safeParse(response);
@@ -360,13 +358,9 @@ export function readPageChannel({ pageData, kind }: {
     return null;
   }
 
-  const { response, playerResponse } = parsed.data;
   if (kind === PageKind.watch) {
-    return readWatchChannel({
-      response,
-      playerResponse
-    });
+    return readWatchChannel(parsed.data);
   }
 
-  return readChannelPageChannel(response);
+  return readChannelPageChannel(parsed.data.response);
 }

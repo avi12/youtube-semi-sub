@@ -87,10 +87,10 @@ function isSameCache({ previous, next }: {
     && previousChannelIds.every(channelId => previous[channelId] === next[channelId]);
 }
 
-async function storeUploads({ uploadsList, subscriptions }: {
-  uploadsList: ChannelUploads[];
-  subscriptions: SemiSubscriptions;
-}) {
+async function storeUploads({ uploadsList, subscriptions }: Pick<
+  Parameters<typeof applyUploads>[0],
+  "uploadsList" | "subscriptions"
+>) {
   const now = Date.now();
   const cache = await channelVideosItem.getValue();
   const isUnchanged = isSameCache({
@@ -178,7 +178,7 @@ export async function refreshChannels({ channelIds, isForced }: {
   return uploadsList.length > 0;
 }
 
-export async function refreshAllChannels({ isForced }: { isForced: boolean }) {
+export async function refreshAllChannels({ isForced }: Pick<Parameters<typeof refreshChannels>[0], "isForced">) {
   const subscriptions = await semiSubscriptionsItem.getValue();
   return await refreshChannels({
     channelIds: Object.keys(subscriptions),
