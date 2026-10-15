@@ -1,0 +1,48 @@
+@import url("m3-svelte/etc/styles.css");
+@import url("m3-svelte/etc/recommended-styles.css");
+@import url("m3-svelte/etc/livetheme/expressive2025.css");
+
+@function --m3-density(--size) {
+  result: var(--size);
+}
+
+:root {
+  --m3v-source: #6d3cf0;
+  --font-mono: ui-monospace, "Cascadia Mono", "Roboto Mono", "SF Mono", consolas, monospace;
+  --filter-editor-fg: var(--m3c-on-surface);
+  --filter-editor-muted: var(--m3c-on-surface-variant);
+  --filter-editor-accent: var(--m3c-primary);
+  --filter-editor-error: var(--m3c-error);
+  --filter-editor-surface: var(--m3c-surface-container-highest);
+  --filter-editor-border: var(--m3c-outline-variant);
+  --filter-editor-font: var(--m3-font);
+
+  color-scheme: light dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --m3-duration-fast-spatial: 0ms;
+    --m3-duration-spatial: 0ms;
+    --m3-duration-slow-spatial: 0ms;
+    --m3-duration-fast: 0ms;
+    --m3-duration: 0ms;
+    --m3-duration-slow: 0ms;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-inline-size: 380px;
+  margin: 0;
+  background: var(--m3c-surface);
+  color: var(--m3c-on-surface);
+  font: 400 14px / 1.43 var(--m3-font);
+}
+
+.m3-layer:has(> input:focus-visible) {
+  box-shadow: 0 0 0 3px var(--m3c-secondary);
+}

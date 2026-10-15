@@ -8,9 +8,9 @@ export default defineConfig({
     description: "Semi-subscribe to a YouTube channel - only the videos whose titles match your RegExp land in your subscriptions feed",
     permissions: ["storage", "alarms"],
     host_permissions: YOUTUBE_MATCHES,
-    // Floor set by the MAIN-world content script declared via "world": "MAIN" (Chromium 111, Firefox 128)
+    // Floor set by the popup's m3-svelte live theme (relative colour syntax, CSS sign()/abs())
     ...browser === "chrome" && {
-      minimum_chrome_version: "111"
+      minimum_chrome_version: "138"
     },
     ...browser === "firefox" && {
       options_ui: {
