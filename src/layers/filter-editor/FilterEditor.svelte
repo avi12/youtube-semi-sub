@@ -1,9 +1,9 @@
 <script lang="ts">
-  import FilterPreview from "./FilterPreview.svelte";
-  import RegexFilterFields from "./RegexFilterFields.svelte";
   import { previewTitleFilter, type TitleFilterPreview } from "./title-matches";
-  import type { FeedVideo } from "@/lib/feed-video";
-  import type { TitleFilter } from "@/lib/title-filter";
+  import type { TitleFilter } from "@/lib/filter/title-filter";
+  import type { FeedVideo } from "@/lib/schemas/feed-video";
+  import FilterPreview from "#filter-editor/components/FilterPreview.svelte";
+  import RegexFilterFields from "#filter-editor/components/RegexFilterFields.svelte";
 
   interface Props {
     filter: TitleFilter;

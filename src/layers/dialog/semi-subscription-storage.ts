@@ -1,7 +1,7 @@
-import type { ChannelInfo } from "@/lib/channel";
-import type { SemiSubscription } from "@/lib/semi-subscription";
+import type { TitleFilter } from "@/lib/filter/title-filter";
+import type { ChannelInfo } from "@/lib/schemas/channel";
+import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { mutateStorageItem, semiSubscriptionsItem } from "@/lib/storage";
-import type { TitleFilter } from "@/lib/title-filter";
 
 export async function readSemiSubscription(channelId: string) {
   const subscriptions = await semiSubscriptionsItem.getValue();

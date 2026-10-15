@@ -1,7 +1,7 @@
-import rssFeedXml from "./fixtures/rss-feed.xml?raw";
 import { startBackground } from "./index";
-import type { SemiSubscription } from "@/lib/semi-subscription";
+import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
+import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
 import { browser } from "#imports";
 import {
   beforeAll,

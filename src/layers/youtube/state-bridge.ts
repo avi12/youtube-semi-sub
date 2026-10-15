@@ -1,4 +1,4 @@
-import { videosByChannelFromCache } from "@/lib/feed-video";
+import { selectFeedVideos } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import {
   officialSubscriptionChangeSchema,
@@ -6,7 +6,7 @@ import {
   pageMessenger,
   type PageState
 } from "@/lib/messaging/page-messaging";
-import { prefersReducedMotion } from "@/lib/motion";
+import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
 import {
   channelVideosItem,
   isAnimationsEnabledItem,
@@ -14,7 +14,7 @@ import {
   mutateStorageItem,
   semiSubscriptionsItem
 } from "@/lib/storage";
-import { selectFeedVideos } from "@/lib/title-filter";
+import { prefersReducedMotion } from "@/lib/utils/motion";
 import type { ContentScriptContext } from "#imports";
 
 // ISOLATED world: the only page-side context with storage access. It owns the state the MAIN world mirrors

@@ -1,6 +1,6 @@
-import { channelIdSchema } from "@/lib/channel";
-import { channelVideosCacheSchema } from "@/lib/feed-video";
-import { semiSubscriptionsSchema } from "@/lib/semi-subscription";
+import { channelIdSchema } from "@/lib/schemas/channel";
+import { channelVideosCacheSchema } from "@/lib/schemas/feed-video";
+import { semiSubscriptionsSchema } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
 import { storage } from "#imports";
 import type { StorageItemKey } from "wxt/utils/storage";

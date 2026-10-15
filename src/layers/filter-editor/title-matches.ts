@@ -1,5 +1,5 @@
-import type { FeedVideo } from "@/lib/feed-video";
-import { compileTitleFilter, getTitleFilterError, type TitleFilter } from "@/lib/title-filter";
+import { compileTitleFilter, getTitleFilterError, type TitleFilter } from "@/lib/filter/title-filter";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
 
 const GLOBAL_FLAG = "g";
 

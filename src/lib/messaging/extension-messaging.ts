@@ -1,4 +1,4 @@
-import type { FeedVideo } from "@/lib/feed-video";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { defineExtensionMessaging } from "@webext-core/messaging";
 
 export enum MessageType {

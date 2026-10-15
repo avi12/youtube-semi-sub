@@ -2,11 +2,11 @@
   import { isPageDarkTheme } from "./page-theme";
   import { readSemiSubscription, saveSemiSubscription } from "./semi-subscription-storage";
   import { ToastMessage } from "./toast-message";
-  import type { ChannelInfo } from "@/lib/channel";
-  import type { FeedVideo } from "@/lib/feed-video";
+  import { compileTitleFilter, DEFAULT_TITLE_FILTER, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
-  import type { SemiSubscription } from "@/lib/semi-subscription";
-  import { compileTitleFilter, DEFAULT_TITLE_FILTER, type TitleFilter } from "@/lib/title-filter";
+  import type { ChannelInfo } from "@/lib/schemas/channel";
+  import type { FeedVideo } from "@/lib/schemas/feed-video";
+  import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
   import { FilterEditor } from "#filter-editor";
   import { removeSemiSubscription } from "#youtube";
   import { onMount } from "svelte";

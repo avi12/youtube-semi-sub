@@ -1,6 +1,6 @@
 import SemiSubDialog from "./SemiSubDialog.svelte";
-import { type ChannelInfo, channelInfoSchema } from "@/lib/channel";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import { type ChannelInfo, channelInfoSchema } from "@/lib/schemas/channel";
 import { type ContentScriptContext, createShadowRootUi, type ShadowRootContentScriptUi } from "#imports";
 import { mount, unmount } from "svelte";
 

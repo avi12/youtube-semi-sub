@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { videosByChannelFromCache } from "@/lib/feed-video";
+  import { selectFeedVideos } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
-  import { prefersReducedMotion } from "@/lib/motion";
-  import { pluralize } from "@/lib/pluralize";
-  import type { SemiSubscription } from "@/lib/semi-subscription";
+  import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
+  import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
   import {
     channelVideosItem,
     isAnimationsEnabledItem,
@@ -11,7 +10,8 @@
     mutateStorageItem,
     semiSubscriptionsItem
   } from "@/lib/storage";
-  import { selectFeedVideos } from "@/lib/title-filter";
+  import { prefersReducedMotion } from "@/lib/utils/motion";
+  import { pluralize } from "@/lib/utils/pluralize";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
   import ChannelRow from "#popup/ChannelRow.svelte";
   import EmptyState from "#popup/EmptyState.svelte";

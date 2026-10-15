@@ -1,4 +1,4 @@
-/* Live feed insertion (features/feed/feed-flip.ts): a new tile scales and fades into its own slot while the
+/* Live feed insertion (live/feed-flip.ts): a new tile scales and fades into its own slot while the
    tiles around it glide over to make room; a tile that no longer passes its filter dissolves in place first */
 @keyframes yss-feed-enter {
   from {

@@ -1,16 +1,16 @@
-import { getPageKind, type PageChannel, PageKind, readPageChannel } from "./channel-page-data";
-import { buildNativeButtonClasses } from "./native-button-classes";
 import {
   getObservedOfficialSubscription,
   onObservedOfficialSubscriptionChange,
   setObservedOfficialSubscription
 } from "./official-subscription";
-import { findPageAnchor, type PageAnchor, readSubscribeControl } from "./page-anchor";
-import { readIsSignedIn, readPageData, readUrlVideoId } from "./page-data-source";
-import SemiSubButton from "./SemiSubButton.svelte";
 import { onYouTubeNavigate } from "@/lib/youtube/navigation";
 import { getYouTubeSite } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
+import { buildNativeButtonClasses } from "#channel-button/button/native-button-classes";
+import SemiSubButton from "#channel-button/button/SemiSubButton.svelte";
+import { getPageKind, type PageChannel, PageKind, readPageChannel } from "#channel-button/page/channel-page-data";
+import { findPageAnchor, type PageAnchor, readSubscribeControl } from "#channel-button/page/page-anchor";
+import { readIsSignedIn, readPageData, readUrlVideoId } from "#channel-button/page/page-data-source";
 import { mount, unmount } from "svelte";
 
 // MAIN world: keeps one Semi-subscribe button next to YouTube's own Subscribe button, across SPA navigations

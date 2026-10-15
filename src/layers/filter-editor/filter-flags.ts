@@ -1,4 +1,4 @@
-import { ALLOWED_FILTER_FLAGS } from "@/lib/title-filter";
+import { ALLOWED_FILTER_FLAGS } from "@/lib/filter/title-filter";
 
 export type FilterFlag = (typeof ALLOWED_FILTER_FLAGS)[number];
 

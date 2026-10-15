@@ -5,7 +5,7 @@ import {
   partitionPreviewRows,
   previewTitleFilter
 } from "./title-matches";
-import type { FeedVideo } from "@/lib/feed-video";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UC0123456789abcdefghijkl";

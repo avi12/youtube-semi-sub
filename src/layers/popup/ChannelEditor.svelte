@@ -1,10 +1,10 @@
 <script lang="ts">
   import { DELETE_ICON } from "./icons";
-  import type { FeedVideo } from "@/lib/feed-video";
+  import { compileTitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
-  import type { SemiSubscription } from "@/lib/semi-subscription";
+  import type { FeedVideo } from "@/lib/schemas/feed-video";
+  import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
   import { mutateStorageItem, semiSubscriptionsItem } from "@/lib/storage";
-  import { compileTitleFilter } from "@/lib/title-filter";
   import { FilterEditor } from "#filter-editor";
   import { Button, ConnectedButtons, Icon } from "m3-svelte";
   import { onMount, untrack } from "svelte";

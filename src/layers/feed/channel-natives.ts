@@ -1,6 +1,6 @@
-import { rendererFromGridItem, videoIdFromGridItem, type VideoRenderer } from "./feed-items";
-import { browseResponseSchema } from "./feed-schemas";
 import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/innertube";
+import { rendererFromGridItem, videoIdFromGridItem, type VideoRenderer } from "#feed/items/feed-items";
+import { browseResponseSchema } from "#feed/items/feed-schemas";
 
 // A channel's Videos tab, fetched with the page's own client so its renderers match what this client renders
 // (lockupViewModel on www, compactVideoRenderer on m). Cached per page session

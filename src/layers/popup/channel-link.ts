@@ -1,4 +1,4 @@
-import type { ChannelInfo } from "@/lib/channel";
+import type { ChannelInfo } from "@/lib/schemas/channel";
 
 const YOUTUBE_ORIGIN = "https://www.youtube.com";
 const HANDLE_PREFIX = "@";

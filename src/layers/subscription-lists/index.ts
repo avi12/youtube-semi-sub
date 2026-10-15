@@ -1,11 +1,11 @@
-import { startChannelsPageList } from "./channels-page";
-import { startGuideEntries } from "./guide";
-import { installGuideResponseHook } from "./guide-response-hook";
 import { listsView } from "./lists-view.svelte";
-import { startMobileLists } from "./mobile-lists";
 import { listSemiSubscriptions } from "./semi-channels";
 import { onPageState } from "@/lib/page/page-state";
 import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
+import { startChannelsPageList } from "#subscription-lists/channels-page/channels-page";
+import { startGuideEntries } from "#subscription-lists/guide/guide";
+import { installGuideResponseHook } from "#subscription-lists/guide/guide-response-hook";
+import { startMobileLists } from "#subscription-lists/mobile/mobile-lists";
 
 /** MAIN world, document_start: patch guide responses before YouTube reads them (m.youtube.com has no guide) */
 export function installSubscriptionListsHook() {

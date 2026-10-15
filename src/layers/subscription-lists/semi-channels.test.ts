@@ -1,6 +1,6 @@
 import { getChannelPath, listSemiSubscriptions, toChannelInfo } from "./semi-channels";
 import type { PageState } from "@/lib/messaging/page-messaging";
-import type { SemiSubscription } from "@/lib/semi-subscription";
+import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { describe, expect, it } from "vitest";
 
 function buildSubscription({ channelId, title }: {

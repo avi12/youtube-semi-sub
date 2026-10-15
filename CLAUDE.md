@@ -2,7 +2,7 @@
 A browser extension that lets the user **semi-subscribe** to a YouTube channel: an unofficial "Semi-subscribe" button next to YouTube's own Subscribe button opens a dialog where the user sets a RegExp title filter. Only that channel's videos whose titles match the filter are inserted - animated - into the user's subscriptions feed (`/feed/subscriptions`). Works on `www.youtube.com` and `m.youtube.com`.
 
 # Architecture
-Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `entrypoints/` (if any) and exposes what other layers use through an `index.ts` barrel, imported as `#<name>`. Inside a layer, import its own files as `#<name>/...` (same directory: `./`); across layers only through the barrel. Code shared by several layers lives in `src/lib` (`@/lib/...`).
+Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `entrypoints/` (if any) and exposes what other layers use through an `index.ts` barrel, imported as `#<name>`. Inside a layer, import its own files as `#<name>/...` (same directory: `./`); across layers only through the barrel. Code shared by several layers lives in `src/lib` (`@/lib/...`): `schemas/` (the core data shapes), `filter/`, `messaging/`, `page/`, `youtube/` (InnerTube and page APIs), `utils/`, plus `storage.ts` and `zod.ts`. A directory past about 8 files is split into meaningful subfolders.
 - `background` - polls each semi-subscribed channel's uploads (RSS) on an alarm and caches them, unfiltered, in `local:channelVideos`. The only context that talks to the network outside the page. Its entrypoint stays at `src/entrypoints/background.ts`: wxt-module-layers turns any layer `background` entrypoint into its own virtual aggregate background.
 - `youtube` - the content scripts, composing the in-page layers (named in its `layer.config.ts`, so the output names stay `content-scripts/<name>.js`):
   - `bridge.content` - ISOLATED world, `document_start`. The only page-side context with storage access. `state-bridge.ts` computes `PageState` (settings + subscriptions + the filtered feed videos) and pushes it to the MAIN world on every storage change. Also mounts the dialog (`#dialog`).
@@ -17,7 +17,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - Message channels:
   - background <-> extension pages/ISOLATED: `@/lib/messaging/extension-messaging` (`defineExtensionMessaging`)
   - ISOLATED <-> MAIN: `@/lib/messaging/page-messaging` (`defineCustomEventMessaging`, namespace `youtube-semi-sub`)
-- Filtering lives in exactly one place: `selectFeedVideos` in `@/lib/title-filter`. Storage holds unfiltered uploads, so a filter edit applies instantly without a refetch.
+- Filtering lives in exactly one place: `selectFeedVideos` in `@/lib/filter/title-filter`. Storage holds unfiltered uploads, so a filter edit applies instantly without a refetch.
 
 # Constraints
 - The Semi-subscribe button only appears for channels the user is **not** subscribed to. Pressing YouTube's own Subscribe on a semi-subscribed channel removes the semi-subscription (the full subscription supersedes it).
@@ -85,7 +85,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 
 # CSS
 - Use native CSS nesting
-- Always respect `prefers-reduced-motion` - never ship an ungated transition/animation. In JS read `prefersReducedMotion()` from `@/lib/motion`
+- Always respect `prefers-reduced-motion` - never ship an ungated transition/animation. In JS read `prefersReducedMotion()` from `@/lib/utils/motion`
 - Never the `transform` shorthand - use the individual `translate`/`rotate`/`scale` properties
 - Never hand-write vendor prefixes
 - On YouTube, style with YouTube's own tokens (`--yt-sys-color-baseline--*`, `--yt-spec-*`) with fallbacks, so injected UI follows its light/dark theme

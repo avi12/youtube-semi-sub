@@ -1,4 +1,4 @@
-import { prefersReducedMotion } from "@/lib/motion";
+import { prefersReducedMotion } from "@/lib/utils/motion";
 import type { AnimationConfig } from "svelte/animate";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";

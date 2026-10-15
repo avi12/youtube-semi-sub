@@ -2,9 +2,9 @@
   import { formatHandle, getChannelUrl } from "./channel-link";
   import ChannelEditor from "./ChannelEditor.svelte";
   import { EDIT_ICON, OPEN_IN_NEW_ICON } from "./icons";
-  import type { ChannelVideos } from "@/lib/feed-video";
-  import { pluralize } from "@/lib/pluralize";
-  import type { SemiSubscription } from "@/lib/semi-subscription";
+  import type { ChannelVideos } from "@/lib/schemas/feed-video";
+  import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import { pluralize } from "@/lib/utils/pluralize";
   import { Button, Icon } from "m3-svelte";
   import { tick } from "svelte";
 

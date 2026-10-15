@@ -1,9 +1,9 @@
 import { findLoadedAvatarUrl, findNativeRenderer, loadChannelNatives } from "./channel-natives";
-import { planFeedBand } from "./feed-band";
-import { composeFeedContents } from "./feed-compose";
-import type { FeedVideo } from "@/lib/feed-video";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { planFeedBand } from "#feed/compose/feed-band";
+import { composeFeedContents } from "#feed/compose/feed-compose";
 
 // Page-session glue between the pure feed composition and the live page: the extension state, the natives cache,
 // and the ids this page session inserted (the only feed videos it may later take out)

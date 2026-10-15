@@ -1,5 +1,5 @@
-import { channelIdSchema } from "@/lib/channel";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import { channelIdSchema } from "@/lib/schemas/channel";
 import { z } from "@/lib/zod";
 
 // MAIN world: what this tab saw the user do with YouTube's own Subscribe button, newest first in line

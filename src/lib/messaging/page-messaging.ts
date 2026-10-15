@@ -1,6 +1,6 @@
-import type { ChannelInfo } from "@/lib/channel";
-import { feedVideoSchema } from "@/lib/feed-video";
-import { semiSubscriptionsSchema } from "@/lib/semi-subscription";
+import type { ChannelInfo } from "@/lib/schemas/channel";
+import { feedVideoSchema } from "@/lib/schemas/feed-video";
+import { semiSubscriptionsSchema } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
 import { defineCustomEventMessaging } from "@webext-core/messaging/page";
 
@@ -17,7 +17,7 @@ export const officialSubscriptionChangeSchema = z.object({
   channelId: z.string(),
   isSubscribed: z.boolean()
 });
-export type OfficialSubscriptionChange = z.infer<typeof officialSubscriptionChangeSchema>;
+type OfficialSubscriptionChange = z.infer<typeof officialSubscriptionChangeSchema>;
 
 export enum PageMessage {
   getPageState = "getPageState",

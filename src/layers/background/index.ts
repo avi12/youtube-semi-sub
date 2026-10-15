@@ -1,15 +1,15 @@
+import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
+import { channelIdSchema } from "@/lib/schemas/channel";
+import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { semiSubscriptionsItem } from "@/lib/storage";
+import { z } from "@/lib/zod";
 import {
   pruneChannelCaches,
   refreshAllChannels,
   refreshChannel,
   refreshChannels,
   UPLOADS_UNAVAILABLE_ERROR
-} from "./channel-cache";
-import { channelIdSchema } from "@/lib/channel";
-import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
-import type { SemiSubscriptions } from "@/lib/semi-subscription";
-import { semiSubscriptionsItem } from "@/lib/storage";
-import { z } from "@/lib/zod";
+} from "#background/cache/channel-cache";
 import { browser } from "#imports";
 
 const REFRESH_ALARM_NAME = "refresh-channels";
