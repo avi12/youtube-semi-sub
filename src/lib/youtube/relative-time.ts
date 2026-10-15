@@ -121,11 +121,13 @@ function createRelativeTimeFormat(locale: string) {
   }
 }
 
-/** "3 hours ago" in the page's language, for a tile built without YouTube's own published text */
-export function formatRelativeTime({ time, now, locale }: {
+const DEFAULT_LOCALE = "en";
+
+/** "3 hours ago" like YouTube's own upload dates, in the page's language when given */
+export function formatRelativeTime({ time, now, locale = DEFAULT_LOCALE }: {
   time: number;
   now: number;
-  locale: string;
+  locale?: string;
 }) {
   const elapsed = Math.max(0, now - time);
   const unit = UNITS_LARGEST_FIRST.find(candidate => elapsed >= MILLISECONDS_BY_UNIT[candidate]) ?? TimeUnit.second;
