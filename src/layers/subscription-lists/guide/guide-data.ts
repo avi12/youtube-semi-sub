@@ -360,7 +360,8 @@ export function patchGuideResponse({ response, entries }: {
 function collectSubscribedChannelIds(root: unknown) {
   const channelIds = new Set<string>();
   const pending = [root];
-  for (let value = pending.pop(); value !== undefined; value = pending.pop()) {
+  while (pending.length > 0) {
+    const value = pending.pop();
     if (typeof value !== "object" || value === null) {
       continue;
     }
