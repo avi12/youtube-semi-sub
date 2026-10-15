@@ -1,9 +1,12 @@
 <script lang="ts">
   import { ButtonLabel } from "./button-label";
   import type { NativeButtonClasses } from "./native-button-classes";
+  import { isHidingNothing } from "@/lib/filter/title-filter";
   import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
   import { getPageState, onPageState } from "@/lib/page/page-state";
   import type { ChannelInfo } from "@/lib/schemas/channel";
+  import { getModeFilter } from "@/lib/schemas/semi-subscription";
+  import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import {
     ButtonViewModelIcon,
     ButtonViewModelSize,
@@ -49,31 +52,69 @@
     pageState = state;
   }));
 
-  const isSemiSubscribed = $derived(!!pageState && Object.hasOwn(pageState.subscriptions, channel.channelId));
-  const isVisible = $derived(!!pageState?.isExtensionEnabled && !isOfficiallySubscribed);
-  const label = $derived.by(() => {
-    if (isSemiSubscribed) {
-      return ButtonLabel.semiSubscribed;
+  const BUTTON_TEXT = {
+    [SubscriptionMode.follow]: {
+      label: ButtonLabel.semiSubscribe,
+      activeLabel: ButtonLabel.semiSubscribed,
+      accessibilityText: (title: string) => `Semi-subscribe to ${title}`,
+      activeAccessibilityText: (title: string) => `Edit your semi-subscription to ${title}`
+    },
+    [SubscriptionMode.hide]: {
+      label: ButtonLabel.filter,
+      activeLabel: ButtonLabel.filtered,
+      accessibilityText: (title: string) => `Hide some of ${title}'s videos from your subscriptions feed`,
+      activeAccessibilityText: (title: string) => `Edit what's hidden from ${title} in your subscriptions feed`
+    }
+  } as const;
+
+  const subscription = $derived(pageState?.subscriptions[channel.channelId]);
+  /** The channel's mode as the page shows it: the Subscribe button outranks the stored state, which follows it */
+  const mode = $derived.by(() => {
+    if (isOfficiallySubscribed) {
+      return SubscriptionMode.hide;
     }
 
-    return ButtonLabel.semiSubscribe;
+    return SubscriptionMode.follow;
+  });
+  /** Semi-subscribed while following; while subscribed, hiding something */
+  const isActive = $derived.by(() => {
+    if (!subscription) {
+      return false;
+    }
+
+    return !isHidingNothing({
+      filter: getModeFilter({
+        subscription,
+        mode
+      }),
+      mode
+    });
+  });
+  const buttonText = $derived(BUTTON_TEXT[mode]);
+  const isVisible = $derived(!!pageState?.isExtensionEnabled);
+  const label = $derived.by(() => {
+    if (isActive) {
+      return buttonText.activeLabel;
+    }
+
+    return buttonText.label;
   });
   const accessibilityText = $derived.by(() => {
-    if (isSemiSubscribed) {
-      return `Edit your semi-subscription to ${channel.title}`;
+    if (isActive) {
+      return buttonText.activeAccessibilityText(channel.title);
     }
 
-    return `Semi-subscribe to ${channel.title}`;
+    return buttonText.accessibilityText(channel.title);
   });
   const nativeButtonClass = $derived.by(() => {
-    if (isSemiSubscribed) {
+    if (isActive) {
       return nativeButtonClasses.buttonWithIcon;
     }
 
     return nativeButtonClasses.button;
   });
   const iconName = $derived.by(() => {
-    if (isSemiSubscribed) {
+    if (isActive) {
       return ButtonViewModelIcon.filter;
     }
 
@@ -130,7 +171,7 @@
         aria-label={accessibilityText}
         onclick={openDialog}
         type="button">
-        {#if isSemiSubscribed}
+        {#if isActive}
           <div class={[nativeButtonClasses.icon, "yss-channel-button__icon"]} aria-hidden="true">
             <svg focusable="false" viewBox="0 0 24 24">
               <path d={FILTER_ICON_PATH} />
