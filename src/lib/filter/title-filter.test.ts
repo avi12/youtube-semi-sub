@@ -8,6 +8,7 @@ import {
   getTitleFilterError,
   isTitleFilterValid,
   selectFeedVideos,
+  selectHiddenVideoIds,
   type TitleFilter
 } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
@@ -280,5 +281,107 @@ describe("selectFeedVideos", () => {
       });
       expect(selected).toEqual([]);
     });
+  });
+});
+
+describe("selectHiddenVideoIds", () => {
+  const videos = [
+    createVideo({
+      videoId: "aaaaaaaaaaa",
+      channelId: CHANNEL_ID,
+      title: "Phone review",
+      publishedAt: HOUR_MS
+    }),
+    createVideo({
+      videoId: "bbbbbbbbbbb",
+      channelId: CHANNEL_ID,
+      title: "Vlog",
+      publishedAt: 2 * HOUR_MS
+    }),
+    createVideo({
+      videoId: "ccccccccccc",
+      channelId: CHANNEL_ID,
+      title: "Livestream",
+      publishedAt: 3 * HOUR_MS
+    })
+  ];
+  const videosByChannel = {
+    [CHANNEL_ID]: videos
+  };
+
+  function subscribedWith(hideFilter: TitleFilter) {
+    const subscriptions: SemiSubscriptions = {
+      [CHANNEL_ID]: {
+        channelId: CHANNEL_ID,
+        title: "Channel",
+        followFilter: DEFAULT_TITLE_FILTER,
+        hideFilter,
+        createdAt: 0,
+        isSubscribed: true
+      }
+    };
+    return subscriptions;
+  }
+
+  it("hides a subscribed channel's uploads whose title its hide filter matches", () => {
+    expect(
+      selectHiddenVideoIds({
+        subscriptions: subscribedWith({
+          kind: FilterKind.regex,
+          pattern: "vlog|live",
+          flags: "i"
+        }),
+        videosByChannel,
+        aiVerdicts: {},
+        isAiEnabled: false
+      })
+    ).toEqual(["bbbbbbbbbbb", "ccccccccccc"]);
+  });
+
+  it("hides nothing with an empty hide filter, though an empty follow filter lets everything through", () => {
+    expect(
+      selectHiddenVideoIds({
+        subscriptions: subscribedWith(DEFAULT_TITLE_FILTER),
+        videosByChannel,
+        aiVerdicts: {},
+        isAiEnabled: false
+      })
+    ).toEqual([]);
+  });
+
+  it("hides nothing from a channel the user follows without subscribing", () => {
+    expect(
+      selectHiddenVideoIds({
+        subscriptions: createRegexSubscriptions("review"),
+        videosByChannel,
+        aiVerdicts: {},
+        isAiEnabled: false
+      })
+    ).toEqual([]);
+  });
+
+  it("hides on a true AI verdict only - a pending video stays, and so does everything while AI match is off", () => {
+    const aiVerdicts: AiVerdicts = {
+      [getAiFilterKey(AI_FILTER)]: {
+        aaaaaaaaaaa: true,
+        bbbbbbbbbbb: false
+      }
+    };
+    expect(
+      selectHiddenVideoIds({
+        subscriptions: subscribedWith(AI_FILTER),
+        videosByChannel,
+        aiVerdicts,
+        isAiEnabled: true
+      })
+    ).toEqual(["aaaaaaaaaaa"]);
+    expect(
+      selectHiddenVideoIds({
+        subscriptions: subscribedWith(AI_FILTER),
+        videosByChannel,
+        aiVerdicts,
+        isAiEnabled: false
+      })
+    ).toEqual([]);
   });
 });

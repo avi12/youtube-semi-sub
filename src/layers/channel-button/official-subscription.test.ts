@@ -145,7 +145,8 @@ describe("applySubscriptionSnapshot", () => {
       isAiEnabled: false,
       aiVerdicts: {},
       subscriptions: Object.fromEntries(subscriptions.map(subscription => [subscription.channelId, subscription])),
-      feedVideos: []
+      feedVideos: [],
+      hiddenVideoIds: []
     };
     for (const listener of pageStateListeners.splice(0)) {
       listener(state);

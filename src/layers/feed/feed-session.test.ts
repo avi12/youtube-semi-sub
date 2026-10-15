@@ -54,7 +54,8 @@ function pageState({ isSubscribed, feedVideos, filter = KEEP_FILTER, isAiEnabled
         isSubscribed
       }
     },
-    feedVideos
+    feedVideos,
+    hiddenVideoIds: []
   };
   return state;
 }

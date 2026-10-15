@@ -1,5 +1,5 @@
 import type { ChannelInfo } from "@/lib/schemas/channel";
-import { feedVideoSchema } from "@/lib/schemas/feed-video";
+import { feedVideoSchema, videoIdSchema } from "@/lib/schemas/feed-video";
 import { storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
 import { defineCustomEventMessaging } from "@webext-core/messaging/page";
@@ -13,8 +13,10 @@ export const pageStateSchema = storedStateSchema
     aiVerdicts: true
   })
   .extend({
-    /** The semi-subscribed videos that pass their channel's filter, newest first */
-    feedVideos: z.array(feedVideoSchema)
+    /** The followed channels' videos that pass their follow filter, newest first */
+    feedVideos: z.array(feedVideoSchema),
+    /** The subscribed channels' cached uploads their hide filter hides - Shorts included, which name no channel */
+    hiddenVideoIds: z.array(videoIdSchema)
   });
 export type PageState = z.infer<typeof pageStateSchema>;
 

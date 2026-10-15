@@ -1,4 +1,4 @@
-import { selectFeedVideos } from "@/lib/filter/title-filter";
+import { selectFeedVideos, selectHiddenVideoIds } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import {
   officialSubscriptionChangeSchema,
@@ -34,18 +34,20 @@ async function readPageState() {
     channelVideos,
     aiVerdicts
   } = await readStoredState();
+  const filterInput = {
+    subscriptions,
+    videosByChannel: videosByChannelFromCache(channelVideos),
+    aiVerdicts,
+    isAiEnabled
+  };
   const state: PageState = {
     isExtensionEnabled,
     isAnimationsEnabled: isAnimationsEnabled && !prefersReducedMotion(),
     isAiEnabled,
     subscriptions,
     aiVerdicts,
-    feedVideos: selectFeedVideos({
-      subscriptions,
-      videosByChannel: videosByChannelFromCache(channelVideos),
-      aiVerdicts,
-      isAiEnabled
-    })
+    feedVideos: selectFeedVideos(filterInput),
+    hiddenVideoIds: selectHiddenVideoIds(filterInput)
   };
   return state;
 }

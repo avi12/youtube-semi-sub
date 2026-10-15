@@ -168,6 +168,7 @@ beforeEach(() => {
     isAiEnabled: false,
     aiVerdicts: {},
     subscriptions: {},
+    hiddenVideoIds: [],
     feedVideos: [
       feedVideo({
         index: 50,

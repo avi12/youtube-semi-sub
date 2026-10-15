@@ -2,6 +2,7 @@ import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import type { StoredState } from "@/lib/schemas/stored-state";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";
 
 export enum FilterKind {
@@ -139,9 +140,38 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
   });
 }
 
+/** A hide filter left empty hides nothing - where an empty follow filter lets every video through */
+function isHidingNothing({ filter, mode }: {
+  filter: TitleFilter;
+  mode: SubscriptionMode;
+}) {
+  return mode === SubscriptionMode.hide && filter.kind === FilterKind.regex && filter.pattern === "";
+}
+
+function judgeNoMatch() {
+  return MatchState.doesNotMatch;
+}
+
+/** `createVideoJudge` for a mode's filter: an empty hide filter matches no video */
+function createModeJudge({ filter, mode, ...context }: Parameters<typeof createVideoJudge>[0] & {
+  mode: SubscriptionMode;
+}) {
+  if (isHidingNothing({
+    filter,
+    mode
+  })) {
+    return judgeNoMatch;
+  }
+
+  return createVideoJudge({
+    filter,
+    ...context
+  });
+}
+
 /**
- * The one place the feed is filtered: a video lands only on a definite match of its channel's follow filter, never
- * while pending or paused, nor from a channel the user is subscribed to
+ * One of the two places the feed is filtered: a video lands only on a definite match of its channel's follow filter,
+ * never while pending or paused, nor from a channel the user is subscribed to
  */
 export function selectFeedVideos({ subscriptions, videosByChannel, ...context }: AiJudgeContext & {
   subscriptions: SemiSubscriptions;
@@ -166,4 +196,33 @@ export function selectFeedVideos({ subscriptions, videosByChannel, ...context }:
     }
   }
   return sortNewestFirst([...selectedById.values()]);
+}
+
+/**
+ * The other place the feed is filtered: the cached uploads each subscribed channel's hide filter hides. Only a
+ * definite match hides a video - one still waiting for its AI verdict stays, and so does everything while the filter
+ * is paused
+ */
+export function selectHiddenVideoIds({ subscriptions, videosByChannel, ...context }: Parameters<
+  typeof selectFeedVideos
+>[0]) {
+  const hiddenIds = new Set<string>();
+  for (const channelId in subscriptions) {
+    const subscription = subscriptions[channelId];
+    const judge = subscription?.isSubscribed && createModeJudge({
+      filter: subscription.hideFilter,
+      mode: SubscriptionMode.hide,
+      ...context
+    });
+    if (!judge) {
+      continue;
+    }
+
+    for (const video of videosByChannel[channelId] ?? []) {
+      if (judge(video) === MatchState.matches) {
+        hiddenIds.add(video.videoId);
+      }
+    }
+  }
+  return [...hiddenIds];
 }
