@@ -31,7 +31,10 @@
         <p class="yss-channel__metadata" dir="auto">{formatHandle(subscription.handle)}</p>
       {/if}
       <p class="yss-channel__filter">
-        <FilterLiteral filter={subscription.filter} isAiEnabled={listsView.isAiEnabled} />
+        <FilterLiteral
+          filter={subscription.filter}
+          isAiEnabled={listsView.isAiEnabled}
+          isHalted={subscription.isHalted} />
       </p>
     </a>
 

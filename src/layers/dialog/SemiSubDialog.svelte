@@ -153,6 +153,10 @@
         Only the videos your filter lets through land in your subscriptions feed
       </p>
 
+      {#if storedSubscription?.isHalted}
+        <p class="notice">Paused - you're subscribed, so this kicks back in once you unsubscribe</p>
+      {/if}
+
       {#if isLoadFailed}
         <p class="notice" role="alert">
           <span>Couldn't load this channel's recent videos, so there's nothing to preview yet</span>

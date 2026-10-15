@@ -20,7 +20,10 @@
           <ChannelAvatar {subscription} />
           <span class="yss-m-channel__text">
             <span class="yss-m-channel__title" dir="auto">{subscription.title}</span>
-            <FilterLiteral filter={subscription.filter} isAiEnabled={listsView.isAiEnabled} />
+            <FilterLiteral
+              filter={subscription.filter}
+              isAiEnabled={listsView.isAiEnabled}
+              isHalted={subscription.isHalted} />
           </span>
         </a>
         <button

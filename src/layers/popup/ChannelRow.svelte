@@ -28,6 +28,8 @@
     onRemove
   }: Props = $props();
 
+  const HALTED_SUMMARY = "Paused - you're subscribed";
+
   const id = $props.id();
   const editorId = `${id}-editor`;
   let elEditToggle = $state<HTMLInputElement>();
@@ -52,6 +54,10 @@
   const pendingCount = $derived(matchStates.filter(matchState => matchState === MatchState.pending).length);
   const initial = $derived(getChannelInitial(subscription.title));
   const matchSummary = $derived.by(() => {
+    if (subscription.isHalted) {
+      return HALTED_SUMMARY;
+    }
+
     if (isPaused) {
       return "Paused - AI match is off";
     }
