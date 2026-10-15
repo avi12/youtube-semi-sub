@@ -213,6 +213,16 @@ const tsStyleRules = {
       message: "Use a for-in loop instead of for-of Object.keys()."
     },
     {
+      // Data shapes come from zod schemas (z.infer), so they are validated at runtime, not only trusted by TypeScript
+      selector: "TSTypeAliasDeclaration > TSTypeLiteral",
+      message: "Define a zod schema and derive the type with z.infer instead of a hand-written object type."
+    },
+    {
+      // Interfaces stay for behaviour (method signatures: protocol maps, element APIs), global augmentation and Props
+      selector: "TSInterfaceDeclaration[id.name!='Props']:not(TSModuleBlock > TSInterfaceDeclaration):not(:has(TSMethodSignature))",
+      message: "Define a zod schema and derive the type with z.infer instead of a data-only interface."
+    },
+    {
       selector: "MemberExpression[object.name='Reflect']",
       message: "Do not use Reflect. Use direct property access instead."
     },

@@ -54,6 +54,7 @@ A browser extension that lets the user **semi-subscribe** to a YouTube channel: 
 - Extract an `if`/ternary/guard condition into a descriptive `is`-prefixed boolean
 - Always prefer the `@` path alias over parent-relative (`../`) imports; same-directory `./foo` stays relative
 - No `as` casts (oxlint `consistent-type-assertions: never`) - narrow with zod guards or type predicates
+- Zod first, never TypeScript alone: every data shape is a zod schema with its type derived via `z.infer` - no hand-written object type aliases or data-only interfaces (lint-enforced). Interfaces remain only for behaviour (method signatures such as protocol maps and element APIs), `declare global` augmentation and Svelte `Props`. Validate at every boundary: storage (`defineSchemaItem` in `@/lib/storage` validates every read and write), messages, InnerTube/RSS/DOM data and model output. Reuse zod objects: one schema per shape, and derive variants from it (`.extend`, `.pick`, `.omit`, `.partial`, shared sub-schemas such as InnerTube text/thumbnail/endpoint pieces in `@/lib/youtube`) instead of redefining a shape that already exists
 
 # Naming conventions
 - Variables and functions: `camelCase`, full words (no abbreviations)
