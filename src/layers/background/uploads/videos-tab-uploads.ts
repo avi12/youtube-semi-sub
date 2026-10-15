@@ -118,7 +118,10 @@ export function extractInitialData(html: string) {
   return initialData && parseJson(initialData.json);
 }
 
-/** Reads the uploads of a channel's Videos tab (newest first); publish times are approximated from relative text */
+/**
+ * Reads the uploads of a channel's Videos tab (newest first); publish times are approximated from relative text. The
+ * tab never lists Shorts
+ */
 export function parseVideosTab({ response, now }: {
   response: unknown;
   now: number;
@@ -150,7 +153,8 @@ export function parseVideosTab({ response, now }: {
         timeTexts: upload.timeTexts,
         now
       }),
-      thumbnailUrl: buildVideoThumbnailUrl(upload.videoId)
+      thumbnailUrl: buildVideoThumbnailUrl(upload.videoId),
+      isShort: false
     });
     if (video.success) {
       videos.push(video.data);

@@ -48,7 +48,7 @@ describe("startBackground", () => {
       [CHANNEL_ID]: SUBSCRIPTION
     });
     await vi.waitFor(async () => {
-      expect((await channelVideosItem.getValue())[CHANNEL_ID]?.videos).toHaveLength(3);
+      expect((await channelVideosItem.getValue())[CHANNEL_ID]?.videos).toHaveLength(4);
     });
 
     await semiSubscriptionsItem.setValue({});

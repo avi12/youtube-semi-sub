@@ -13,6 +13,8 @@ export const feedVideoSchema = z.object({
   title: z.string(),
   publishedAt: z.number(),
   thumbnailUrl: z.url(),
+  /** A Short belongs in the feed's Shorts shelf, never among its regular videos */
+  isShort: z.boolean(),
   /** RSS only, cleaned up and cut to `VIDEO_DESCRIPTION_MAX_LENGTH` - what AI match reads besides the title */
   description: z.string().max(VIDEO_DESCRIPTION_MAX_LENGTH).optional()
 });

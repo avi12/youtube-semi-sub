@@ -18,7 +18,8 @@ function createVideo(i: number) {
     channelTitle: "Channel",
     title: i % 2 === 0 ? `Review ${i}` : `Vlog ${i}`,
     publishedAt: i,
-    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    isShort: false
   };
   return video;
 }

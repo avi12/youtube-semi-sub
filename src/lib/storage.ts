@@ -6,7 +6,22 @@ import { storage } from "#imports";
 import type { StorageItemKey, WxtStorageItemOptions } from "wxt/utils/storage";
 
 const SEMI_SUBSCRIPTIONS_VERSION = 3;
-const CHANNEL_VIDEOS_VERSION = 1;
+/**
+ * The cached uploads' shape. v2 marks Shorts, which a cache from before can't tell apart. A cache is refilled from the
+ * network, so an upgrade drops it - together with the refresh throttle that guards it, so it is refetched at once
+ */
+const CHANNEL_VIDEOS_VERSION = 2;
+
+function dropOutdatedCache() {
+  return {};
+}
+
+const CHANNEL_CACHE_VERSIONING = {
+  version: CHANNEL_VIDEOS_VERSION,
+  migrations: {
+    2: dropOutdatedCache
+  }
+};
 
 /**
  * A storage item whose type comes from its zod schema: every read (getValue, watch) is validated and falls back on a
@@ -60,7 +75,7 @@ export const channelVideosItem = defineSchemaItem({
   key: "local:channelVideos",
   schema: storedStateSchema.shape.channelVideos,
   fallback: {},
-  version: CHANNEL_VIDEOS_VERSION
+  ...CHANNEL_CACHE_VERSIONING
 });
 
 /**
@@ -70,7 +85,8 @@ export const channelVideosItem = defineSchemaItem({
 export const channelCheckedAtItem = defineSchemaItem({
   key: "local:channelCheckedAt",
   schema: z.record(channelIdSchema, z.number()),
-  fallback: {}
+  fallback: {},
+  ...CHANNEL_CACHE_VERSIONING
 });
 
 export const isExtensionEnabledItem = defineSchemaItem({

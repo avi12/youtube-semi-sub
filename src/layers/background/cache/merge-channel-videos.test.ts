@@ -17,7 +17,8 @@ function createVideo({ videoId, publishedAt, title = `Video ${videoId}` }: {
     channelTitle: "Channel",
     title,
     publishedAt,
-    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    isShort: false
   };
   return video;
 }

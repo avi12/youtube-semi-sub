@@ -13,16 +13,18 @@ function buildFeed(entries: string) {
 </feed>`;
 }
 
-function buildEntry({ videoId, title, group = "" }: {
+function buildEntry({ videoId, title, group = "", link = "" }: {
   videoId: string;
   title: string;
   group?: string;
+  link?: string;
 }) {
   return `<entry>
   <id>yt:video:${videoId}</id>
   <yt:videoId>${videoId}</yt:videoId>
   <yt:channelId>${CHANNEL_ID}</yt:channelId>
   <title>${title}</title>
+  ${link}
   <author><name>Channel &amp; Friends</name></author>
   <published>2026-10-01T10:00:00+00:00</published>
   ${group}
@@ -32,7 +34,7 @@ function buildEntry({ videoId, title, group = "" }: {
 describe("parseRssFeed", () => {
   it("reads every entry of a real feed, newest first", () => {
     const videos = parseRssFeed(rssFeedXml);
-    expect(videos?.map(video => video.videoId)).toEqual(["QVv3mQzlrN0", "_0G4OG39XjI", "3iRUwVzRDZQ"]);
+    expect(videos?.map(video => video.videoId)).toEqual(["QVv3mQzlrN0", "_0G4OG39XjI", "3iRUwVzRDZQ", "R6yNUnRXZ64"]);
     expect(videos?.[0]).toEqual({
       videoId: "QVv3mQzlrN0",
       channelId: CHANNEL_ID,
@@ -40,8 +42,30 @@ describe("parseRssFeed", () => {
       title: "Apple Homeview Impressions: Not Convinced!",
       publishedAt: Date.parse("2026-10-13T22:42:38+00:00"),
       thumbnailUrl: "https://i2.ytimg.com/vi/QVv3mQzlrN0/hqdefault.jpg",
+      isShort: false,
       description: "New Smart home display from Apple. With plenty of quirks and features."
     });
+  });
+
+  it("tells a Short by the /shorts/ link YouTube gives it", () => {
+    const videos = parseRssFeed(rssFeedXml);
+    expect(videos?.map(video => video.isShort)).toEqual([false, false, false, true]);
+  });
+
+  it.each([
+    ["<link rel=\"alternate\" href=\"https://www.youtube.com/shorts/abcdefghijk\"/>", true],
+    ["<link rel=\"alternate\" href=\"https://www.youtube.com/watch?v=abcdefghijk\"/>", false],
+    ["<link rel=\"alternate\" href=\"not a url\"/>", false],
+    ["", false]
+  ])("reads %j as isShort %j", (link, isShort) => {
+    const xml = buildFeed(
+      buildEntry({
+        videoId: "abcdefghijk",
+        title: "Upload",
+        link
+      })
+    );
+    expect(parseRssFeed(xml)?.[0]?.isShort).toBe(isShort);
   });
 
   it("reads a single-entry feed, decoding entities and falling back to the canonical thumbnail", () => {
@@ -58,7 +82,8 @@ describe("parseRssFeed", () => {
         channelTitle: "Channel & Friends",
         title: "Tom & Jerry \"live\" <3 it's ☺",
         publishedAt: Date.parse("2026-10-01T10:00:00+00:00"),
-        thumbnailUrl: "https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg"
+        thumbnailUrl: "https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg",
+        isShort: false
       }
     ]);
   });

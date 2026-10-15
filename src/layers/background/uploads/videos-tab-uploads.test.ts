@@ -71,7 +71,8 @@ describe("parseVideosTab", () => {
       channelTitle: "Marques Brownlee",
       title: "Apple Homeview Impressions: Not Convinced!",
       publishedAt: NOW - DAY_MS,
-      thumbnailUrl: "https://i.ytimg.com/vi/QVv3mQzlrN0/hqdefault.jpg"
+      thumbnailUrl: "https://i.ytimg.com/vi/QVv3mQzlrN0/hqdefault.jpg",
+      isShort: false
     });
     // A collaboration lists its channels before the view count and the time
     expect(videos?.[3]?.publishedAt).toBe(NOW - 3 * AVERAGE_MONTH_DAYS * DAY_MS);

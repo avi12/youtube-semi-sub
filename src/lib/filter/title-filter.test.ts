@@ -29,7 +29,8 @@ function createVideo({ videoId, channelId, title, publishedAt }: Pick<FeedVideo,
     title,
     publishedAt,
     channelTitle: "Channel",
-    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    isShort: false
   };
   return video;
 }

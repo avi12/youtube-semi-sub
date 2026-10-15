@@ -1,24 +1,26 @@
 import { fetchText } from "./fetch-text";
 import { buildVideoThumbnailUrl } from "./video-thumbnail";
 import { type FeedVideo, feedVideoSchema, VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
+import { isShortsUrl } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 import { XMLParser } from "fast-xml-parser";
 
 const RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml";
 const RSS_CHANNEL_ID_PARAM = "channel_id";
 const RSS_ENTRY_TAG = "entry";
+const RSS_LINK_TAG = "link";
 const URL_PATTERN = /https?:\/\/\S+/g;
 const WHITESPACE_RUN_PATTERN = /\s+/g;
 
 // MV3 service workers have no DOMParser. Namespace prefixes are dropped (`yt:videoId` -> `videoId`), tag values stay
-// strings (a title like "1984" must not become a number), and `entry` is always an array, even for a single upload
+// strings (a title like "1984" must not become a number), and `entry` and `link` are always arrays, even for one
 const xmlParser = new XMLParser({
   ignoreAttributes: false,
   attributeNamePrefix: "",
   removeNSPrefix: true,
   parseTagValue: false,
   htmlEntities: true,
-  isArray: tagName => tagName === RSS_ENTRY_TAG
+  isArray: tagName => tagName === RSS_ENTRY_TAG || tagName === RSS_LINK_TAG
 });
 
 const rssFeedSchema = z.looseObject({
@@ -45,6 +47,8 @@ const rssEntrySchema = z
     author: z.looseObject({
       name: z.string()
     }),
+    /** The upload's page: `/shorts/<id>` for a Short, a watch URL for any other upload */
+    link: z.array(z.looseObject({ href: z.string() })).optional().catch(undefined),
     group: z
       .looseObject({
         thumbnail: z
@@ -67,6 +71,7 @@ const rssEntrySchema = z
       title: entry.title,
       publishedAt: Date.parse(entry.published),
       thumbnailUrl: entry.group?.thumbnail?.url ?? buildVideoThumbnailUrl(entry.videoId),
+      isShort: entry.link?.some(link => isShortsUrl(link.href)) ?? false,
       ...description && {
         description
       }

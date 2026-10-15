@@ -85,7 +85,7 @@ describe("refreshChannels", () => {
     ).toBe(true);
 
     const cache = await channelVideosItem.getValue();
-    expect(cache[CHANNEL_ID]?.videos.map(video => video.videoId)).toEqual(["QVv3mQzlrN0", "_0G4OG39XjI", "3iRUwVzRDZQ"]);
+    expect(cache[CHANNEL_ID]?.videos.map(video => video.videoId)).toEqual(["QVv3mQzlrN0", "_0G4OG39XjI", "3iRUwVzRDZQ", "R6yNUnRXZ64"]);
     expect(cache[CHANNEL_ID]?.fetchedAt).toBe(Date.now());
   });
 
@@ -175,7 +175,7 @@ describe("refreshChannels", () => {
 describe("refreshChannel", () => {
   it("previews a channel that is not semi-subscribed without caching it", async () => {
     const videos = await refreshChannel(CHANNEL_ID);
-    expect(videos).toHaveLength(3);
+    expect(videos).toHaveLength(4);
     expect(await channelVideosItem.getValue()).toEqual({});
   });
 
@@ -186,7 +186,7 @@ describe("refreshChannel", () => {
       rss: null,
       videosTab: null
     });
-    expect(await refreshChannel(CHANNEL_ID)).toHaveLength(3);
+    expect(await refreshChannel(CHANNEL_ID)).toHaveLength(4);
   });
 
   it("rejects when there is neither a fetch nor a cache", async () => {

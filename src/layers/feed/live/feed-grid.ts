@@ -1,5 +1,5 @@
 import { isPolymerElement } from "@/lib/youtube/page/polymer";
-import { getYouTubeSite, WATCH_VIDEO_PARAM, YouTubeSite } from "@/lib/youtube/site";
+import { getYouTubeSite, SHORTS_PATH_PATTERN, WATCH_VIDEO_PARAM, YouTubeSite } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 import { videoIdFromContent } from "#feed/items/feed-items";
 
@@ -12,7 +12,6 @@ const DESKTOP_TILE_SELECTOR = ":scope > #contents > ytd-rich-item-renderer";
 const MOBILE_GRID_SELECTOR = "ytm-rich-grid-renderer";
 const MOBILE_TILE_SELECTOR = "ytm-rich-item-renderer";
 const VIDEO_LINK_SELECTOR = "a[href*=\"/watch?v=\"], a[href*=\"/shorts/\"]";
-const SHORTS_PATH_PATTERN = /^\/shorts\/([\w-]{11})/;
 const CONTENTS_PATH = "data.contents";
 const POLYMER_GLOBAL = "Polymer";
 

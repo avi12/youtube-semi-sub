@@ -23,7 +23,8 @@ function createVideo({ videoId, publishedAt }: Pick<FeedVideo, "videoId" | "publ
     channelTitle: "Channel",
     title: videoId,
     publishedAt,
-    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+    thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+    isShort: false
   };
   return video;
 }

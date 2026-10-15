@@ -17,18 +17,20 @@ function hoursAgo(hours: number) {
   return NOW - hours * MILLISECONDS_PER_HOUR;
 }
 
-export function feedVideo({ index, hours, channelId = CHANNEL_ID }: {
+export function feedVideo({ index, hours, channelId = CHANNEL_ID, isShort = false }: {
   index: number;
   hours: number;
   channelId?: string;
+  isShort?: boolean;
 }) {
   return {
     videoId: videoId(index),
     channelId,
     channelTitle: "Semi Channel",
-    title: `Semi video ${index}`,
+    title: `Semi ${isShort ? "short" : "video"} ${index}`,
     publishedAt: hoursAgo(hours),
-    thumbnailUrl: `https://i.ytimg.com/vi/${videoId(index)}/hqdefault.jpg`
+    thumbnailUrl: `https://i.ytimg.com/vi/${videoId(index)}/hqdefault.jpg`,
+    isShort
   } satisfies FeedVideo;
 }
 
