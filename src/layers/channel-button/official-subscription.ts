@@ -1,4 +1,5 @@
 import { type OfficialSubscriptionChange, PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import { whenPageStateKnown } from "@/lib/page/page-state";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { parseJson } from "@/lib/utils/json";
 import { z } from "@/lib/zod";
@@ -41,6 +42,34 @@ export function onObservedOfficialSubscriptionChange(listener: () => void) {
   return () => {
     listeners.delete(listener);
   };
+}
+
+/** The bridge halts the channel's semi-subscription on a subscribe and resumes it on an unsubscribe */
+function reportOfficialSubscription(change: OfficialSubscriptionChange) {
+  pageMessenger.sendMessage(PageMessage.officialSubscriptionChanged, change).catch(() => {});
+}
+
+/**
+ * Lines halted states up with a server snapshot of the user's official subscriptions (the guide, a channel or watch
+ * page), so subscribing or unsubscribing elsewhere - another device, the app - halts or resumes too. A snapshot is
+ * applied once, as soon as the extension state is known, never again on later state changes - so tabs holding
+ * snapshots of different ages can't flip a channel back and forth. What this tab saw the user do outranks any snapshot
+ */
+export function applySubscriptionSnapshot(readIsSubscribed: (channelId: string) => boolean | undefined) {
+  whenPageStateKnown(({ subscriptions }) => {
+    for (const { channelId, isHalted } of Object.values(subscriptions)) {
+      const isSubscribed = readIsSubscribed(channelId);
+      const isSeenInThisTab = subscribedByChannel.has(channelId);
+      if (isSubscribed === undefined || isSubscribed === isHalted || isSeenInThisTab) {
+        continue;
+      }
+
+      reportOfficialSubscription({
+        channelId,
+        isSubscribed
+      });
+    }
+  });
 }
 
 function getRequestUrl(input: RequestInfo | URL) {
@@ -101,14 +130,12 @@ async function reportSubscriptionRequest({ endpointPath, requestBody, response }
 
   const isSubscribed = endpointPath === SubscriptionEndpointPath.subscribe;
   for (const channelId of parsed.data.channelIds) {
-    setObservedOfficialSubscription({
+    const change: OfficialSubscriptionChange = {
       channelId,
       isSubscribed
-    });
-    pageMessenger.sendMessage(PageMessage.officialSubscriptionChanged, {
-      channelId,
-      isSubscribed
-    }).catch(() => {});
+    };
+    setObservedOfficialSubscription(change);
+    reportOfficialSubscription(change);
   }
 }
 

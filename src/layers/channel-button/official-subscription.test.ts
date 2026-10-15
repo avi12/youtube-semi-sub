@@ -1,5 +1,12 @@
-import { getObservedOfficialSubscription, installSubscriptionWatch } from "./official-subscription";
-import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import {
+  applySubscriptionSnapshot,
+  getObservedOfficialSubscription,
+  installSubscriptionWatch,
+  setObservedOfficialSubscription
+} from "./official-subscription";
+import { FilterKind } from "@/lib/filter/title-filter";
+import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
+import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import {
   afterEach,
   beforeEach,
@@ -16,6 +23,12 @@ vi.mock("@/lib/messaging/page-messaging", () => ({
   pageMessenger: {
     sendMessage: vi.fn(() => Promise.resolve())
   }
+}));
+
+const pageStateListeners: ((state: PageState) => void)[] = [];
+
+vi.mock("@/lib/page/page-state", () => ({
+  whenPageStateKnown: (listener: (state: PageState) => void) => pageStateListeners.push(listener)
 }));
 
 const SUBSCRIBE_URL = "/youtubei/v1/subscription/subscribe?prettyPrint=false";
@@ -103,6 +116,95 @@ describe("installSubscriptionWatch", () => {
       body: "not json"
     });
     await flushReports();
+    expect(pageMessenger.sendMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe("applySubscriptionSnapshot", () => {
+  const ACTIVE_CHANNEL_ID = "UCX6OQ3DkcsbYNE6H8uQQuVA";
+  const HALTED_CHANNEL_ID = "UCBR8-60-B28hp2BmDPdntcQ";
+  const UNMENTIONED_CHANNEL_ID = "UC4REwc30LXHzKSkpqSwhR-Q";
+  const OBSERVED_CHANNEL_ID = "UCjkyfFH-MWZhasolgds05EA";
+
+  function buildSubscription({ channelId, isHalted }: Pick<SemiSubscription, "channelId" | "isHalted">) {
+    const subscription: SemiSubscription = {
+      channelId,
+      title: channelId,
+      filter: {
+        kind: FilterKind.regex,
+        pattern: "",
+        flags: "i"
+      },
+      createdAt: 1,
+      isHalted
+    };
+    return subscription;
+  }
+
+  function deliverPageState(subscriptions: SemiSubscription[]) {
+    const state: PageState = {
+      isExtensionEnabled: true,
+      isAnimationsEnabled: true,
+      isAiEnabled: false,
+      subscriptions: Object.fromEntries(subscriptions.map(subscription => [subscription.channelId, subscription])),
+      feedVideos: []
+    };
+    for (const listener of pageStateListeners.splice(0)) {
+      listener(state);
+    }
+  }
+
+  afterEach(() => {
+    pageStateListeners.length = 0;
+    vi.clearAllMocks();
+  });
+
+  it("halts what the snapshot shows subscribed and resumes what it shows unsubscribed, once the state is known", () => {
+    const snapshot = new Map([[ACTIVE_CHANNEL_ID, true], [HALTED_CHANNEL_ID, false]]);
+    applySubscriptionSnapshot(channelId => snapshot.get(channelId));
+    expect(pageMessenger.sendMessage).not.toHaveBeenCalled();
+
+    deliverPageState([
+      buildSubscription({
+        channelId: ACTIVE_CHANNEL_ID,
+        isHalted: false
+      }),
+      buildSubscription({
+        channelId: HALTED_CHANNEL_ID,
+        isHalted: true
+      }),
+      buildSubscription({
+        channelId: UNMENTIONED_CHANNEL_ID,
+        isHalted: true
+      })
+    ]);
+    expect(pageMessenger.sendMessage).toHaveBeenCalledTimes(2);
+    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.officialSubscriptionChanged, {
+      channelId: ACTIVE_CHANNEL_ID,
+      isSubscribed: true
+    });
+    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.officialSubscriptionChanged, {
+      channelId: HALTED_CHANNEL_ID,
+      isSubscribed: false
+    });
+  });
+
+  it("leaves channels that already match, and those this tab saw the user subscribe to or leave", () => {
+    setObservedOfficialSubscription({
+      channelId: OBSERVED_CHANNEL_ID,
+      isSubscribed: false
+    });
+    applySubscriptionSnapshot(() => true);
+    deliverPageState([
+      buildSubscription({
+        channelId: HALTED_CHANNEL_ID,
+        isHalted: true
+      }),
+      buildSubscription({
+        channelId: OBSERVED_CHANNEL_ID,
+        isHalted: false
+      })
+    ]);
     expect(pageMessenger.sendMessage).not.toHaveBeenCalled();
   });
 });

@@ -34,6 +34,19 @@ export function onPageState(listener: (state: PageState) => void) {
   };
 }
 
+/** Calls back once: with the current state when it is known already, else with the first one to arrive */
+export function whenPageStateKnown(listener: (state: PageState) => void) {
+  if (currentState) {
+    listener(currentState);
+    return;
+  }
+
+  const stopListening = onPageState(state => {
+    stopListening();
+    listener(state);
+  });
+}
+
 export function initPageState() {
   pageMessenger.onMessage(PageMessage.pageStateChanged, ({ data }) => applyIncomingState(data));
   // The bridge may not be listening yet; it also pushes pageStateChanged once ready, so a lost request is harmless
