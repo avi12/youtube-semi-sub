@@ -1,0 +1,53 @@
+/* Live feed insertion (features/feed/feed-flip.ts): a new tile scales and fades into its own slot while the
+   tiles around it glide over to make room; a tile that no longer passes its filter dissolves in place first */
+@keyframes yss-feed-enter {
+  from {
+    opacity: 0%;
+    scale: 0.85;
+  }
+
+  to {
+    opacity: 100%;
+    scale: 1;
+  }
+}
+
+@keyframes yss-feed-leave {
+  from {
+    opacity: 100%;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0%;
+    scale: 0.85;
+  }
+}
+
+.yss-feed-pending {
+  opacity: 0%;
+}
+
+.yss-feed-entering {
+  z-index: 1;
+  animation: yss-feed-enter 380ms cubic-bezier(0.05, 0.7, 0.1, 1) both;
+}
+
+.yss-feed-leaving {
+  animation: yss-feed-leave 240ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.yss-feed-gliding {
+  transition: translate 380ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yss-feed-entering,
+  .yss-feed-leaving {
+    animation: none;
+  }
+
+  .yss-feed-gliding {
+    transition: none;
+  }
+}

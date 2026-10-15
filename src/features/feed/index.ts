@@ -1,5 +1,12 @@
+import { startLiveFeed } from "./live-feed";
+import { installResponseHooks } from "./response-hook";
+
 /** MAIN world, document_start: patch subscriptions-feed responses before YouTube or YouTube Auto Feed reads them */
-export function installFeedResponseHook() {}
+export function installFeedResponseHook() {
+  installResponseHooks();
+}
 
 /** MAIN world, document_start: live-insert matching videos into an open subscriptions feed */
-export function startFeed() {}
+export function startFeed() {
+  startLiveFeed();
+}
