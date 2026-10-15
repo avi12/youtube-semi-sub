@@ -5,7 +5,7 @@ Follow a YouTube channel without getting all of it. A **Semi-subscribe** button 
 Works on `www.youtube.com` and `m.youtube.com`, in Chromium browsers (Chrome, Edge, Opera) and Firefox.
 
 ## Features
-- **Semi-subscribe button** on every channel you aren't subscribed to. If you later subscribe for real, the semi-subscription goes away
+- **Semi-subscribe button** on every channel you aren't subscribed to. If you later subscribe for real, the semi-subscription is paused (filter kept) and picks up again if you unsubscribe
 - **Two kinds of filter**
   - **RegExp** - matched against each video's title, e.g. `/tutorial|deep dive/i`
   - **AI match** - describe what you want in plain words ("only phone reviews, not unboxings"), and a model on your device judges each video's title and description
