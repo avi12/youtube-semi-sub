@@ -234,3 +234,79 @@ describe("a semi-subscription resumed by an official unsubscribe", () => {
     ).toEqual(new Set([videoId(2), videoId(3)]));
   });
 });
+
+describe("a semi-subscription's Shorts across a halt and a resume", () => {
+  const SHORT = feedVideo({
+    index: 60,
+    hours: 2,
+    isShort: true
+  });
+
+  function haltAndResume(resumedFeedVideos: PageState["feedVideos"]) {
+    session.trackHaltTransitions(
+      pageState({
+        isHalted: false,
+        feedVideos: [SHORT]
+      })
+    );
+    session.recordFeedChange({
+      insertedIds: [SHORT.videoId],
+      removedIds: []
+    });
+    const halted = pageState({
+      isHalted: true,
+      feedVideos: []
+    });
+    session.trackHaltTransitions(halted);
+    const removedWhileHalted = session.findRemovedVideoIds({
+      contents: [],
+      state: halted
+    });
+    const resumed = pageState({
+      isHalted: false,
+      feedVideos: resumedFeedVideos
+    });
+    session.trackHaltTransitions(resumed);
+    return {
+      removedWhileHalted,
+      resumed
+    };
+  }
+
+  it("hands an inserted Short over to YouTube on the halt, and takes it back on the resume when the filter rejects it", () => {
+    const { removedWhileHalted, resumed } = haltAndResume([]);
+    expect(removedWhileHalted).toEqual(new Set());
+    expect(
+      session.findRemovedVideoIds({
+        contents: [],
+        state: resumed
+      })
+    ).toEqual(new Set([SHORT.videoId]));
+  });
+
+  it("manages a passing Short again after the resume, so a later filter edit takes it out", () => {
+    const { resumed } = haltAndResume([SHORT]);
+    expect(
+      session.findRemovedVideoIds({
+        contents: [],
+        state: resumed
+      })
+    ).toEqual(new Set());
+
+    const editedFilter = pageState({
+      isHalted: false,
+      feedVideos: [],
+      filter: {
+        ...KEEP_FILTER,
+        pattern: "something else"
+      }
+    });
+    session.trackHaltTransitions(editedFilter);
+    expect(
+      session.findRemovedVideoIds({
+        contents: [],
+        state: editedFilter
+      })
+    ).toEqual(new Set([SHORT.videoId]));
+  });
+});

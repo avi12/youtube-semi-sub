@@ -16,6 +16,8 @@ const PREFETCH_VIDEO_LIMIT = 20;
 const insertedVideoIds = new Set<string>();
 /** Channels whose semi-subscription resumed - the user unsubscribed - while their unfiltered videos may still show */
 const resumedChannelIds = new Set<string>();
+/** Per halted channel, the Shorts this session had inserted when the halt handed them over to YouTube */
+const handedOverShortIdsByChannel = new Map<string, Set<string>>();
 let previousState: PageState | null = null;
 
 function desiredFeedVideos(state: PageState) {
@@ -42,7 +44,9 @@ export function recordFeedChange({ insertedIds, removedIds }: Pick<
 /**
  * Follows every page state for halts and resumes. A halt - the user subscribed - hands the channel's inserted videos
  * over to YouTube: they belong in the feed now, so they are never taken out. A resume - the user unsubscribed - leaves
- * the channel's videos the filter rejects to be taken out, so the feed ends up as a reload would show it
+ * the channel's videos the filter rejects to be taken out, so the feed ends up as a reload would show it. A Short in
+ * the Shorts shelf names no channel to judge it by, so a resume takes back the Shorts its halt handed over instead:
+ * managed again, they leave once the filter rejects them
  */
 export function trackHaltTransitions(state: PageState) {
   const previous = previousState;
@@ -56,15 +60,22 @@ export function trackHaltTransitions(state: PageState) {
 
     if (!isHalted) {
       resumedChannelIds.add(channelId);
+      for (const videoId of handedOverShortIdsByChannel.get(channelId) ?? []) {
+        insertedVideoIds.add(videoId);
+      }
+      handedOverShortIdsByChannel.delete(channelId);
       continue;
     }
 
     resumedChannelIds.delete(channelId);
+    const handedOverShortIds = new Set<string>();
     for (const video of previous?.feedVideos ?? []) {
-      if (video.channelId === channelId) {
-        insertedVideoIds.delete(video.videoId);
+      const isHandedOver = video.channelId === channelId && insertedVideoIds.delete(video.videoId);
+      if (isHandedOver && video.isShort) {
+        handedOverShortIds.add(video.videoId);
       }
     }
+    handedOverShortIdsByChannel.set(channelId, handedOverShortIds);
   }
 }
 
