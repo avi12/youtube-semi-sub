@@ -188,7 +188,9 @@ export async function refreshChannels({ channelIds, isForced }: {
 export async function refreshAllChannels({ isForced }: Pick<Parameters<typeof refreshChannels>[0], "isForced">) {
   const subscriptions = await semiSubscriptionsItem.getValue();
   return await refreshChannels({
-    channelIds: Object.keys(subscriptions),
+    channelIds: Object.values(subscriptions)
+      .filter(subscription => !subscription.isHalted)
+      .map(subscription => subscription.channelId),
     isForced
   });
 }

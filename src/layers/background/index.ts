@@ -78,7 +78,9 @@ async function handleSubscriptionsChange({ subscriptions, previousSubscriptions 
   }
 
   await refreshChannels({
-    channelIds: Object.keys(subscriptions).filter(channelId => !Object.hasOwn(previousSubscriptions, channelId)),
+    channelIds: Object.values(subscriptions)
+      .filter(({ channelId, isHalted }) => !isHalted && previousSubscriptions[channelId]?.isHalted !== false)
+      .map(({ channelId }) => channelId),
     isForced: true
   });
 }

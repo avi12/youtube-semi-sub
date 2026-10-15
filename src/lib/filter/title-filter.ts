@@ -136,7 +136,10 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
   });
 }
 
-/** The one place the feed is filtered: a video lands only on a definite match, never while pending or paused */
+/**
+ * The one place the feed is filtered: a video lands only on a definite match, never while pending or paused, nor from
+ * a channel halted by an official subscription
+ */
 export function selectFeedVideos({ subscriptions, videosByChannel, ...context }: AiJudgeContext & {
   subscriptions: SemiSubscriptions;
   videosByChannel: Partial<Record<string, FeedVideo[]>>;
@@ -144,7 +147,8 @@ export function selectFeedVideos({ subscriptions, videosByChannel, ...context }:
   const selectedById = new Map<string, FeedVideo>();
   for (const channelId in subscriptions) {
     const subscription = subscriptions[channelId];
-    const judge = subscription && createVideoJudge({
+    const isActive = subscription && !subscription.isHalted;
+    const judge = isActive && createVideoJudge({
       filter: subscription.filter,
       ...context
     });
