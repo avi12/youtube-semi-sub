@@ -63,6 +63,16 @@ function extractBand({ contents, runs }: {
   return band;
 }
 
+function readBandTimes({ band, now }: {
+  band: readonly FeedItemSlot[];
+  now: number;
+}) {
+  return band.map(slot => parseFirstRelativeTime({
+    texts: publishedTextsFromGridItem(slot.item),
+    now
+  }));
+}
+
 /**
  * Whether an upload is recent enough for the loaded page: no older than its oldest band item - an older one is left
  * for later pages - or, when no item's time can be read (non-English UI), from the last 24 hours
@@ -98,12 +108,16 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
   });
   const band = fullBand.filter(slot => !removedVideoIds.has(slot.videoId));
   const removedIds = fullBand.filter(slot => removedVideoIds.has(slot.videoId)).map(slot => slot.videoId);
-  const times = band.map(slot => parseFirstRelativeTime({
-    texts: publishedTextsFromGridItem(slot.item),
+  const times = readBandTimes({
+    band,
     now
-  }));
+  });
+  // The span YouTube loaded, so taking items out never narrows what may be inserted
   const isWithinLoadedSpan = createLoadedSpanCheck({
-    times,
+    times: readBandTimes({
+      band: fullBand,
+      now
+    }),
     now
   });
   if (runs.length === 0) {

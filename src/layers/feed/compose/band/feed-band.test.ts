@@ -202,6 +202,19 @@ describe("planFeedBand", () => {
     expect(isChanged).toBe(true);
   });
 
+  it("keeps the span YouTube loaded when the oldest item is taken out", () => {
+    const { insertedVideos } = plan({
+      videos: [
+        feedVideo({
+          index: 50,
+          hours: 24 * 3.5
+        })
+      ],
+      removedVideoIds: new Set([videoId(4)])
+    });
+    expect(insertedVideos.map(video => video.videoId)).toEqual([videoId(50)]);
+  });
+
   it("changes nothing in a feed without root videos", () => {
     const { isChanged } = plan({
       contents: [shortsShelf([90])],
