@@ -1,5 +1,4 @@
 import {
-  applySubscriptionSnapshot,
   getObservedOfficialSubscription,
   onObservedOfficialSubscriptionChange,
   setObservedOfficialSubscription
@@ -49,18 +48,6 @@ type Target = z.infer<typeof targetSchema>;
 let cachedPageData: unknown = null;
 let cachedPageChannel: PageChannel | null = null;
 
-/** Signed in, a page's data says whether the user is subscribed to its channel; signed out it always says no */
-function applyPageChannelSnapshot(pageChannel: PageChannel | null) {
-  const officialSubscription = pageChannel?.officialSubscription;
-  const isSnapshot = !!pageChannel && officialSubscription !== undefined && readIsSignedIn();
-  if (!isSnapshot) {
-    return;
-  }
-
-  const { channelId } = pageChannel.channel;
-  applySubscriptionSnapshot(candidateId => candidateId === channelId ? officialSubscription : undefined);
-}
-
 function readPageChannelOnce({ pageData, kind }: Parameters<typeof readPageChannel>[0]) {
   const isCached = pageData === cachedPageData && cachedPageChannel?.kind === kind;
   if (isCached) {
@@ -72,7 +59,6 @@ function readPageChannelOnce({ pageData, kind }: Parameters<typeof readPageChann
     pageData,
     kind
   });
-  applyPageChannelSnapshot(cachedPageChannel);
   return cachedPageChannel;
 }
 

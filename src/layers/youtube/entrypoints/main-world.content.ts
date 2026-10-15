@@ -1,6 +1,6 @@
 import { initPageState } from "@/lib/page/page-state";
 import { YOUTUBE_MATCHES } from "@/lib/youtube/site";
-import { installSubscriptionWatch, startChannelButton } from "#channel-button";
+import { installSubscriptionEntityWatch, installSubscriptionWatch, startChannelButton } from "#channel-button";
 import { installFeedResponseHook, startFeed } from "#feed";
 import { installSubscriptionListsHook, startSubscriptionLists } from "#subscription-lists";
 
@@ -12,6 +12,7 @@ export default defineContentScript({
     installFeedResponseHook();
     installSubscriptionListsHook();
     installSubscriptionWatch();
+    installSubscriptionEntityWatch();
     initPageState();
     startChannelButton();
     startFeed();
