@@ -2,6 +2,7 @@ import {
   buildSemiGuideEntry,
   patchGuideItems,
   patchGuideResponse,
+  readGuideSubscriptions,
   readSemiGuideEntryChannelId,
   withoutCachedSubscriptionsFlyout
 } from "./guide-data";
@@ -345,5 +346,57 @@ describe("withoutCachedSubscriptionsFlyout", () => {
 
     expect(withoutCachedSubscriptionsFlyout(items)).toBe(items);
     expect(withoutCachedSubscriptionsFlyout(cloneItems(signedInGuide))).toEqual(cloneItems(signedInGuide));
+  });
+});
+
+describe("readGuideSubscriptions", () => {
+  const SHOWN_CHANNEL_ID = "UC4REwc30LXHzKSkpqSwhR-Q";
+  const UNDER_SHOW_MORE_CHANNEL_ID = "UCjkyfFH-MWZhasolgds05EA";
+  const UNLISTED_CHANNEL_ID = "UCX6OQ3DkcsbYNE6H8uQQuVA";
+
+  it("reads every listed subscription, those under Show more too, and nothing else as subscribed", () => {
+    const readIsSubscribed = readGuideSubscriptions(signedInGuide);
+    expect(readIsSubscribed?.(SHOWN_CHANNEL_ID)).toBe(true);
+    expect(readIsSubscribed?.(UNDER_SHOW_MORE_CHANNEL_ID)).toBe(true);
+    expect(readIsSubscribed?.(UNLISTED_CHANNEL_ID)).toBe(false);
+  });
+
+  it("never counts the channels the extension added", () => {
+    const patched = patchGuideResponse({
+      response: signedInGuide,
+      entries: ENTRIES
+    });
+    expect(readGuideSubscriptions(patched)?.(HANDLE_CHANNEL.channelId)).toBe(false);
+  });
+
+  it("can't tell about an unlisted channel when the section loads more later", () => {
+    const [firstItem, subscriptionsItem, ...otherItems] = cloneItems(signedInGuide);
+    const parsed = z.looseObject({
+      [SUBSCRIPTIONS_KEY]: z.looseObject({ items: z.array(z.unknown()) })
+    }).parse(subscriptionsItem);
+    const cutShort = {
+      items: [
+        firstItem,
+        {
+          [SUBSCRIPTIONS_KEY]: {
+            ...parsed[SUBSCRIPTIONS_KEY],
+            items: [
+              ...parsed[SUBSCRIPTIONS_KEY].items,
+              {
+                continuationItemRenderer: {}
+              }
+            ]
+          }
+        },
+        ...otherItems
+      ]
+    };
+    const readIsSubscribed = readGuideSubscriptions(cutShort);
+    expect(readIsSubscribed?.(SHOWN_CHANNEL_ID)).toBe(true);
+    expect(readIsSubscribed?.(UNLISTED_CHANNEL_ID)).toBeUndefined();
+  });
+
+  it("says nothing signed out", () => {
+    expect(readGuideSubscriptions(signedOutGuide)).toBeNull();
   });
 });

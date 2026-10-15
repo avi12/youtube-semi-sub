@@ -12,6 +12,8 @@ const SEMI_SECTION_KEY = "youtubeSemiSubSection";
 /** YouTube inserts a fresh subscription right after this header entry - semi-subscriptions go to the same spot */
 const SUBSCRIPTIONS_HEADER_ENTRY_ID = "subscriptions-channels-header";
 const SEMI_SECTION_TITLE = "Semi-subscriptions";
+/** Any of YouTube's continuation keys - a section that has one was cut short and loads the rest later */
+const CONTINUATION_KEY_PREFIX = "\"continuation";
 const SUBSCRIBE_ACTION_HANDLER = "GUIDE_ACTION_ADD_TO_SUBSCRIPTIONS";
 const NO_AVATAR_ICON = "ACCOUNT_CIRCLE";
 const PLAIN_PRESENTATION_STYLE = "GUIDE_ENTRY_PRESENTATION_STYLE_NONE";
@@ -63,19 +65,27 @@ const semiGuideEntryItemSchema = z.looseObject({
   guideEntryRenderer: semiGuideEntryDataSchema
 });
 
-const subscriptionsHeaderItemSchema = z.looseObject({
-  guideCollapsibleSectionEntryRenderer: z.looseObject({
-    headerEntry: z.looseObject({
-      guideEntryRenderer: z.looseObject({
-        entryData: z.looseObject({
-          guideEntryData: z.looseObject({
-            guideEntryId: z.literal(SUBSCRIPTIONS_HEADER_ENTRY_ID)
-          })
+/** A guide entry YouTube keys its commands on: a subscribed channel's entry carries the channel id */
+function guideEntryWithIdSchema(guideEntryIdSchema: z.ZodType<string>) {
+  return z.looseObject({
+    guideEntryRenderer: z.looseObject({
+      entryData: z.looseObject({
+        guideEntryData: z.looseObject({
+          guideEntryId: guideEntryIdSchema
         })
       })
     })
+  });
+}
+
+const subscriptionsHeaderItemSchema = z.looseObject({
+  guideCollapsibleSectionEntryRenderer: z.looseObject({
+    headerEntry: guideEntryWithIdSchema(z.literal(SUBSCRIPTIONS_HEADER_ENTRY_ID))
   })
 });
+
+/** Ours carry no `guideEntryId` (see `buildSemiGuideEntry`), so only YouTube's own subscriptions match */
+const subscribedChannelEntrySchema = guideEntryWithIdSchema(channelIdSchema);
 
 /** The Subscriptions flyout the mini guide builds once from the section's channels and caches on the header entry */
 const cachedFlyoutHeaderItemSchema = z.looseObject({
@@ -344,5 +354,49 @@ export function patchGuideResponse({ response, entries }: {
   return {
     ...parsed.data,
     items
+  };
+}
+
+function collectSubscribedChannelIds(root: unknown) {
+  const channelIds = new Set<string>();
+  const pending = [root];
+  for (let value = pending.pop(); value !== undefined; value = pending.pop()) {
+    if (typeof value !== "object" || value === null) {
+      continue;
+    }
+
+    const entry = subscribedChannelEntrySchema.safeParse(value);
+    if (entry.success) {
+      channelIds.add(entry.data.guideEntryRenderer.entryData.guideEntryData.guideEntryId);
+      continue;
+    }
+
+    pending.push(...Object.values(value));
+  }
+  return channelIds;
+}
+
+/**
+ * Whether the user is officially subscribed to a channel, as a raw guide response tells it - or null when the guide has
+ * no Subscriptions section (signed out, or no subscriptions yet). The guide lists every subscription, those past
+ * "Show more" too, so a channel it leaves out isn't subscribed - unless the section was cut short, then it can't say
+ */
+export function readGuideSubscriptions(response: unknown) {
+  const parsed = guideDataSchema.safeParse(response);
+  const subscriptions = parsed.success ?
+    parsed.data.items.map(readSubscriptionsSection).find(section => section !== null) :
+    undefined;
+  if (!subscriptions) {
+    return null;
+  }
+
+  const subscribedChannelIds = collectSubscribedChannelIds(subscriptions.section.items);
+  const isComplete = !JSON.stringify(subscriptions.section).includes(CONTINUATION_KEY_PREFIX);
+  return (channelId: string) => {
+    if (subscribedChannelIds.has(channelId)) {
+      return true;
+    }
+
+    return isComplete ? false : undefined;
   };
 }

@@ -1,6 +1,7 @@
-import { buildSemiGuideEntry, patchGuideResponse } from "./guide-data";
+import { buildSemiGuideEntry, patchGuideResponse, readGuideSubscriptions } from "./guide-data";
 import { getPageState } from "@/lib/page/page-state";
 import { parseJson } from "@/lib/utils/json";
+import { applySubscriptionSnapshot } from "#channel-button";
 import { listSemiSubscriptions } from "#subscription-lists/semi-channels";
 
 // www.youtube.com fetches the sidebar from /youtubei/v1/guide (and re-fetches it when it expires) and reads the body
@@ -34,9 +35,12 @@ function patchGuideBody(body: unknown) {
   }));
 }
 
-function patchGuideBodyText(text: string) {
-  const patched = patchGuideBody(parseJson(text));
-  return patched ? JSON.stringify(patched) : null;
+/** YouTube's own body, before ours are added: the guide lists the user's real subscriptions */
+function syncOfficialSubscriptions(body: unknown) {
+  const readIsSubscribed = readGuideSubscriptions(body);
+  if (readIsSubscribed) {
+    applySubscriptionSnapshot(readIsSubscribed);
+  }
 }
 
 /** Chains onto whatever override is installed already (the feed hook goes first), so both keep working */
@@ -50,6 +54,7 @@ export function installGuideResponseHook() {
       return body;
     }
 
+    syncOfficialSubscriptions(body);
     return patchGuideBody(body) ?? body;
   }
 
@@ -59,7 +64,10 @@ export function installGuideResponseHook() {
       return body;
     }
 
-    return patchGuideBodyText(body) ?? body;
+    const parsedBody = parseJson(body);
+    syncOfficialSubscriptions(parsedBody);
+    const patched = patchGuideBody(parsedBody);
+    return patched ? JSON.stringify(patched) : body;
   }
 
   Response.prototype.json = json;
