@@ -1,3 +1,4 @@
+import { withSemiUnsubscribeItem } from "./semi-unsubscribe-menu";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { formatHandle } from "@/lib/youtube/channel-link";
@@ -370,7 +371,11 @@ export function buildFeedItem({ video, channel, native, template, now, locale }:
   return structuredClone({
     richItemRenderer: {
       content: {
-        [template.kind]: renderer
+        [template.kind]: withSemiUnsubscribeItem({
+          kind: template.kind,
+          renderer,
+          channelId: channel.channelId
+        })
       }
     }
   });

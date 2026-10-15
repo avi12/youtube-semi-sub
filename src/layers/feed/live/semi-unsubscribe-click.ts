@@ -1,0 +1,84 @@
+import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import { getPageState } from "@/lib/page/page-state";
+import { WATCH_VIDEO_PARAM } from "@/lib/youtube/site";
+import { z } from "@/lib/zod";
+import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
+
+// Handles the "Semi-unsubscribe" item the built tiles carry in their menus. Its command is not one YouTube knows, so
+// the tap is taken in the capture phase before YouTube resolves it. A menu is detached from its tile, so the tile a
+// menu was opened from is remembered when it is tapped
+
+const TILE_SELECTOR = "ytd-rich-item-renderer, ytm-rich-item-renderer";
+const WATCH_LINK_SELECTOR = "a[href*='/watch?']";
+const MENU_ITEM_SELECTOR = [
+  "yt-list-item-view-model",
+  "ytd-menu-service-item-renderer",
+  "ytm-menu-service-item-renderer",
+  "ytm-menu-item"
+].join(", ");
+const DROPDOWN_SELECTOR = "tp-yt-iron-dropdown";
+const ESCAPE_KEY = "Escape";
+
+const closableSchema = z.object({
+  close: z.custom<() => void>(value => typeof value === "function")
+});
+
+function isClosable(element: Element | null): element is Element & z.infer<typeof closableSchema> {
+  return closableSchema.safeParse(element).success;
+}
+
+let lastTileChannelId: string | null = null;
+
+function channelIdOfTile(elTile: Element) {
+  const href = elTile.querySelector(WATCH_LINK_SELECTOR)?.getAttribute("href");
+  const videoId = href ? new URL(href, location.origin).searchParams.get(WATCH_VIDEO_PARAM) : null;
+  const video = getPageState()?.feedVideos.find(feedVideo => feedVideo.videoId === videoId);
+  return video?.channelId ?? null;
+}
+
+function closeMenu(elItem: Element) {
+  const elDropdown = elItem.closest(DROPDOWN_SELECTOR);
+  if (isClosable(elDropdown)) {
+    elDropdown.close();
+    return;
+  }
+
+  document.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key: ESCAPE_KEY,
+      bubbles: true
+    })
+  );
+}
+
+function handleClick(e: MouseEvent) {
+  if (!(e.target instanceof Element)) {
+    return;
+  }
+
+  const elTile = e.target.closest(TILE_SELECTOR);
+  if (elTile) {
+    lastTileChannelId = channelIdOfTile(elTile);
+    return;
+  }
+
+  const elItem = e.target.closest(MENU_ITEM_SELECTOR);
+  const isOwnItem = elItem?.textContent?.trim() === SEMI_UNSUBSCRIBE_LABEL;
+  if (!elItem || !isOwnItem) {
+    return;
+  }
+
+  e.stopPropagation();
+  e.preventDefault();
+  closeMenu(elItem);
+
+  if (!lastTileChannelId) {
+    return;
+  }
+
+  pageMessenger.sendMessage(PageMessage.semiUnsubscribe, { channelId: lastTileChannelId }).catch(() => {});
+}
+
+export function startSemiUnsubscribeMenu() {
+  addEventListener("click", handleClick, { capture: true });
+}

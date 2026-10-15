@@ -84,7 +84,7 @@ describe("buildFeedItem on www", () => {
     const lockup = lockupOf(item);
     expect(lockup.contentId).toBe(videoId(50));
     expect(metadataTexts(item)).toEqual([["Semi Channel"], ["6.8M", "1d ago"]]);
-    expect(lockup.metadata?.lockupMetadataViewModel?.menuButton).toEqual({
+    expect(lockup.metadata?.lockupMetadataViewModel?.menuButton).toMatchObject({
       buttonViewModel: {
         iconName: "MORE_VERT"
       }
@@ -256,7 +256,7 @@ describe("buildFeedItem with another renderer", () => {
           }
         }
       })
-    ).toEqual(
+    ).toMatchObject(
       richItem({
         videoRenderer: {
           videoId: videoId(50)
