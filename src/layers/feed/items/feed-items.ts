@@ -1,5 +1,7 @@
 import type { VideoRenderer } from "./feed-schemas";
+import { channelIdSchema } from "@/lib/schemas/channel";
 import { VIDEO_ID_PATTERN } from "@/lib/schemas/feed-video";
+import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
 import {
   CLASSIC_RENDERER_KINDS,
   gridItemSchema,
@@ -7,6 +9,7 @@ import {
   richItemContentSchema
 } from "@/lib/youtube/schemas/renderers";
 import { type FormattedText, readText } from "@/lib/youtube/schemas/text";
+import { z } from "@/lib/zod";
 
 // Read-only accessors over raw grid items (`{ richItemRenderer: { content } }`) and their renderers
 
@@ -64,6 +67,39 @@ export function videoIdFromContent(content: unknown) {
     : null;
 }
 
+/** Any link in an item that opens a channel: its avatar, its name, a collaborator */
+const channelLinkSchema = z.looseObject({
+  browseEndpoint: browseEndpointSchema.extend({
+    browseId: channelIdSchema
+  })
+});
+
+/** The one channel a root-level item links to, or null for none - or several, a collaboration it may share */
+export function channelIdFromGridItem(item: unknown) {
+  const channelIds = new Set<string>();
+  const pending: unknown[] = [richItemContent(item)];
+  while (pending.length > 0) {
+    const value = pending.pop();
+    if (typeof value !== "object" || value === null) {
+      continue;
+    }
+
+    const link = channelLinkSchema.safeParse(value);
+    if (link.success) {
+      channelIds.add(link.data.browseEndpoint.browseId);
+    }
+
+    pending.push(...Object.values(value));
+  }
+
+  if (channelIds.size !== 1) {
+    return null;
+  }
+
+  const [channelId] = channelIds;
+  return channelId ?? null;
+}
+
 /** The id of a root-level video item, or null for section markers, continuations and non-video items */
 export function videoIdFromGridItem(item: unknown) {
   const content = richItemContent(item);
@@ -113,6 +149,17 @@ export function publishedTextsFromGridItem(item: unknown) {
     }
   }
   return texts.filter(Boolean);
+}
+
+export function titleFromGridItem(item: unknown) {
+  const video = rendererFromGridItem(item);
+  if (!video) {
+    return null;
+  }
+
+  return video.kind === RendererKind.lockupViewModel
+    ? video.renderer.metadata?.lockupMetadataViewModel?.title?.content ?? null
+    : readText(video.renderer.title) || null;
 }
 
 export function thumbnailUrlFromGridItem(item: unknown) {

@@ -32,7 +32,10 @@ export function feedVideo({ index, hours, channelId = CHANNEL_ID }: {
   } satisfies FeedVideo;
 }
 
-function avatarImage(channelTitle: string) {
+function avatarImage({ channelTitle, channelId }: {
+  channelTitle: string;
+  channelId: string;
+}) {
   return {
     decoratedAvatarViewModel: {
       avatar: {
@@ -49,7 +52,7 @@ function avatarImage(channelTitle: string) {
           onTap: {
             innertubeCommand: {
               browseEndpoint: {
-                browseId: OTHER_CHANNEL_ID
+                browseId: channelId
               }
             }
           }
@@ -90,9 +93,16 @@ export function richItem(content: Record<string, unknown>) {
 }
 
 /** A subscriptions-feed tile of a subscribed channel; www and m only lay out its metadata rows differently */
-function subscribedFeedItem({ index, contentMetadataViewModel }: {
+function subscribedFeedItem({
+  index,
+  contentMetadataViewModel,
+  channelId = OTHER_CHANNEL_ID,
+  title = `Subscribed video ${index}`
+}: {
   index: number;
   contentMetadataViewModel: Record<string, unknown>;
+  channelId?: string;
+  title?: string;
 }) {
   return richItem({
     lockupViewModel: {
@@ -104,9 +114,12 @@ function subscribedFeedItem({ index, contentMetadataViewModel }: {
       metadata: {
         lockupMetadataViewModel: {
           title: {
-            content: `Subscribed video ${index}`
+            content: title
           },
-          image: avatarImage("Subscribed Channel"),
+          image: avatarImage({
+            channelTitle: "Subscribed Channel",
+            channelId
+          }),
           metadata: {
             contentMetadataViewModel
           }
@@ -117,12 +130,16 @@ function subscribedFeedItem({ index, contentMetadataViewModel }: {
 }
 
 /** A www subscriptions-feed tile: channel row, then views and published time */
-export function desktopFeedItem({ index, published }: {
+export function desktopFeedItem({ index, published, channelId, title }: {
   index: number;
   published: string;
+  channelId?: string;
+  title?: string;
 }) {
   return subscribedFeedItem({
     index,
+    channelId,
+    title,
     contentMetadataViewModel: {
       metadataRows: [
         {

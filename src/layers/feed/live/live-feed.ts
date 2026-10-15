@@ -9,18 +9,22 @@ import { FeedPathname } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 import {
   composeForPageState,
-  findStaleInsertedIds,
+  findRemovedVideoIds,
+  hasResumedChannels,
   loadNativesFor,
   planForPageState,
   prefetchFeedNatives,
-  recordFeedChange
+  recordFeedChange,
+  settleResumedChannels,
+  trackHaltTransitions
 } from "#feed/feed-session";
 import { thumbnailUrlFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
 
 // Keeps an open subscriptions feed in step with the semi-sub videos: on a hard load (rendered from ytInitialData,
 // which no response hook saw), after every navigation, and whenever the filtered videos change. Inserted videos
-// that stop passing are taken out again. With YouTube Auto Feed present the grid is its to write
+// that stop passing are taken out again. A channel the user subscribes to is left to YouTube; once they unsubscribe,
+// its videos the filter rejects leave the feed. With YouTube Auto Feed present the grid is its to write
 
 const LIVE_NATIVES_BUDGET_MS = 4000;
 // www fires yt-navigate-start; m fires state-navigatestart
@@ -124,15 +128,38 @@ async function reconcile() {
   const plan = planForPageState({
     contents,
     state,
-    removedVideoIds: findStaleInsertedIds(state)
+    removedVideoIds: findRemovedVideoIds({
+      contents,
+      state
+    })
   });
-  if (!plan.isChanged) {
+  // ytaf's next poll lacks a resumed channel (the user unsubscribed), so ytaf animates its videos out itself and keeps
+  // the ones the response hook adds back - each resume asks it to poll right away
+  if (isYouTubeAutoFeedPresent()) {
+    const isResumed = hasResumedChannels();
+    settleResumedChannels({
+      contents,
+      state
+    });
+
+    if (isResumed) {
+      nudgeYouTubeAutoFeed();
+      return;
+    }
+
+    if (plan.isChanged) {
+      const insertedIds = plan.insertedVideos.map(video => video.videoId);
+      nudgeYouTubeAutoFeedOnce(JSON.stringify([insertedIds, plan.removedIds]));
+    }
+
     return;
   }
 
-  if (isYouTubeAutoFeedPresent()) {
-    const insertedIds = plan.insertedVideos.map(video => video.videoId);
-    nudgeYouTubeAutoFeedOnce(JSON.stringify([insertedIds, plan.removedIds]));
+  if (!plan.isChanged) {
+    settleResumedChannels({
+      contents,
+      state
+    });
     return;
   }
 
@@ -150,7 +177,10 @@ async function reconcile() {
   const composed = composeForPageState({
     contents: currentContents,
     state: currentState,
-    removedVideoIds: findStaleInsertedIds(currentState)
+    removedVideoIds: findRemovedVideoIds({
+      contents: currentContents,
+      state: currentState
+    })
   });
   if (!composed) {
     return;
@@ -182,6 +212,10 @@ async function reconcile() {
   }
 
   recordFeedChange(composed);
+  settleResumedChannels({
+    contents: composed.contents,
+    state: currentState
+  });
 }
 
 function requestReconcile() {
@@ -222,6 +256,8 @@ function handleNavigationStart(e: Event) {
 }
 
 export function startLiveFeed() {
+  // Before the reconcile listener, so a halt or resume is known by the time it plans
+  onPageState(trackHaltTransitions);
   onPageState(requestReconcile);
   onYouTubeNavigate(requestReconcile);
   for (const eventName of NAVIGATION_START_EVENTS) {
