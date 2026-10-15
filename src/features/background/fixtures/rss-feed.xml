@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <link rel="self" href="http://www.youtube.com/feeds/videos.xml?channel_id=UCBJycsmduvYEL83R_U4JriQ"/>
+ <id>yt:channel:BJycsmduvYEL83R_U4JriQ</id>
+ <yt:channelId>BJycsmduvYEL83R_U4JriQ</yt:channelId>
+ <title>Marques Brownlee</title>
+ <link rel="alternate" href="https://www.youtube.com/channel/UCBJycsmduvYEL83R_U4JriQ"/>
+ <author>
+  <name>Marques Brownlee</name>
+  <uri>https://www.youtube.com/channel/UCBJycsmduvYEL83R_U4JriQ</uri>
+ </author>
+ <published>2008-03-21T15:25:54+00:00</published>
+ <entry>
+  <id>yt:video:QVv3mQzlrN0</id>
+  <yt:videoId>QVv3mQzlrN0</yt:videoId>
+  <yt:channelId>UCBJycsmduvYEL83R_U4JriQ</yt:channelId>
+  <title>Apple Homeview Impressions: Not Convinced!</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=QVv3mQzlrN0"/>
+  <author>
+   <name>Marques Brownlee</name>
+   <uri>https://www.youtube.com/channel/UCBJycsmduvYEL83R_U4JriQ</uri>
+  </author>
+  <published>2026-10-13T22:42:38+00:00</published>
+  <updated>2026-10-15T12:47:08+00:00</updated>
+  <media:group>
+   <media:title>Apple Homeview Impressions: Not Convinced!</media:title>
+   <media:content url="https://www.youtube.com/v/QVv3mQzlrN0?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i2.ytimg.com/vi/QVv3mQzlrN0/hqdefault.jpg" width="480" height="360"/>
+   <media:description>New Smart home display from Apple. With plenty of quirks and features.</media:description>
+   <media:community>
+    <media:starRating count="88048" average="5.00" min="1" max="5"/>
+    <media:statistics views="6863507"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:_0G4OG39XjI</id>
+  <yt:videoId>_0G4OG39XjI</yt:videoId>
+  <yt:channelId>UCBJycsmduvYEL83R_U4JriQ</yt:channelId>
+  <title>WTF is a Googlebook?</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=_0G4OG39XjI"/>
+  <author>
+   <name>Marques Brownlee</name>
+   <uri>https://www.youtube.com/channel/UCBJycsmduvYEL83R_U4JriQ</uri>
+  </author>
+  <published>2026-10-08T21:00:40+00:00</published>
+  <updated>2026-10-12T03:34:44+00:00</updated>
+  <media:group>
+   <media:title>WTF is a Googlebook?</media:title>
+   <media:content url="https://www.youtube.com/v/_0G4OG39XjI?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/_0G4OG39XjI/hqdefault.jpg" width="480" height="360"/>
+   <media:description>New laptops are dropping left and right! Let's talk about Google's entry.</media:description>
+   <media:community>
+    <media:starRating count="95572" average="5.00" min="1" max="5"/>
+    <media:statistics views="7850343"/>
+   </media:community>
+  </media:group>
+ </entry>
+ <entry>
+  <id>yt:video:3iRUwVzRDZQ</id>
+  <yt:videoId>3iRUwVzRDZQ</yt:videoId>
+  <yt:channelId>UCBJycsmduvYEL83R_U4JriQ</yt:channelId>
+  <title>Xiaomi 18 Fold: How Does This Happen?</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=3iRUwVzRDZQ"/>
+  <author>
+   <name>Marques Brownlee</name>
+   <uri>https://www.youtube.com/channel/UCBJycsmduvYEL83R_U4JriQ</uri>
+  </author>
+  <published>2026-10-02T20:50:25+00:00</published>
+  <updated>2026-10-13T13:57:30+00:00</updated>
+  <media:group>
+   <media:title>Xiaomi 18 Fold: How Does This Happen?</media:title>
+   <media:content url="https://www.youtube.com/v/3iRUwVzRDZQ?version=3" type="application/x-shockwave-flash" width="640" height="390"/>
+   <media:thumbnail url="https://i4.ytimg.com/vi/3iRUwVzRDZQ/hqdefault.jpg" width="480" height="360"/>
+   <media:description>This is not an iPhone Duo. Xiaomi is at it again.</media:description>
+   <media:community>
+    <media:starRating count="98095" average="5.00" min="1" max="5"/>
+    <media:statistics views="11324247"/>
+   </media:community>
+  </media:group>
+ </entry>
+</feed>

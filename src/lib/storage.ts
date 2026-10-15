@@ -16,6 +16,14 @@ export const channelVideosItem = storage.defineItem<ChannelVideosCache>("local:c
   version: STORAGE_SCHEMA_VERSION
 });
 
+/**
+ * When each semi-subscribed channel was last fetched, for the refresh throttle. Kept out of `channelVideos` so a fetch
+ * that finds nothing new writes nothing the pages watch
+ */
+export const channelCheckedAtItem = storage.defineItem<Record<string, number>>("local:channelCheckedAt", {
+  fallback: {}
+});
+
 export const isExtensionEnabledItem = storage.defineItem<boolean>("sync:isExtensionEnabled", {
   fallback: true
 });

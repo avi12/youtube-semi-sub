@@ -85,5 +85,5 @@ export function startStateBridge(context: ContentScriptContext) {
   });
 
   handleStorageChange();
-  sendMessage(MessageType.refreshAllChannels).catch(() => {});
+  sendMessage(MessageType.refreshStaleChannels).catch(() => {});
 }
