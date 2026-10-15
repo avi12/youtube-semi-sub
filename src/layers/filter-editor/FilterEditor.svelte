@@ -1,6 +1,6 @@
 <script lang="ts">
   import { previewTitleFilter, type TitleFilterPreview } from "./title-matches";
-  import type { TitleFilter } from "@/lib/filter/title-filter";
+  import { FilterKind, type RegexFilter, type TitleFilter } from "@/lib/filter/title-filter";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import FilterPreview from "#filter-editor/components/FilterPreview.svelte";
   import RegexFilterFields from "#filter-editor/components/RegexFilterFields.svelte";
@@ -22,10 +22,18 @@
     preview: TitleFilterPreview;
   } | null = null;
 
+  const regexFilter = $derived.by(() => {
+    if (filter.kind === FilterKind.regex) {
+      return filter;
+    }
+
+    return null;
+  });
+
   /** While the pattern is mid-edit and invalid, keep showing the last valid result instead of emptying the feed */
-  const preview = $derived.by(() => {
+  function buildPreview(currentFilter: RegexFilter) {
     const currentPreview = previewTitleFilter({
-      filter,
+      filter: currentFilter,
       videos
     });
     if (currentPreview.isValid) {
@@ -51,15 +59,21 @@
       ...currentPreview,
       isStale: false
     };
-  });
+  }
 </script>
 
 <div class="filter-editor">
   <header class="filter-editor__header">
     <label class="filter-editor__label" for={inputId}>Title filter</label>
   </header>
-  <RegexFilterFields {inputId} bind:filter />
-  <FilterPreview {inputId} {isLoading} {preview} videoCount={videos.length} />
+  {#if regexFilter}
+    <RegexFilterFields
+      {inputId}
+      bind:filter={() => regexFilter, editedFilter => {
+        filter = editedFilter;
+      }} />
+    <FilterPreview {inputId} {isLoading} preview={buildPreview(regexFilter)} videoCount={videos.length} />
+  {/if}
 </div>
 
 <style>

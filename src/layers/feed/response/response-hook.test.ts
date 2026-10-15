@@ -108,6 +108,7 @@ beforeEach(() => {
   pageState.current = {
     isExtensionEnabled: true,
     isAnimationsEnabled: true,
+    isAiEnabled: false,
     subscriptions: {},
     feedVideos: [feedVideo({
       index: 50,

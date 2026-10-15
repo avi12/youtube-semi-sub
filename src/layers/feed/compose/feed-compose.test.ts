@@ -1,4 +1,5 @@
 import { composeFeedContents } from "./feed-compose";
+import { FilterKind } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import {
@@ -19,6 +20,7 @@ const SUBSCRIPTIONS: SemiSubscriptions = {
     channelId: CHANNEL_ID,
     title: "Semi Channel (subscribed name)",
     filter: {
+      kind: FilterKind.regex,
       pattern: "",
       flags: "i"
     },

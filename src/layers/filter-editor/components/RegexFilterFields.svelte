@@ -1,6 +1,6 @@
 <script lang="ts">
   import Disclosure from "./Disclosure.svelte";
-  import type { TitleFilter } from "@/lib/filter/title-filter";
+  import type { RegexFilter } from "@/lib/filter/title-filter";
   import {
     ADVANCED_FILTER_FLAGS,
     FILTER_FLAG_DETAILS,
@@ -11,7 +11,7 @@
   import { getReadableFilterError } from "#filter-editor/title-matches";
 
   interface Props {
-    filter: TitleFilter;
+    filter: RegexFilter;
     /** The pattern input's id, so the editor's label and preview summary can point at it */
     inputId: string;
   }

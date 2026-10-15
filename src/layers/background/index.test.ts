@@ -1,4 +1,5 @@
 import { startBackground } from "./index";
+import { FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
 import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
@@ -19,6 +20,7 @@ const SUBSCRIPTION: SemiSubscription = {
   channelId: CHANNEL_ID,
   title: "Marques Brownlee",
   filter: {
+    kind: FilterKind.regex,
     pattern: "",
     flags: "i"
   },

@@ -5,6 +5,7 @@ import {
   readSemiGuideEntryChannelId,
   withoutCachedSubscriptionsFlyout
 } from "./guide-data";
+import { FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
 import signedInGuide from "#subscription-lists/guide/fixtures/guide-signed-in.json";
@@ -17,6 +18,7 @@ const HANDLE_CHANNEL: SemiSubscription = {
   handle: "@MrBeast",
   avatarUrl: "https://yt3.ggpht.com/avatar=s88-c-k-c0x00ffffff-no-rj",
   filter: {
+    kind: FilterKind.regex,
     pattern: "challenge",
     flags: "i"
   },
@@ -26,6 +28,7 @@ const HANDLELESS_CHANNEL: SemiSubscription = {
   channelId: "UCBR8-60-B28hp2BmDPdntcQ",
   title: "YouTube",
   filter: {
+    kind: FilterKind.regex,
     pattern: "",
     flags: "i"
   },

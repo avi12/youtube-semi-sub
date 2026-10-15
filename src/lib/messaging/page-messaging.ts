@@ -8,6 +8,7 @@ export const pageStateSchema = storedStateSchema
   .pick({
     isExtensionEnabled: true,
     isAnimationsEnabled: true,
+    isAiEnabled: true,
     subscriptions: true
   })
   .extend({

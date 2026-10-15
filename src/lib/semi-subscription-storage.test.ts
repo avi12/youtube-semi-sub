@@ -1,3 +1,4 @@
+import { FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { mergeSemiSubscription } from "@/lib/semi-subscription-storage";
 import { describe, expect, it } from "vitest";
@@ -13,6 +14,7 @@ const PREVIOUS: SemiSubscription = {
   handle: "@mkbhd",
   avatarUrl: AVATAR_URL,
   filter: {
+    kind: FilterKind.regex,
     pattern: "iphone",
     flags: "i"
   },
@@ -30,6 +32,7 @@ describe("mergeSemiSubscription", () => {
           handle: "@mkbhd"
         },
         filter: {
+          kind: FilterKind.regex,
           pattern: "review",
           flags: ""
         },
@@ -40,6 +43,7 @@ describe("mergeSemiSubscription", () => {
       title: "Marques Brownlee",
       handle: "@mkbhd",
       filter: {
+        kind: FilterKind.regex,
         pattern: "review",
         flags: ""
       },
@@ -56,6 +60,7 @@ describe("mergeSemiSubscription", () => {
           title: "Marques Brownlee"
         },
         filter: {
+          kind: FilterKind.regex,
           pattern: "pixel",
           flags: "iu"
         },
@@ -64,6 +69,7 @@ describe("mergeSemiSubscription", () => {
     ).toEqual({
       ...PREVIOUS,
       filter: {
+        kind: FilterKind.regex,
         pattern: "pixel",
         flags: "iu"
       }

@@ -1,10 +1,5 @@
-import {
-  getReadableFilterError,
-  highlightMatches,
-  MatchState,
-  partitionPreviewRows,
-  previewTitleFilter
-} from "./title-matches";
+import { getReadableFilterError, highlightMatches, partitionPreviewRows, previewTitleFilter } from "./title-matches";
+import { FilterKind, MatchState } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { describe, expect, it } from "vitest";
 
@@ -132,6 +127,7 @@ describe("previewTitleFilter", () => {
   it("counts the videos the filter lets through", () => {
     const preview = previewTitleFilter({
       filter: {
+        kind: FilterKind.regex,
         pattern: "tutorial",
         flags: "i"
       },
@@ -147,6 +143,7 @@ describe("previewTitleFilter", () => {
   it("lets every video through with an empty pattern", () => {
     const preview = previewTitleFilter({
       filter: {
+        kind: FilterKind.regex,
         pattern: "",
         flags: ""
       },
@@ -162,6 +159,7 @@ describe("previewTitleFilter", () => {
   it("matches nothing while the pattern is invalid", () => {
     const preview = previewTitleFilter({
       filter: {
+        kind: FilterKind.regex,
         pattern: "(",
         flags: "i"
       },
@@ -212,6 +210,7 @@ describe("getReadableFilterError", () => {
   it("returns null for a valid filter", () => {
     expect(
       getReadableFilterError({
+        kind: FilterKind.regex,
         pattern: "a|b",
         flags: "i"
       })
@@ -221,6 +220,7 @@ describe("getReadableFilterError", () => {
   it("drops V8's echo of the pattern", () => {
     expect(
       getReadableFilterError({
+        kind: FilterKind.regex,
         pattern: "a/(",
         flags: "i"
       })
@@ -230,6 +230,7 @@ describe("getReadableFilterError", () => {
   it("reports conflicting flags", () => {
     expect(
       getReadableFilterError({
+        kind: FilterKind.regex,
         pattern: "a",
         flags: "uv"
       })

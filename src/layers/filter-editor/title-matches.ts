@@ -1,15 +1,8 @@
-import { compileTitleFilter, getTitleFilterError, type TitleFilter } from "@/lib/filter/title-filter";
+import { compileTitleFilter, getTitleFilterError, MatchState, type RegexFilter } from "@/lib/filter/title-filter";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
 
 const GLOBAL_FLAG = "g";
-
-/** Tri-state so a filter that judges titles asynchronously can show a video before its verdict arrives */
-export enum MatchState {
-  matches = "matches",
-  doesNotMatch = "does-not-match",
-  pending = "pending"
-}
 
 const titleSegmentSchema = z.object({
   text: z.string(),
@@ -124,7 +117,7 @@ export function partitionPreviewRows(rows: PreviewRow[]) {
 
 /** How the filter treats each preview video - the same compiled RegExp `selectFeedVideos` applies to the real feed */
 export function previewTitleFilter({ filter, videos }: {
-  filter: TitleFilter;
+  filter: RegexFilter;
   videos: FeedVideo[];
 }) {
   const regex = compileTitleFilter(filter);
@@ -141,7 +134,7 @@ export function previewTitleFilter({ filter, videos }: {
 export type TitleFilterPreview = ReturnType<typeof previewTitleFilter>;
 
 /** The engine's error minus V8's `Invalid regular expression: /<pattern>/<flags>: ` echo of the input */
-export function getReadableFilterError(filter: TitleFilter) {
+export function getReadableFilterError(filter: RegexFilter) {
   const error = getTitleFilterError(filter);
   if (!error) {
     return null;

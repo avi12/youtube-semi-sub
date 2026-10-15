@@ -1,8 +1,15 @@
 import { mapWithConcurrency } from "./concurrency";
 import { isVideoListUnchanged, mergeChannelVideos } from "./merge-channel-videos";
+import { countAiVerdicts, pruneAiVerdicts } from "@/lib/filter/ai-verdicts";
 import type { ChannelVideosCache } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
-import { channelCheckedAtItem, channelVideosItem, mutateStorageItem, semiSubscriptionsItem } from "@/lib/storage";
+import {
+  aiVerdictsItem,
+  channelCheckedAtItem,
+  channelVideosItem,
+  mutateStorageItem,
+  semiSubscriptionsItem
+} from "@/lib/storage";
 import { type ChannelUploads, fetchChannelUploads } from "#background/uploads/channel-uploads";
 
 const MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
@@ -233,7 +240,32 @@ async function pruneItem<Value>({ item, subscriptions }: {
   });
 }
 
-/** Drops cached data of channels that are no longer semi-subscribed */
+/** Runs after the channel caches are pruned, since a verdict is kept only for a video still cached */
+async function pruneVerdicts(subscriptions: SemiSubscriptions) {
+  const channelVideos = await channelVideosItem.getValue();
+  const aiVerdicts = await aiVerdictsItem.getValue();
+  const isPruneNeeded = countAiVerdicts(aiVerdicts) !== countAiVerdicts(
+    pruneAiVerdicts({
+      aiVerdicts,
+      subscriptions,
+      channelVideos
+    })
+  );
+  if (!isPruneNeeded) {
+    return;
+  }
+
+  await mutateStorageItem({
+    item: aiVerdictsItem,
+    mutator: current => pruneAiVerdicts({
+      aiVerdicts: current,
+      subscriptions,
+      channelVideos
+    })
+  });
+}
+
+/** Drops cached data of channels that are no longer semi-subscribed, and AI verdicts no filter can use anymore */
 export async function pruneChannelCaches() {
   const subscriptions = await semiSubscriptionsItem.getValue();
   await Promise.all([
@@ -246,4 +278,5 @@ export async function pruneChannelCaches() {
       subscriptions
     })
   ]);
+  await pruneVerdicts(subscriptions);
 }

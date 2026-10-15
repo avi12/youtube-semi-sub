@@ -2,9 +2,10 @@ import { channelIdSchema } from "@/lib/schemas/channel";
 import { z } from "@/lib/zod";
 
 export const VIDEO_ID_PATTERN = /^[\w-]{11}$/;
+export const videoIdSchema = z.string().regex(VIDEO_ID_PATTERN);
 
 export const feedVideoSchema = z.object({
-  videoId: z.string().regex(VIDEO_ID_PATTERN),
+  videoId: videoIdSchema,
   channelId: channelIdSchema,
   channelTitle: z.string(),
   title: z.string(),

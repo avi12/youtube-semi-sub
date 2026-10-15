@@ -1,0 +1,77 @@
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
+import { FilterKind } from "@/lib/filter/title-filter";
+import { type ChannelVideosCache, videoIdSchema } from "@/lib/schemas/feed-video";
+import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { z } from "@/lib/zod";
+
+/** What the model said about each video, per AI filter key (`getAiFilterKey`): true lets the video into the feed */
+export const aiVerdictsSchema = z.record(z.string(), z.record(videoIdSchema, z.boolean()));
+export type AiVerdicts = z.infer<typeof aiVerdictsSchema>;
+
+/** Per AI filter key in use, the videos a channel using it still has cached */
+function collectReferencedVideoIds({ subscriptions, channelVideos }: {
+  subscriptions: SemiSubscriptions;
+  channelVideos: ChannelVideosCache;
+}) {
+  const videoIdsByKey = new Map<string, Set<string>>();
+  for (const channelId in subscriptions) {
+    const filter = subscriptions[channelId]?.filter;
+    if (filter?.kind !== FilterKind.aiMatch) {
+      continue;
+    }
+
+    const key = getAiFilterKey(filter);
+    const videoIds = videoIdsByKey.get(key) ?? new Set();
+    for (const video of channelVideos[channelId]?.videos ?? []) {
+      videoIds.add(video.videoId);
+    }
+    videoIdsByKey.set(key, videoIds);
+  }
+  return videoIdsByKey;
+}
+
+/**
+ * Keeps only the verdicts a semi-subscription can still use: keys of AI filters in use, and within each key the videos
+ * still cached for a channel that uses it. A preview's verdicts for a channel that was never saved go too
+ */
+export function pruneAiVerdicts({ aiVerdicts, subscriptions, channelVideos }: {
+  aiVerdicts: AiVerdicts;
+  subscriptions: SemiSubscriptions;
+  channelVideos: ChannelVideosCache;
+}) {
+  const referencedVideoIds = collectReferencedVideoIds({
+    subscriptions,
+    channelVideos
+  });
+  const pruned: AiVerdicts = {};
+  for (const key in aiVerdicts) {
+    const videoIds = referencedVideoIds.get(key);
+    const verdicts = aiVerdicts[key];
+    if (!videoIds || !verdicts) {
+      continue;
+    }
+
+    const keptVerdicts: Record<string, boolean> = {};
+    for (const videoId in verdicts) {
+      const verdict = verdicts[videoId];
+      const isKept = verdict !== undefined && videoIds.has(videoId);
+      if (isKept) {
+        keptVerdicts[videoId] = verdict;
+      }
+    }
+
+    const hasVerdicts = Object.keys(keptVerdicts).length > 0;
+    if (hasVerdicts) {
+      pruned[key] = keptVerdicts;
+    }
+  }
+  return pruned;
+}
+
+export function countAiVerdicts(aiVerdicts: AiVerdicts) {
+  let count = 0;
+  for (const key in aiVerdicts) {
+    count += Object.keys(aiVerdicts[key] ?? {}).length;
+  }
+  return count;
+}

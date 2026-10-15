@@ -1,7 +1,7 @@
 <script lang="ts">
   import { isPageDarkTheme } from "./page-theme";
   import { ToastMessage } from "./toast-message";
-  import { compileTitleFilter, DEFAULT_TITLE_FILTER, type TitleFilter } from "@/lib/filter/title-filter";
+  import { DEFAULT_TITLE_FILTER, isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
@@ -27,6 +27,8 @@
 
   let elDialog = $state<HTMLDialogElement>();
   let filter = $state<TitleFilter>({ ...DEFAULT_TITLE_FILTER });
+  /** Once the user has typed, the stored filter arriving late must not overwrite what they wrote */
+  let isFilterEdited = false;
   let storedSubscription = $state<SemiSubscription | null>(null);
   let isStoredSubscriptionRead = $state(false);
   let videos = $state<FeedVideo[]>([]);
@@ -35,7 +37,7 @@
   let isSaving = $state(false);
   let toastMessage = $state<ToastMessage | null>(null);
 
-  const isFilterValid = $derived(compileTitleFilter(filter) !== null);
+  const isFilterValid = $derived(isTitleFilterValid(filter));
   const isEditing = $derived(storedSubscription !== null);
   const canSave = $derived(isStoredSubscriptionRead && isFilterValid && !isSaving);
   const submitLabel = $derived.by(() => {
@@ -76,9 +78,8 @@
     loadVideos().catch(() => {});
     readSemiSubscription(channel.channelId).then(stored => {
       storedSubscription = stored;
-      const isFilterUntouched = filter.pattern === DEFAULT_TITLE_FILTER.pattern
-        && filter.flags === DEFAULT_TITLE_FILTER.flags;
-      if (stored && isFilterUntouched) {
+
+      if (stored && !isFilterEdited) {
         filter = { ...stored.filter };
       }
     }).catch(() => {}).finally(() => {
@@ -157,7 +158,13 @@
         </p>
       {/if}
 
-      <FilterEditor isLoading={isLoadingVideos} {videos} bind:filter />
+      <FilterEditor
+        isLoading={isLoadingVideos}
+        {videos}
+        bind:filter={() => filter, editedFilter => {
+          filter = editedFilter;
+          isFilterEdited = true;
+        }} />
     </div>
 
     <footer class="dialog__footer">

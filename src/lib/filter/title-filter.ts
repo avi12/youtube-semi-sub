@@ -1,24 +1,51 @@
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import type { StoredState } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
+
+export enum FilterKind {
+  regex = "regex",
+  /** A plain-language description a model judges per video */
+  aiMatch = "ai"
+}
+
+/** Tri-state so a filter that judges videos asynchronously can show a video before its verdict arrives */
+export enum MatchState {
+  matches = "matches",
+  doesNotMatch = "does-not-match",
+  pending = "pending"
+}
 
 // `g` and `y` make RegExp.test stateful, `d` only adds indices - none of them mean anything for a title filter
 export const ALLOWED_FILTER_FLAGS = ["i", "m", "s", "u", "v"] as const;
 const FILTER_FLAGS_PATTERN = new RegExp(`^[${ALLOWED_FILTER_FLAGS.join("")}]*$`);
+const AI_DESCRIPTION_MAX_LENGTH = 300;
 
-export const titleFilterSchema = z.object({
+const regexFilterSchema = z.object({
+  kind: z.literal(FilterKind.regex),
   pattern: z.string(),
   flags: z.string().regex(FILTER_FLAGS_PATTERN)
 });
+export type RegexFilter = z.infer<typeof regexFilterSchema>;
+
+const aiFilterSchema = z.object({
+  kind: z.literal(FilterKind.aiMatch),
+  description: z.string().trim().min(1).max(AI_DESCRIPTION_MAX_LENGTH)
+});
+export type AiFilter = z.infer<typeof aiFilterSchema>;
+
+export const titleFilterSchema = z.discriminatedUnion("kind", [regexFilterSchema, aiFilterSchema]);
 export type TitleFilter = z.infer<typeof titleFilterSchema>;
 
-export const DEFAULT_TITLE_FILTER: TitleFilter = {
+export const DEFAULT_TITLE_FILTER: RegexFilter = {
+  kind: FilterKind.regex,
   pattern: "",
   flags: "i"
 };
 
-export function compileTitleFilter(filter: TitleFilter) {
-  const isFlagSetValid = titleFilterSchema.safeParse(filter).success;
+export function compileTitleFilter(filter: RegexFilter) {
+  const isFlagSetValid = regexFilterSchema.safeParse(filter).success;
   if (!isFlagSetValid) {
     return null;
   }
@@ -30,7 +57,7 @@ export function compileTitleFilter(filter: TitleFilter) {
   }
 }
 
-export function getTitleFilterError(filter: TitleFilter) {
+export function getTitleFilterError(filter: RegexFilter) {
   try {
     new RegExp(filter.pattern, filter.flags);
     return null;
@@ -39,20 +66,76 @@ export function getTitleFilterError(filter: TitleFilter) {
   }
 }
 
-export function selectFeedVideos({ subscriptions, videosByChannel }: {
+/** Whether a draft can be saved: a pattern that compiles, or a description that isn't blank or too long */
+export function isTitleFilterValid(filter: TitleFilter) {
+  if (filter.kind === FilterKind.regex) {
+    return compileTitleFilter(filter) !== null;
+  }
+
+  return aiFilterSchema.safeParse(filter).success;
+}
+
+function createRegexJudge(filter: RegexFilter) {
+  const regex = compileTitleFilter(filter);
+  if (!regex) {
+    return null;
+  }
+
+  return function judgeByTitle(video: FeedVideo) {
+    return regex.test(video.title) ? MatchState.matches : MatchState.doesNotMatch;
+  };
+}
+
+function createAiJudge({ filter, aiVerdicts, isAiEnabled }: Pick<StoredState, "aiVerdicts" | "isAiEnabled"> & { filter: AiFilter }) {
+  const isJudgeable = isAiEnabled && aiFilterSchema.safeParse(filter).success;
+  if (!isJudgeable) {
+    return null;
+  }
+
+  const verdicts = aiVerdicts[getAiFilterKey(filter)] ?? {};
+  return function judgeByVerdict(video: FeedVideo) {
+    const verdict = verdicts[video.videoId];
+    if (verdict === undefined) {
+      return MatchState.pending;
+    }
+
+    return verdict ? MatchState.matches : MatchState.doesNotMatch;
+  };
+}
+
+/**
+ * How a filter treats each video. Null when it can't judge at all: a pattern that doesn't compile, or an AI filter
+ * while AI match is turned off (paused). An AI filter's video without a verdict yet is pending
+ */
+function createVideoJudge({ filter, ...context }: Pick<StoredState, "aiVerdicts" | "isAiEnabled"> & { filter: TitleFilter }) {
+  if (filter.kind === FilterKind.regex) {
+    return createRegexJudge(filter);
+  }
+
+  return createAiJudge({
+    filter,
+    ...context
+  });
+}
+
+/** The one place the feed is filtered: a video lands only on a definite match, never while pending or paused */
+export function selectFeedVideos({ subscriptions, videosByChannel, ...context }: Pick<StoredState, "aiVerdicts" | "isAiEnabled"> & {
   subscriptions: SemiSubscriptions;
   videosByChannel: Partial<Record<string, FeedVideo[]>>;
 }) {
   const selectedById = new Map<string, FeedVideo>();
   for (const channelId in subscriptions) {
     const subscription = subscriptions[channelId];
-    const regex = subscription && compileTitleFilter(subscription.filter);
-    if (!regex) {
+    const judge = subscription && createVideoJudge({
+      filter: subscription.filter,
+      ...context
+    });
+    if (!judge) {
       continue;
     }
 
     for (const video of videosByChannel[channelId] ?? []) {
-      if (regex.test(video.title)) {
+      if (judge(video) === MatchState.matches) {
         selectedById.set(video.videoId, video);
       }
     }

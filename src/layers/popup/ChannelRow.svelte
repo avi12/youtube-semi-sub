@@ -1,6 +1,7 @@
 <script lang="ts">
   import ChannelEditor from "./ChannelEditor.svelte";
   import { EDIT_ICON, OPEN_IN_NEW_ICON } from "./icons";
+  import { FilterKind } from "@/lib/filter/title-filter";
   import { getChannelInitial } from "@/lib/schemas/channel";
   import type { ChannelVideos } from "@/lib/schemas/feed-video";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -24,7 +25,7 @@
   const editorId = `${id}-editor`;
   let elEditToggle = $state<HTMLInputElement>();
 
-  const { pattern, flags } = $derived(subscription.filter);
+  const filter = $derived(subscription.filter);
   const videos = $derived(channelVideos?.videos ?? []);
   const videosOldestFirst = $derived(videos.toSorted((left, right) => left.publishedAt - right.publishedAt));
   const matchCount = $derived(videos.filter(video => matchingVideoIds.has(video.videoId)).length);
@@ -108,7 +109,10 @@
   {:else}
     <div class="channel__summary">
       <code class="filter-literal" dir="ltr">
-        {#if pattern}
+        {#if filter.kind === FilterKind.aiMatch}
+          {filter.description}
+        {:else if filter.pattern}
+          {@const { pattern, flags } = filter}
           <span class="filter-literal__pattern">{pattern}</span><span class="filter-literal__flags">{flags}</span>
         {:else}
           <span class="filter-literal__any">Any title</span>

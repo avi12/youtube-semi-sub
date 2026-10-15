@@ -1,6 +1,8 @@
 import { pruneChannelCaches, refreshChannel, refreshChannels } from "./channel-cache";
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
+import { type AiFilter, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
-import { channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
+import { aiVerdictsItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
 import channelVideosPageHtml from "#background/fixtures/channel-videos-page.html?raw";
 import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
 import {
@@ -43,6 +45,7 @@ function createSubscriptions(channelIds: string[]) {
       channelId,
       title: "Channel",
       filter: {
+        kind: FilterKind.regex,
         pattern: "",
         flags: "i"
       },
@@ -211,5 +214,41 @@ describe("pruneChannelCaches", () => {
     await pruneChannelCaches();
 
     expect(Object.keys(await channelVideosItem.getValue())).toEqual([CHANNEL_ID]);
+  });
+
+  it("drops AI verdicts of filters no longer in use and of videos no longer cached", async () => {
+    const aiFilter: AiFilter = {
+      kind: FilterKind.aiMatch,
+      description: "only reviews"
+    };
+    const key = getAiFilterKey(aiFilter);
+    await semiSubscriptionsItem.setValue({
+      [CHANNEL_ID]: {
+        channelId: CHANNEL_ID,
+        title: "Channel",
+        filter: aiFilter,
+        createdAt: 0
+      }
+    });
+    await refreshChannels({
+      channelIds: [CHANNEL_ID],
+      isForced: true
+    });
+    await aiVerdictsItem.setValue({
+      [key]: {
+        QVv3mQzlrN0: true,
+        zzzzzzzzzzz: false
+      },
+      [getAiFilterKey({ description: "an old filter" })]: {
+        QVv3mQzlrN0: true
+      }
+    });
+    await pruneChannelCaches();
+
+    expect(await aiVerdictsItem.getValue()).toEqual({
+      [key]: {
+        QVv3mQzlrN0: true
+      }
+    });
   });
 });

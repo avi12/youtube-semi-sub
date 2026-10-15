@@ -6,7 +6,9 @@
   import type { StoredState } from "@/lib/schemas/stored-state";
   import { removeSemiSubscription, restoreSemiSubscription } from "@/lib/semi-subscription-storage";
   import {
+    aiVerdictsItem,
     channelVideosItem,
+    isAiEnabledItem,
     isAnimationsEnabledItem,
     isExtensionEnabledItem,
     semiSubscriptionsItem
@@ -40,6 +42,8 @@
 
   let subscriptions = $state.raw(untrack(() => initialState.subscriptions));
   let channelVideos = $state.raw(untrack(() => initialState.channelVideos));
+  let aiVerdicts = $state.raw(untrack(() => initialState.aiVerdicts));
+  let isAiEnabled = $state(untrack(() => initialState.isAiEnabled));
   let isExtensionEnabled = $state(untrack(() => initialState.isExtensionEnabled));
   let isAnimationsEnabled = $state(untrack(() => initialState.isAnimationsEnabled));
   let editingChannelId = $state<string | null>(null);
@@ -54,6 +58,12 @@
       }),
       channelVideosItem.watch(value => {
         channelVideos = value;
+      }),
+      aiVerdictsItem.watch(value => {
+        aiVerdicts = value;
+      }),
+      isAiEnabledItem.watch(value => {
+        isAiEnabled = value;
       }),
       isExtensionEnabledItem.watch(value => {
         isExtensionEnabled = value;
@@ -73,7 +83,9 @@
   const feedVideos = $derived(
     selectFeedVideos({
       subscriptions,
-      videosByChannel: videosByChannelFromCache(channelVideos)
+      videosByChannel: videosByChannelFromCache(channelVideos),
+      aiVerdicts,
+      isAiEnabled
     })
   );
   const matchingVideoIds = $derived(new Set(feedVideos.map(video => video.videoId)));

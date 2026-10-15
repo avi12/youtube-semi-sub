@@ -79,18 +79,41 @@ export const isAnimationsEnabledItem = defineSchemaItem({
   fallback: true
 });
 
+/** Opt-in: off until the user turns AI match on, and turning it off deletes the downloaded model */
+export const isAiEnabledItem = defineSchemaItem({
+  key: "local:isAiEnabled",
+  schema: storedStateSchema.shape.isAiEnabled,
+  fallback: false
+});
+
+/**
+ * The model's verdicts per AI filter and video - a cache like `channelVideos`, so `selectFeedVideos` stays synchronous.
+ * A video without a verdict is pending
+ */
+export const aiVerdictsItem = defineSchemaItem({
+  key: "local:aiVerdicts",
+  schema: storedStateSchema.shape.aiVerdicts,
+  fallback: {}
+});
+
 export async function readStoredState() {
-  const [subscriptions, channelVideos, isExtensionEnabled, isAnimationsEnabled] = await Promise.all([
+  const [subscriptions, channelVideos, aiVerdicts] = await Promise.all([
     semiSubscriptionsItem.getValue(),
     channelVideosItem.getValue(),
+    aiVerdictsItem.getValue()
+  ]);
+  const [isExtensionEnabled, isAnimationsEnabled, isAiEnabled] = await Promise.all([
     isExtensionEnabledItem.getValue(),
-    isAnimationsEnabledItem.getValue()
+    isAnimationsEnabledItem.getValue(),
+    isAiEnabledItem.getValue()
   ]);
   const state: StoredState = {
     subscriptions,
     channelVideos,
+    aiVerdicts,
     isExtensionEnabled,
-    isAnimationsEnabled
+    isAnimationsEnabled,
+    isAiEnabled
   };
   return state;
 }

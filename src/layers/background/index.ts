@@ -1,3 +1,5 @@
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
+import { FilterKind } from "@/lib/filter/title-filter";
 import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
@@ -42,13 +44,35 @@ async function handleInstalled() {
   });
 }
 
+/** An AI filter was edited away or removed, so the verdicts judged under it may have no user left */
+function hasDroppedAiFilter({ subscriptions, previousSubscriptions }: Parameters<typeof handleSubscriptionsChange>[0]) {
+  for (const channelId in previousSubscriptions) {
+    const previousFilter = previousSubscriptions[channelId]?.filter;
+    if (previousFilter?.kind !== FilterKind.aiMatch) {
+      continue;
+    }
+
+    const filter = subscriptions[channelId]?.filter;
+    const isKept = filter?.kind === FilterKind.aiMatch && getAiFilterKey(filter) === getAiFilterKey(previousFilter);
+    if (!isKept) {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function handleSubscriptionsChange({ subscriptions, previousSubscriptions }: {
   subscriptions: SemiSubscriptions;
   previousSubscriptions: SemiSubscriptions;
 }) {
+  // Never pruned on a plain addition: the dialog's preview verdicts for a newly saved channel are kept that way
   const isChannelRemoved = Object.keys(previousSubscriptions)
     .some(channelId => !Object.hasOwn(subscriptions, channelId));
-  if (isChannelRemoved) {
+  const isPruneNeeded = isChannelRemoved || hasDroppedAiFilter({
+    subscriptions,
+    previousSubscriptions
+  });
+  if (isPruneNeeded) {
     await pruneChannelCaches();
   }
 

@@ -1,4 +1,5 @@
 import { getChannelPath, listSemiSubscriptions, toChannelInfo } from "./semi-channels";
+import { FilterKind } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { describe, expect, it } from "vitest";
@@ -12,6 +13,7 @@ function buildSubscription({ channelId, title }: {
     title,
     handle: `@${title}`,
     filter: {
+      kind: FilterKind.regex,
       pattern: "news",
       flags: "i"
     },
@@ -33,6 +35,7 @@ function buildState(isExtensionEnabled: boolean) {
   const state: PageState = {
     isExtensionEnabled,
     isAnimationsEnabled: true,
+    isAiEnabled: false,
     subscriptions: {
       [ZED.channelId]: ZED,
       [ALPHA.channelId]: ALPHA

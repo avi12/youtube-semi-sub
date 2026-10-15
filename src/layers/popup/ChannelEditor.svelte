@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DELETE_ICON } from "./icons";
-  import { compileTitleFilter } from "@/lib/filter/title-filter";
+  import { isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -20,9 +20,9 @@
 
   const { id, subscription, videos, isCached, onClose, onRemove }: Props = $props();
 
-  let draftFilter = $state(untrack(() => ({ ...subscription.filter })));
+  let draftFilter = $state<TitleFilter>(untrack(() => ({ ...subscription.filter })));
   let isFetching = $state(false);
-  const isDraftValid = $derived(compileTitleFilter(draftFilter) !== null);
+  const isDraftValid = $derived(isTitleFilterValid(draftFilter));
 
   onMount(async () => {
     if (isCached) {
