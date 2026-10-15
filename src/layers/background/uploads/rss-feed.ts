@@ -1,12 +1,14 @@
 import { fetchText } from "./fetch-text";
 import { buildVideoThumbnailUrl } from "./video-thumbnail";
-import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
+import { type FeedVideo, feedVideoSchema, VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
 import { XMLParser } from "fast-xml-parser";
 
 const RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml";
 const RSS_CHANNEL_ID_PARAM = "channel_id";
 const RSS_ENTRY_TAG = "entry";
+const URL_PATTERN = /https?:\/\/\S+/g;
+const WHITESPACE_RUN_PATTERN = /\s+/g;
 
 // MV3 service workers have no DOMParser. Namespace prefixes are dropped (`yt:videoId` -> `videoId`), tag values stay
 // strings (a title like "1984" must not become a number), and `entry` is always an array, even for a single upload
@@ -25,6 +27,15 @@ const rssFeedSchema = z.looseObject({
   })
 });
 
+/**
+ * The part of a description that says what the video is: links (sponsors, socials) dropped, whitespace collapsed, cut
+ * to a bounded length on whole code points
+ */
+export function summarizeDescription(description: string) {
+  const text = description.replaceAll(URL_PATTERN, " ").replaceAll(WHITESPACE_RUN_PATTERN, " ").trim();
+  return Array.from(text).slice(0, VIDEO_DESCRIPTION_MAX_LENGTH).join("").trim();
+}
+
 const rssEntrySchema = z
   .looseObject({
     videoId: z.string(),
@@ -36,21 +47,31 @@ const rssEntrySchema = z
     }),
     group: z
       .looseObject({
-        thumbnail: z.looseObject({
-          url: z.url()
-        })
+        thumbnail: z
+          .looseObject({
+            url: z.url()
+          })
+          .optional()
+          .catch(undefined),
+        description: z.string().optional().catch(undefined)
       })
       .optional()
       .catch(undefined)
   })
-  .transform(entry => ({
-    videoId: entry.videoId,
-    channelId: entry.channelId,
-    channelTitle: entry.author.name,
-    title: entry.title,
-    publishedAt: Date.parse(entry.published),
-    thumbnailUrl: entry.group?.thumbnail.url ?? buildVideoThumbnailUrl(entry.videoId)
-  }))
+  .transform(entry => {
+    const description = summarizeDescription(entry.group?.description ?? "");
+    return {
+      videoId: entry.videoId,
+      channelId: entry.channelId,
+      channelTitle: entry.author.name,
+      title: entry.title,
+      publishedAt: Date.parse(entry.published),
+      thumbnailUrl: entry.group?.thumbnail?.url ?? buildVideoThumbnailUrl(entry.videoId),
+      ...description && {
+        description
+      }
+    };
+  })
   .pipe(feedVideoSchema);
 
 function parseXml(xml: string) {

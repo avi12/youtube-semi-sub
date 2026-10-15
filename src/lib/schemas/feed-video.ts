@@ -3,6 +3,8 @@ import { z } from "@/lib/zod";
 
 export const VIDEO_ID_PATTERN = /^[\w-]{11}$/;
 export const videoIdSchema = z.string().regex(VIDEO_ID_PATTERN);
+/** Enough of a description to tell what a video is about, without filling storage with link lists and credits */
+export const VIDEO_DESCRIPTION_MAX_LENGTH = 400;
 
 export const feedVideoSchema = z.object({
   videoId: videoIdSchema,
@@ -10,7 +12,9 @@ export const feedVideoSchema = z.object({
   channelTitle: z.string(),
   title: z.string(),
   publishedAt: z.number(),
-  thumbnailUrl: z.url()
+  thumbnailUrl: z.url(),
+  /** RSS only, cleaned up and cut to `VIDEO_DESCRIPTION_MAX_LENGTH` - what AI match reads besides the title */
+  description: z.string().max(VIDEO_DESCRIPTION_MAX_LENGTH).optional()
 });
 export type FeedVideo = z.infer<typeof feedVideoSchema>;
 
