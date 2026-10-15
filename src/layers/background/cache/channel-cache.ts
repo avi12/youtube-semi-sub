@@ -189,7 +189,7 @@ export async function refreshAllChannels({ isForced }: Pick<Parameters<typeof re
   const subscriptions = await semiSubscriptionsItem.getValue();
   return await refreshChannels({
     channelIds: Object.values(subscriptions)
-      .filter(subscription => !subscription.isHalted)
+      .filter(subscription => !subscription.isSubscribed)
       .map(subscription => subscription.channelId),
     isForced
   });

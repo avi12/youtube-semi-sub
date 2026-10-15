@@ -8,7 +8,7 @@ import {
   semiUnsubscribeRequestSchema
 } from "@/lib/messaging/page-messaging";
 import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
-import { removeSemiSubscription, setSemiSubscriptionHalted } from "@/lib/semi-subscription-storage";
+import { removeSemiSubscription, setSemiSubscriptionSubscribed } from "@/lib/semi-subscription-storage";
 import {
   aiVerdictsItem,
   channelVideosItem,
@@ -63,11 +63,8 @@ export function startStateBridge(context: ContentScriptContext) {
       return;
     }
 
-    // A full subscription halts the semi one; unsubscribing resumes it
-    await setSemiSubscriptionHalted({
-      channelId: parsed.data.channelId,
-      isHalted: parsed.data.isSubscribed
-    });
+    // Subscribing switches the channel to hiding; unsubscribing switches it back to following
+    await setSemiSubscriptionSubscribed(parsed.data);
   });
   pageMessenger.onMessage(PageMessage.semiUnsubscribe, async ({ data }) => {
     const parsed = semiUnsubscribeRequestSchema.safeParse(data);

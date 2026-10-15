@@ -140,8 +140,8 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
 }
 
 /**
- * The one place the feed is filtered: a video lands only on a definite match, never while pending or paused, nor from
- * a channel halted by an official subscription
+ * The one place the feed is filtered: a video lands only on a definite match of its channel's follow filter, never
+ * while pending or paused, nor from a channel the user is subscribed to
  */
 export function selectFeedVideos({ subscriptions, videosByChannel, ...context }: AiJudgeContext & {
   subscriptions: SemiSubscriptions;
@@ -150,9 +150,9 @@ export function selectFeedVideos({ subscriptions, videosByChannel, ...context }:
   const selectedById = new Map<string, FeedVideo>();
   for (const channelId in subscriptions) {
     const subscription = subscriptions[channelId];
-    const isActive = subscription && !subscription.isHalted;
-    const judge = isActive && createVideoJudge({
-      filter: subscription.filter,
+    const isFollowed = subscription && !subscription.isSubscribed;
+    const judge = isFollowed && createVideoJudge({
+      filter: subscription.followFilter,
       ...context
     });
     if (!judge) {

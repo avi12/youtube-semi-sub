@@ -1,6 +1,7 @@
 import { getAiFilterKey } from "./ai-filter-key";
 import { countAiVerdicts, pruneAiVerdicts } from "./ai-verdicts";
 import { FilterKind, type TitleFilter } from "./title-filter";
+import { DEFAULT_TITLE_FILTER } from "@/lib/filter/title-filter";
 import type { ChannelVideosCache, FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { describe, expect, it } from "vitest";
@@ -31,9 +32,10 @@ function createSubscriptions(filtersByChannel: Record<string, TitleFilter>) {
       subscriptions[channelId] = {
         channelId,
         title: "Channel",
-        filter,
+        followFilter: filter,
         createdAt: 0,
-        isHalted: false
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: false
       };
     }
   }

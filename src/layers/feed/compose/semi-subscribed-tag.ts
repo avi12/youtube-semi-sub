@@ -3,7 +3,7 @@ import { z } from "@/lib/zod";
 // Every item this extension injects into the feed carries a tag beside its renderer - inside `richItemRenderer`, next
 // to `content` - so another extension rewriting the feed (YouTube Auto Feed) can tell semi-subscribed items from
 // YouTube's own. m's Shorts shelf lists bare renderers with no `richItemRenderer` around them; there the tag sits
-// beside the renderer itself. A halted channel injects nothing, so it is never tagged
+// beside the renderer itself. A subscribed channel injects nothing, so it is never tagged
 
 export const SEMI_SUBSCRIBED_TAG = "yssSemiSubscribed";
 

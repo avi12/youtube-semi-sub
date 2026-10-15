@@ -3,6 +3,7 @@ import type { AiVerdicts } from "@/lib/filter/ai-verdicts";
 import {
   type AiFilter,
   compileTitleFilter,
+  DEFAULT_TITLE_FILTER,
   FilterKind,
   getTitleFilterError,
   isTitleFilterValid,
@@ -40,9 +41,10 @@ function createSubscriptions(filter: TitleFilter) {
     [CHANNEL_ID]: {
       channelId: CHANNEL_ID,
       title: "Channel",
-      filter,
+      followFilter: filter,
       createdAt: 0,
-      isHalted: false
+      hideFilter: DEFAULT_TITLE_FILTER,
+      isSubscribed: false
     }
   };
   return subscriptions;
@@ -179,19 +181,20 @@ describe("selectFeedVideos", () => {
     expect(selected).toHaveLength(videos.length);
   });
 
-  it("adds nothing from a channel halted by an official subscription", () => {
+  it("adds nothing from a channel the user is subscribed to", () => {
     const selected = selectFeedVideos({
       subscriptions: {
         [CHANNEL_ID]: {
           channelId: CHANNEL_ID,
           title: "Channel",
-          filter: {
+          followFilter: {
             kind: FilterKind.regex,
             pattern: "",
             flags: ""
           },
           createdAt: 0,
-          isHalted: true
+          hideFilter: DEFAULT_TITLE_FILTER,
+          isSubscribed: true
         }
       },
       videosByChannel: {

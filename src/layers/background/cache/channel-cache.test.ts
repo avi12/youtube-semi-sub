@@ -1,6 +1,6 @@
 import { pruneChannelCaches, refreshChannel, refreshChannels } from "./channel-cache";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, FilterKind } from "@/lib/filter/title-filter";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { aiVerdictsItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
 import channelVideosPageHtml from "#background/fixtures/channel-videos-page.html?raw";
@@ -44,13 +44,14 @@ function createSubscriptions(channelIds: string[]) {
     subscriptions[channelId] = {
       channelId,
       title: "Channel",
-      filter: {
+      followFilter: {
         kind: FilterKind.regex,
         pattern: "",
         flags: "i"
       },
       createdAt: 0,
-      isHalted: false
+      hideFilter: DEFAULT_TITLE_FILTER,
+      isSubscribed: false
     };
   }
   return subscriptions;
@@ -227,9 +228,10 @@ describe("pruneChannelCaches", () => {
       [CHANNEL_ID]: {
         channelId: CHANNEL_ID,
         title: "Channel",
-        filter: aiFilter,
+        followFilter: aiFilter,
         createdAt: 0,
-        isHalted: false
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: false
       }
     });
     await refreshChannels({

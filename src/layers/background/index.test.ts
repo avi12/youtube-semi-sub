@@ -1,6 +1,6 @@
 import { startBackground } from "./index";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, FilterKind } from "@/lib/filter/title-filter";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { aiVerdictsItem, channelCheckedAtItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
 import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
@@ -20,13 +20,14 @@ const REFRESH_ALARM_NAME = "refresh-channels";
 const SUBSCRIPTION: SemiSubscription = {
   channelId: CHANNEL_ID,
   title: "Marques Brownlee",
-  filter: {
+  followFilter: {
     kind: FilterKind.regex,
     pattern: "",
     flags: "i"
   },
   createdAt: 0,
-  isHalted: false
+  hideFilter: DEFAULT_TITLE_FILTER,
+  isSubscribed: false
 };
 
 describe("startBackground", () => {
@@ -71,7 +72,7 @@ describe("startBackground", () => {
     await semiSubscriptionsItem.setValue({
       [CHANNEL_ID]: {
         ...SUBSCRIPTION,
-        filter
+        followFilter: filter
       }
     });
     await vi.waitFor(async () => {

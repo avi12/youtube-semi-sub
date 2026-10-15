@@ -1,7 +1,8 @@
-import { FilterKind } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import {
   migrateSemiSubscriptionsToV2,
   migrateSemiSubscriptionsToV3,
+  migrateSemiSubscriptionsToV4,
   semiSubscriptionsSchema
 } from "@/lib/schemas/semi-subscription";
 import { describe, expect, it } from "vitest";
@@ -9,6 +10,11 @@ import { describe, expect, it } from "vitest";
 const REGEX_CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const AI_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
 const CREATED_AT = 1_700_000_000_000;
+
+/** Every migration from the given one up to today's shape, the way WXT runs them on an older store */
+function migrateFromV1(stored: unknown) {
+  return migrateSemiSubscriptionsToV4(migrateSemiSubscriptionsToV3(migrateSemiSubscriptionsToV2(stored)));
+}
 
 const CHANNEL = {
   channelId: REGEX_CHANNEL_ID,
@@ -19,7 +25,7 @@ const CHANNEL = {
 
 describe("migrateSemiSubscriptionsToV2", () => {
   it("reads a filter saved without a kind as a RegExp filter", () => {
-    const migrated = migrateSemiSubscriptionsToV2({
+    const migrated = migrateFromV1({
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
         filter: {
@@ -29,31 +35,32 @@ describe("migrateSemiSubscriptionsToV2", () => {
       }
     });
 
-    expect(semiSubscriptionsSchema.parse(migrateSemiSubscriptionsToV3(migrated))).toEqual({
+    expect(semiSubscriptionsSchema.parse(migrated)).toEqual({
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
-        filter: {
+        followFilter: {
           kind: FilterKind.regex,
           pattern: "review",
           flags: "i"
         },
-        isHalted: false
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: false
       }
     });
   });
 
   it("keeps filters that already have a kind, next to ones that don't", () => {
-    const aiSubscription = {
+    const aiChannel = {
       ...CHANNEL,
       channelId: AI_CHANNEL_ID,
       title: "Linus Tech Tips",
-      handle: "@LinusTechTips",
-      filter: {
-        kind: FilterKind.aiMatch,
-        description: "Only GPU reviews"
-      }
+      handle: "@LinusTechTips"
     };
-    const migrated = migrateSemiSubscriptionsToV2({
+    const aiFilter = {
+      kind: FilterKind.aiMatch,
+      description: "Only GPU reviews"
+    };
+    const migrated = migrateFromV1({
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
         filter: {
@@ -61,22 +68,28 @@ describe("migrateSemiSubscriptionsToV2", () => {
           flags: ""
         }
       },
-      [AI_CHANNEL_ID]: aiSubscription
+      [AI_CHANNEL_ID]: {
+        ...aiChannel,
+        filter: aiFilter
+      }
     });
 
-    expect(semiSubscriptionsSchema.parse(migrateSemiSubscriptionsToV3(migrated))).toEqual({
+    expect(semiSubscriptionsSchema.parse(migrated)).toEqual({
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
-        filter: {
+        followFilter: {
           kind: FilterKind.regex,
           pattern: "iphone",
           flags: ""
         },
-        isHalted: false
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: false
       },
       [AI_CHANNEL_ID]: {
-        ...aiSubscription,
-        isHalted: false
+        ...aiChannel,
+        followFilter: aiFilter,
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: false
       }
     });
   });
@@ -112,5 +125,57 @@ describe("migrateSemiSubscriptionsToV3", () => {
 
   it("leaves a value it can't read untouched", () => {
     expect(migrateSemiSubscriptionsToV3("not a record")).toBe("not a record");
+  });
+});
+
+describe("migrateSemiSubscriptionsToV4", () => {
+  const filter = {
+    kind: FilterKind.regex,
+    pattern: "review",
+    flags: "i"
+  };
+
+  it("keeps the filter as the follow filter and starts an empty hide filter", () => {
+    expect(
+      migrateSemiSubscriptionsToV4({
+        [REGEX_CHANNEL_ID]: {
+          ...CHANNEL,
+          filter,
+          isHalted: false
+        }
+      })
+    ).toEqual({
+      [REGEX_CHANNEL_ID]: {
+        ...CHANNEL,
+        followFilter: filter,
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: false
+      }
+    });
+  });
+
+  it("reads a halt as a subscription, which hides nothing while the hide filter is empty", () => {
+    expect(
+      semiSubscriptionsSchema.parse(
+        migrateSemiSubscriptionsToV4({
+          [REGEX_CHANNEL_ID]: {
+            ...CHANNEL,
+            filter,
+            isHalted: true
+          }
+        })
+      )
+    ).toEqual({
+      [REGEX_CHANNEL_ID]: {
+        ...CHANNEL,
+        followFilter: filter,
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: true
+      }
+    });
+  });
+
+  it("leaves a value it can't read untouched", () => {
+    expect(migrateSemiSubscriptionsToV4("not a record")).toBe("not a record");
   });
 });

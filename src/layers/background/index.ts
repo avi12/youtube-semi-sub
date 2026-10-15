@@ -49,12 +49,12 @@ async function handleInstalled() {
 /** An AI filter was edited away or removed, so the verdicts judged under it may have no user left */
 function hasDroppedAiFilter({ subscriptions, previousSubscriptions }: Parameters<typeof handleSubscriptionsChange>[0]) {
   for (const channelId in previousSubscriptions) {
-    const previousFilter = previousSubscriptions[channelId]?.filter;
+    const previousFilter = previousSubscriptions[channelId]?.followFilter;
     if (previousFilter?.kind !== FilterKind.aiMatch) {
       continue;
     }
 
-    const filter = subscriptions[channelId]?.filter;
+    const filter = subscriptions[channelId]?.followFilter;
     const isKept = filter?.kind === FilterKind.aiMatch && getAiFilterKey(filter) === getAiFilterKey(previousFilter);
     if (!isKept) {
       return true;
@@ -80,7 +80,10 @@ async function handleSubscriptionsChange({ subscriptions, previousSubscriptions 
 
   await refreshChannels({
     channelIds: Object.values(subscriptions)
-      .filter(({ channelId, isHalted }) => !isHalted && previousSubscriptions[channelId]?.isHalted !== false)
+      .filter(({ channelId, isSubscribed }) => {
+        const wasFollowed = previousSubscriptions[channelId]?.isSubscribed === false;
+        return !isSubscribed && !wasFollowed;
+      })
       .map(({ channelId }) => channelId),
     isForced: true
   });

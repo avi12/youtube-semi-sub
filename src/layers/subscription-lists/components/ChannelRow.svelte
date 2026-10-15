@@ -32,9 +32,9 @@
       {/if}
       <p class="yss-channel__filter">
         <FilterLiteral
-          filter={subscription.filter}
+          filter={subscription.followFilter}
           isAiEnabled={listsView.isAiEnabled}
-          isHalted={subscription.isHalted} />
+          isSubscribed={subscription.isSubscribed} />
       </p>
     </a>
 

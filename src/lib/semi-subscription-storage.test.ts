@@ -1,6 +1,7 @@
-import { FilterKind } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER, FilterKind, type RegexFilter } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-import { haltSemiSubscription, mergeSemiSubscription } from "@/lib/semi-subscription-storage";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
+import { applyOfficialSubscription, mergeSemiSubscription } from "@/lib/semi-subscription-storage";
 import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
@@ -13,17 +14,28 @@ const PREVIOUS: SemiSubscription = {
   title: "Marques Brownlee",
   handle: "@mkbhd",
   avatarUrl: AVATAR_URL,
-  filter: {
+  followFilter: {
     kind: FilterKind.regex,
     pattern: "iphone",
     flags: "i"
   },
+  hideFilter: {
+    kind: FilterKind.regex,
+    pattern: "shorts",
+    flags: "i"
+  },
   createdAt: CREATED_AT,
-  isHalted: false
+  isSubscribed: false
+};
+
+const REVIEW_FILTER: RegexFilter = {
+  kind: FilterKind.regex,
+  pattern: "review",
+  flags: ""
 };
 
 describe("mergeSemiSubscription", () => {
-  it("creates a new semi-subscription stamped now", () => {
+  it("creates a followed semi-subscription stamped now, with an empty hide filter", () => {
     expect(
       mergeSemiSubscription({
         previous: undefined,
@@ -32,28 +44,44 @@ describe("mergeSemiSubscription", () => {
           title: "Marques Brownlee",
           handle: "@mkbhd"
         },
-        filter: {
-          kind: FilterKind.regex,
-          pattern: "review",
-          flags: ""
-        },
+        mode: SubscriptionMode.follow,
+        filter: REVIEW_FILTER,
         now: NOW
       })
     ).toEqual({
       channelId: CHANNEL_ID,
       title: "Marques Brownlee",
       handle: "@mkbhd",
-      filter: {
-        kind: FilterKind.regex,
-        pattern: "review",
-        flags: ""
-      },
+      followFilter: REVIEW_FILTER,
+      hideFilter: DEFAULT_TITLE_FILTER,
       createdAt: NOW,
-      isHalted: false
+      isSubscribed: false
     });
   });
 
-  it("keeps createdAt, the avatar and the handle when a page without them edits the filter", () => {
+  it("creates a subscribed one when it is first saved in hide mode, with an empty follow filter", () => {
+    expect(
+      mergeSemiSubscription({
+        previous: undefined,
+        channel: {
+          channelId: CHANNEL_ID,
+          title: "Marques Brownlee"
+        },
+        mode: SubscriptionMode.hide,
+        filter: REVIEW_FILTER,
+        now: NOW
+      })
+    ).toEqual({
+      channelId: CHANNEL_ID,
+      title: "Marques Brownlee",
+      followFilter: DEFAULT_TITLE_FILTER,
+      hideFilter: REVIEW_FILTER,
+      createdAt: NOW,
+      isSubscribed: true
+    });
+  });
+
+  it("edits only the given mode's filter, keeping createdAt, the avatar and the handle from before", () => {
     expect(
       mergeSemiSubscription({
         previous: PREVIOUS,
@@ -61,20 +89,13 @@ describe("mergeSemiSubscription", () => {
           channelId: CHANNEL_ID,
           title: "Marques Brownlee"
         },
-        filter: {
-          kind: FilterKind.regex,
-          pattern: "pixel",
-          flags: "iu"
-        },
+        mode: SubscriptionMode.hide,
+        filter: REVIEW_FILTER,
         now: NOW
       })
     ).toEqual({
       ...PREVIOUS,
-      filter: {
-        kind: FilterKind.regex,
-        pattern: "pixel",
-        flags: "iu"
-      }
+      hideFilter: REVIEW_FILTER
     });
   });
 
@@ -87,7 +108,8 @@ describe("mergeSemiSubscription", () => {
         handle: "@marques",
         avatarUrl: "https://yt3.googleusercontent.com/new=s88"
       },
-      filter: PREVIOUS.filter,
+      mode: SubscriptionMode.follow,
+      filter: PREVIOUS.followFilter,
       now: NOW
     });
     expect(merged).toMatchObject({
@@ -95,72 +117,73 @@ describe("mergeSemiSubscription", () => {
       handle: "@marques",
       avatarUrl: "https://yt3.googleusercontent.com/new=s88",
       createdAt: CREATED_AT,
-      isHalted: false
+      isSubscribed: false
     });
+  });
+
+  it("keeps the subscription state when a filter is edited in the other mode", () => {
+    expect(
+      mergeSemiSubscription({
+        previous: {
+          ...PREVIOUS,
+          isSubscribed: true
+        },
+        channel: PREVIOUS,
+        mode: SubscriptionMode.follow,
+        filter: REVIEW_FILTER,
+        now: NOW
+      }).isSubscribed
+    ).toBe(true);
   });
 });
 
-describe("haltSemiSubscription", () => {
+describe("applyOfficialSubscription", () => {
   const subscriptions = { [CHANNEL_ID]: PREVIOUS };
 
-  it("halts a semi-subscription on an official subscribe, keeping its filter", () => {
+  it("switches to hiding on an official subscribe, keeping both filters", () => {
     expect(
-      haltSemiSubscription({
+      applyOfficialSubscription({
         subscriptions,
         channelId: CHANNEL_ID,
-        isHalted: true
+        isSubscribed: true
       })
     ).toEqual({
       [CHANNEL_ID]: {
         ...PREVIOUS,
-        isHalted: true
+        isSubscribed: true
       }
     });
   });
 
-  it("resumes it on an official unsubscribe", () => {
+  it("switches back to following on an official unsubscribe", () => {
     expect(
-      haltSemiSubscription({
+      applyOfficialSubscription({
         subscriptions: {
           [CHANNEL_ID]: {
             ...PREVIOUS,
-            isHalted: true
+            isSubscribed: true
           }
         },
         channelId: CHANNEL_ID,
-        isHalted: false
+        isSubscribed: false
       })
     ).toEqual(subscriptions);
   });
 
   it("leaves channels that aren't semi-subscribed, and unchanged ones, as they are", () => {
     expect(
-      haltSemiSubscription({
+      applyOfficialSubscription({
         subscriptions,
         channelId: "UCXuqSBlHAE6Xw-yeJA0Tunw",
-        isHalted: true
+        isSubscribed: true
       })
     ).toBe(subscriptions);
     expect(
-      haltSemiSubscription({
+      applyOfficialSubscription({
         subscriptions,
         channelId: CHANNEL_ID,
-        isHalted: false
+        isSubscribed: false
       })
     ).toBe(subscriptions);
-  });
-
-  it("keeps the halt when the filter is edited", () => {
-    expect(
-      mergeSemiSubscription({
-        previous: {
-          ...PREVIOUS,
-          isHalted: true
-        },
-        channel: PREVIOUS,
-        filter: PREVIOUS.filter,
-        now: NOW
-      }).isHalted
-    ).toBe(true);
   });
 });

@@ -4,7 +4,7 @@ import {
   installSubscriptionWatch,
   setObservedOfficialSubscription
 } from "./official-subscription";
-import { FilterKind } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER } from "@/lib/filter/title-filter";
 import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import {
@@ -121,22 +121,19 @@ describe("installSubscriptionWatch", () => {
 });
 
 describe("applySubscriptionSnapshot", () => {
-  const ACTIVE_CHANNEL_ID = "UCX6OQ3DkcsbYNE6H8uQQuVA";
-  const HALTED_CHANNEL_ID = "UCBR8-60-B28hp2BmDPdntcQ";
+  const FOLLOWED_CHANNEL_ID = "UCX6OQ3DkcsbYNE6H8uQQuVA";
+  const SUBSCRIBED_CHANNEL_ID = "UCBR8-60-B28hp2BmDPdntcQ";
   const UNMENTIONED_CHANNEL_ID = "UC4REwc30LXHzKSkpqSwhR-Q";
   const OBSERVED_CHANNEL_ID = "UCjkyfFH-MWZhasolgds05EA";
 
-  function buildSubscription({ channelId, isHalted }: Pick<SemiSubscription, "channelId" | "isHalted">) {
+  function buildSubscription({ channelId, isSubscribed }: Pick<SemiSubscription, "channelId" | "isSubscribed">) {
     const subscription: SemiSubscription = {
       channelId,
       title: channelId,
-      filter: {
-        kind: FilterKind.regex,
-        pattern: "",
-        flags: "i"
-      },
+      followFilter: DEFAULT_TITLE_FILTER,
+      hideFilter: DEFAULT_TITLE_FILTER,
       createdAt: 1,
-      isHalted
+      isSubscribed
     };
     return subscription;
   }
@@ -160,32 +157,32 @@ describe("applySubscriptionSnapshot", () => {
     vi.clearAllMocks();
   });
 
-  it("halts what the snapshot shows subscribed and resumes what it shows unsubscribed, once the state is known", () => {
-    const snapshot = new Map([[ACTIVE_CHANNEL_ID, true], [HALTED_CHANNEL_ID, false]]);
+  it("switches what the snapshot shows subscribed to hiding and the rest to following, once the state is known", () => {
+    const snapshot = new Map([[FOLLOWED_CHANNEL_ID, true], [SUBSCRIBED_CHANNEL_ID, false]]);
     applySubscriptionSnapshot(channelId => snapshot.get(channelId));
     expect(pageMessenger.sendMessage).not.toHaveBeenCalled();
 
     deliverPageState([
       buildSubscription({
-        channelId: ACTIVE_CHANNEL_ID,
-        isHalted: false
+        channelId: FOLLOWED_CHANNEL_ID,
+        isSubscribed: false
       }),
       buildSubscription({
-        channelId: HALTED_CHANNEL_ID,
-        isHalted: true
+        channelId: SUBSCRIBED_CHANNEL_ID,
+        isSubscribed: true
       }),
       buildSubscription({
         channelId: UNMENTIONED_CHANNEL_ID,
-        isHalted: true
+        isSubscribed: true
       })
     ]);
     expect(pageMessenger.sendMessage).toHaveBeenCalledTimes(2);
     expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.officialSubscriptionChanged, {
-      channelId: ACTIVE_CHANNEL_ID,
+      channelId: FOLLOWED_CHANNEL_ID,
       isSubscribed: true
     });
     expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.officialSubscriptionChanged, {
-      channelId: HALTED_CHANNEL_ID,
+      channelId: SUBSCRIBED_CHANNEL_ID,
       isSubscribed: false
     });
   });
@@ -198,12 +195,12 @@ describe("applySubscriptionSnapshot", () => {
     applySubscriptionSnapshot(() => true);
     deliverPageState([
       buildSubscription({
-        channelId: HALTED_CHANNEL_ID,
-        isHalted: true
+        channelId: SUBSCRIBED_CHANNEL_ID,
+        isSubscribed: true
       }),
       buildSubscription({
         channelId: OBSERVED_CHANNEL_ID,
-        isHalted: false
+        isSubscribed: false
       })
     ]);
     expect(pageMessenger.sendMessage).not.toHaveBeenCalled();

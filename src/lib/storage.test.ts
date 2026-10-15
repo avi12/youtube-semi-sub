@@ -82,3 +82,51 @@ describe("the channel cache migration", () => {
     expect(await channelCheckedAtItem.getValue()).toEqual({ [CHANNEL_ID]: CHECKED_AT });
   });
 });
+
+describe("the semi-subscriptions migration", () => {
+  beforeEach(() => {
+    fakeBrowser.reset();
+  });
+
+  it("gives a v3 store a mode per channel: a halted channel reads as subscribed, with an empty hide filter", async () => {
+    const filter = {
+      kind: "regex",
+      pattern: "review",
+      flags: "i"
+    };
+    await fakeBrowser.storage.local.set({
+      semiSubscriptions: {
+        [CHANNEL_ID]: {
+          channelId: CHANNEL_ID,
+          title: "Marques Brownlee",
+          filter,
+          createdAt: CHECKED_AT,
+          isHalted: true
+        }
+      },
+      semiSubscriptions$: {
+        v: 3
+      }
+    });
+    const { semiSubscriptionsItem } = await loadStorage();
+    expect(await semiSubscriptionsItem.getValue()).toEqual({
+      [CHANNEL_ID]: {
+        channelId: CHANNEL_ID,
+        title: "Marques Brownlee",
+        followFilter: filter,
+        hideFilter: {
+          kind: "regex",
+          pattern: "",
+          flags: "i"
+        },
+        createdAt: CHECKED_AT,
+        isSubscribed: true
+      }
+    });
+    expect(await fakeBrowser.storage.local.get("semiSubscriptions$")).toEqual({
+      semiSubscriptions$: {
+        v: 4
+      }
+    });
+  });
+});

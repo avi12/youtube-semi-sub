@@ -16,7 +16,7 @@ import {
   prefetchFeedNatives,
   recordFeedChange,
   settleResumedChannels,
-  trackHaltTransitions
+  trackSubscriptionTransitions
 } from "#feed/feed-session";
 import {
   readShelf,
@@ -292,8 +292,8 @@ function handleNavigationStart(e: Event) {
 }
 
 export function startLiveFeed() {
-  // Before the reconcile listener, so a halt or resume is known by the time it plans
-  onPageState(trackHaltTransitions);
+  // Before the reconcile listener, so a subscribe or unsubscribe is known by the time it plans
+  onPageState(trackSubscriptionTransitions);
   onPageState(requestReconcile);
   // Switched off, ytaf leaves the grid alone - from then on it is written here, and the other way round
   watchYouTubeAutoFeedSwitch(requestReconcile);

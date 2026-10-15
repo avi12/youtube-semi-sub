@@ -8,15 +8,15 @@ import { channelIdFromGridItem, titleFromGridItem, videoIdFromGridItem } from "#
 import { isShortsInjectionAllowed } from "#feed/live/ytaf";
 
 // Page-session glue between the pure feed composition and the live page: the extension state, the natives cache,
-// and the ids this page session inserted (the only feed videos it may later take out - besides what a resumed
-// channel left behind)
+// and the ids this page session inserted (the only feed videos it may later take out - besides what a channel left
+// behind when the user unsubscribed)
 
 const PREFETCH_VIDEO_LIMIT = 20;
 
 const insertedVideoIds = new Set<string>();
-/** Channels whose semi-subscription resumed - the user unsubscribed - while their unfiltered videos may still show */
+/** Channels the user unsubscribed from - back to following - while their unfiltered videos may still show */
 const resumedChannelIds = new Set<string>();
-/** Per halted channel, the Shorts this session had inserted when the halt handed them over to YouTube */
+/** Per subscribed channel, the Shorts this session had inserted when subscribing handed them over to YouTube */
 const handedOverShortIdsByChannel = new Map<string, Set<string>>();
 let previousState: PageState | null = null;
 
@@ -42,23 +42,23 @@ export function recordFeedChange({ insertedIds, removedIds }: Pick<
 }
 
 /**
- * Follows every page state for halts and resumes. A halt - the user subscribed - hands the channel's inserted videos
- * over to YouTube: they belong in the feed now, so they are never taken out. A resume - the user unsubscribed - leaves
- * the channel's videos the filter rejects to be taken out, so the feed ends up as a reload would show it. A Short in
- * the Shorts shelf names no channel to judge it by, so a resume takes back the Shorts its halt handed over instead:
- * managed again, they leave once the filter rejects them
+ * Follows every page state for subscribes and unsubscribes. Subscribing hands the channel's inserted videos over to
+ * YouTube: they belong in the feed now, so they are never taken out as follow videos. Unsubscribing - a resume of
+ * following - leaves the channel's videos the follow filter rejects to be taken out, so the feed ends up as a reload
+ * would show it. A Short in the Shorts shelf names no channel to judge it by, so a resume takes back the Shorts the
+ * subscribe handed over instead: managed again, they leave once the filter rejects them
  */
-export function trackHaltTransitions(state: PageState) {
+export function trackSubscriptionTransitions(state: PageState) {
   const previous = previousState;
   previousState = state;
-  for (const [channelId, { isHalted }] of Object.entries(state.subscriptions)) {
-    const wasHalted = previous?.subscriptions[channelId]?.isHalted;
-    const isTransition = wasHalted !== undefined && wasHalted !== isHalted;
+  for (const [channelId, { isSubscribed }] of Object.entries(state.subscriptions)) {
+    const wasSubscribed = previous?.subscriptions[channelId]?.isSubscribed;
+    const isTransition = wasSubscribed !== undefined && wasSubscribed !== isSubscribed;
     if (!isTransition) {
       continue;
     }
 
-    if (!isHalted) {
+    if (!isSubscribed) {
       resumedChannelIds.add(channelId);
       for (const videoId of handedOverShortIdsByChannel.get(channelId) ?? []) {
         insertedVideoIds.add(videoId);
@@ -84,9 +84,9 @@ export function hasResumedChannels() {
 }
 
 /**
- * A resumed channel's videos in the feed, each judged by the channel's filter - by title, or by verdict for an AI
- * filter (pending without one) - not by the cached uploads, which lag right after a resume. A paused filter lets none
- * through. A video several channels share is never judged
+ * A resumed channel's videos in the feed, each judged by the channel's follow filter - by title, or by verdict for an
+ * AI filter (pending without one) - not by the cached uploads, which lag right after a resume. A paused filter lets
+ * none through. A video several channels share is never judged
  */
 function judgeResumedChannelVideos({ contents, state }: {
   contents: readonly unknown[];
@@ -101,7 +101,7 @@ function judgeResumedChannelVideos({ contents, state }: {
     }
 
     const judge = createVideoJudge({
-      filter: subscription.filter,
+      filter: subscription.followFilter,
       aiVerdicts: state.aiVerdicts,
       isAiEnabled: state.isAiEnabled
     });

@@ -28,13 +28,13 @@
     onRemove
   }: Props = $props();
 
-  const HALTED_SUMMARY = "Paused - you're subscribed";
+  const SUBSCRIBED_SUMMARY = "Paused - you're subscribed";
 
   const id = $props.id();
   const editorId = `${id}-editor`;
   let elEditToggle = $state<HTMLInputElement>();
 
-  const filter = $derived(subscription.filter);
+  const filter = $derived(subscription.followFilter);
   const videos = $derived(channelVideos?.videos ?? []);
   const videosOldestFirst = $derived(videos.toSorted((left, right) => left.publishedAt - right.publishedAt));
   /** The same judge `selectFeedVideos` applies to the feed - null while the filter can't run (AI match is off) */
@@ -54,8 +54,8 @@
   const pendingCount = $derived(matchStates.filter(matchState => matchState === MatchState.pending).length);
   const initial = $derived(getChannelInitial(subscription.title));
   const matchSummary = $derived.by(() => {
-    if (subscription.isHalted) {
-      return HALTED_SUMMARY;
+    if (subscription.isSubscribed) {
+      return SUBSCRIBED_SUMMARY;
     }
 
     if (isPaused) {

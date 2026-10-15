@@ -1,6 +1,6 @@
 import { collectClassificationJobs } from "./classification";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, FilterKind } from "@/lib/filter/title-filter";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { describe, expect, it } from "vitest";
@@ -46,20 +46,22 @@ const SUBSCRIPTIONS: SemiSubscriptions = {
   [CHANNEL_ID]: {
     channelId: CHANNEL_ID,
     title: "Channel",
-    filter: REVIEWS,
+    followFilter: REVIEWS,
     createdAt: 0,
-    isHalted: false
+    hideFilter: DEFAULT_TITLE_FILTER,
+    isSubscribed: false
   },
   [REGEX_CHANNEL_ID]: {
     channelId: REGEX_CHANNEL_ID,
     title: "Regex channel",
-    filter: {
+    followFilter: {
       kind: FilterKind.regex,
       pattern: "",
       flags: "i"
     },
     createdAt: 0,
-    isHalted: false
+    hideFilter: DEFAULT_TITLE_FILTER,
+    isSubscribed: false
   }
 };
 

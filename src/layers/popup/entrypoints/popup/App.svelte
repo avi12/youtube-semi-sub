@@ -87,7 +87,9 @@
   });
 
   const subscriptionList = $derived(listByTitle(subscriptions));
-  const aiFilterCount = $derived(subscriptionList.filter(({ filter }) => filter.kind === FilterKind.aiMatch).length);
+  const aiFilterCount = $derived(
+    subscriptionList.filter(({ followFilter }) => followFilter.kind === FilterKind.aiMatch).length
+  );
   const feedVideos = $derived(
     selectFeedVideos({
       subscriptions,

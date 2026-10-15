@@ -15,7 +15,7 @@ function collectReferencedVideoIds({ subscriptions, channelVideos }: {
 }) {
   const videoIdsByKey = new Map<string, Set<string>>();
   for (const channelId in subscriptions) {
-    const filter = subscriptions[channelId]?.filter;
+    const filter = subscriptions[channelId]?.followFilter;
     if (filter?.kind !== FilterKind.aiMatch) {
       continue;
     }

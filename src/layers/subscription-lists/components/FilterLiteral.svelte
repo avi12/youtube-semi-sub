@@ -1,11 +1,11 @@
 <script lang="ts">
   import { FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
 
-  const { filter, isAiEnabled, isHalted }: {
+  const { filter, isAiEnabled, isSubscribed }: {
     filter: TitleFilter;
     isAiEnabled: boolean;
-    /** Officially subscribed, so nothing reaches the feed until they unsubscribe */
-    isHalted: boolean;
+    /** Subscribed on YouTube, so nothing is added to the feed until they unsubscribe */
+    isSubscribed: boolean;
   } = $props();
 </script>
 
@@ -22,6 +22,6 @@
 {:else}
   <span class="yss-filter-literal yss-filter-literal--any">Any title</span>
 {/if}
-{#if isHalted}
+{#if isSubscribed}
   <span class="yss-filter-literal__paused">Paused - you're subscribed</span>
 {/if}

@@ -44,23 +44,24 @@ export function onObservedOfficialSubscriptionChange(listener: () => void) {
   };
 }
 
-/** The bridge halts the channel's semi-subscription on a subscribe and resumes it on an unsubscribe */
+/** The bridge switches the channel's semi-subscription to hiding on a subscribe, and to following on an unsubscribe */
 function reportOfficialSubscription(change: OfficialSubscriptionChange) {
   pageMessenger.sendMessage(PageMessage.officialSubscriptionChanged, change).catch(() => {});
 }
 
 /**
- * Lines halted states up with a server snapshot of the user's official subscriptions (the guide, a channel or watch
- * page), so subscribing or unsubscribing elsewhere - another device, the app - halts or resumes too. A snapshot is
- * applied once, as soon as the extension state is known, never again on later state changes - so tabs holding
- * snapshots of different ages can't flip a channel back and forth. What this tab saw the user do outranks any snapshot
+ * Lines the stored subscription states up with a server snapshot of the user's official subscriptions (the guide, a
+ * channel or watch page), so subscribing or unsubscribing elsewhere - another device, the app - switches modes too. A
+ * snapshot is applied once, as soon as the extension state is known, never again on later state changes - so tabs
+ * holding snapshots of different ages can't flip a channel back and forth. What this tab saw the user do outranks any
+ * snapshot
  */
 export function applySubscriptionSnapshot(readIsSubscribed: (channelId: string) => boolean | undefined) {
   whenPageStateKnown(({ subscriptions }) => {
-    for (const { channelId, isHalted } of Object.values(subscriptions)) {
+    for (const { channelId, isSubscribed: isStoredSubscribed } of Object.values(subscriptions)) {
       const isSubscribed = readIsSubscribed(channelId);
       const isSeenInThisTab = subscribedByChannel.has(channelId);
-      if (isSubscribed === undefined || isSubscribed === isHalted || isSeenInThisTab) {
+      if (isSubscribed === undefined || isSubscribed === isStoredSubscribed || isSeenInThisTab) {
         continue;
       }
 

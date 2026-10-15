@@ -7,6 +7,7 @@
   import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { readSemiSubscription, removeSemiSubscription, saveSemiSubscription } from "@/lib/semi-subscription-storage";
   import { isAiEnabledItem } from "@/lib/storage";
   import { FilterEditor } from "#filter-editor";
@@ -82,7 +83,7 @@
       storedSubscription = stored;
 
       if (stored && !isFilterEdited) {
-        filter = { ...stored.filter };
+        filter = { ...stored.followFilter };
       }
     }).catch(() => {}).finally(() => {
       isStoredSubscriptionRead = true;
@@ -114,6 +115,7 @@
       try {
         await saveSemiSubscription({
           channel: $state.snapshot(channel),
+          mode: SubscriptionMode.follow,
           filter: $state.snapshot(filter)
         });
         closeWithToast(savedMessage);
@@ -153,7 +155,7 @@
         Only the videos your filter lets through land in your subscriptions feed
       </p>
 
-      {#if storedSubscription?.isHalted}
+      {#if storedSubscription?.isSubscribed}
         <p class="notice">Paused - you're subscribed, so this kicks back in once you unsubscribe</p>
       {/if}
 

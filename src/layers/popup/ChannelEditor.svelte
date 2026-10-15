@@ -4,6 +4,7 @@
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { setSemiSubscriptionFilter } from "@/lib/semi-subscription-storage";
   import { FilterEditor } from "#filter-editor";
   import AiSetupAction from "#popup/ai/AiSetupAction.svelte";
@@ -21,7 +22,7 @@
 
   const { id, subscription, videos, isCached, onClose, onRemove }: Props = $props();
 
-  let draftFilter = $state<TitleFilter>(untrack(() => ({ ...subscription.filter })));
+  let draftFilter = $state<TitleFilter>(untrack(() => ({ ...subscription.followFilter })));
   let isFetching = $state(false);
   const isDraftValid = $derived(isTitleFilterValid(draftFilter));
 
@@ -54,6 +55,7 @@
 
     await setSemiSubscriptionFilter({
       channelId: subscription.channelId,
+      mode: SubscriptionMode.follow,
       filter: $state.snapshot(draftFilter)
     });
     onClose();

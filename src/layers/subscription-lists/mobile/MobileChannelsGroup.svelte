@@ -21,9 +21,9 @@
           <span class="yss-m-channel__text">
             <span class="yss-m-channel__title" dir="auto">{subscription.title}</span>
             <FilterLiteral
-              filter={subscription.filter}
+              filter={subscription.followFilter}
               isAiEnabled={listsView.isAiEnabled}
-              isHalted={subscription.isHalted} />
+              isSubscribed={subscription.isSubscribed} />
           </span>
         </a>
         <button

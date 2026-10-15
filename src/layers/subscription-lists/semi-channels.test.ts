@@ -1,5 +1,5 @@
 import { getChannelPath, listSemiSubscriptions, toChannelInfo } from "./semi-channels";
-import { FilterKind } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { describe, expect, it } from "vitest";
@@ -12,13 +12,14 @@ function buildSubscription({ channelId, title }: {
     channelId,
     title,
     handle: `@${title}`,
-    filter: {
+    followFilter: {
       kind: FilterKind.regex,
       pattern: "news",
       flags: "i"
     },
     createdAt: 0,
-    isHalted: false
+    hideFilter: DEFAULT_TITLE_FILTER,
+    isSubscribed: false
   };
   return subscription;
 }

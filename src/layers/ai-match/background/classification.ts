@@ -75,7 +75,7 @@ export function collectClassificationJobs({ requests, subscriptions, channelVide
   }
 
   for (const channelId in subscriptions) {
-    const filter = subscriptions[channelId]?.filter;
+    const filter = subscriptions[channelId]?.followFilter;
     if (filter?.kind === FilterKind.aiMatch) {
       addVideos({
         filter,

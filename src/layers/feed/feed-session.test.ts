@@ -1,5 +1,5 @@
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import {
   CHANNEL_ID,
@@ -32,11 +32,11 @@ const AI_FILTER: AiFilter = {
 
 let session: FeedSession;
 
-function pageState({ isHalted, feedVideos, filter = KEEP_FILTER, isAiEnabled = false, aiVerdicts = {} }: Pick<
+function pageState({ isSubscribed, feedVideos, filter = KEEP_FILTER, isAiEnabled = false, aiVerdicts = {} }: Pick<
   PageState,
   "feedVideos"
 > & Partial<Pick<PageState, "isAiEnabled" | "aiVerdicts">> & {
-  isHalted: boolean;
+  isSubscribed: boolean;
   filter?: TitleFilter;
 }) {
   const state: PageState = {
@@ -48,9 +48,10 @@ function pageState({ isHalted, feedVideos, filter = KEEP_FILTER, isAiEnabled = f
       [CHANNEL_ID]: {
         channelId: CHANNEL_ID,
         title: "Semi Channel",
-        filter,
+        followFilter: filter,
+        hideFilter: DEFAULT_TITLE_FILTER,
         createdAt: 1,
-        isHalted
+        isSubscribed
       }
     },
     feedVideos
@@ -81,11 +82,11 @@ beforeEach(async () => {
   session = await import("#feed/feed-session");
 });
 
-describe("a semi-subscription halted by an official subscription", () => {
+describe("a semi-subscription switched to hiding by an official subscription", () => {
   it("leaves the videos it inserted to YouTube instead of taking them out", () => {
-    session.trackHaltTransitions(
+    session.trackSubscriptionTransitions(
       pageState({
-        isHalted: false,
+        isSubscribed: false,
         feedVideos: [CACHED_PASSING_VIDEO]
       })
     );
@@ -94,35 +95,35 @@ describe("a semi-subscription halted by an official subscription", () => {
       removedIds: []
     });
 
-    const halted = pageState({
-      isHalted: true,
+    const subscribed = pageState({
+      isSubscribed: true,
       feedVideos: []
     });
-    session.trackHaltTransitions(halted);
+    session.trackSubscriptionTransitions(subscribed);
     expect(
       session.findRemovedVideoIds({
         contents: [semiChannelItem({ index: 1 })],
-        state: halted
+        state: subscribed
       })
     ).toEqual(new Set());
   });
 });
 
-describe("a semi-subscription resumed by an official unsubscribe", () => {
-  function resume(overrides: Omit<Parameters<typeof pageState>[0], "isHalted" | "feedVideos"> = {}) {
-    session.trackHaltTransitions(
+describe("a semi-subscription switched back to following by an official unsubscribe", () => {
+  function resume(overrides: Omit<Parameters<typeof pageState>[0], "isSubscribed" | "feedVideos"> = {}) {
+    session.trackSubscriptionTransitions(
       pageState({
         ...overrides,
-        isHalted: true,
+        isSubscribed: true,
         feedVideos: []
       })
     );
     const resumed = pageState({
       ...overrides,
-      isHalted: false,
+      isSubscribed: false,
       feedVideos: [CACHED_PASSING_VIDEO]
     });
-    session.trackHaltTransitions(resumed);
+    session.trackSubscriptionTransitions(resumed);
     return resumed;
   }
 
@@ -172,14 +173,14 @@ describe("a semi-subscription resumed by an official unsubscribe", () => {
     expect(session.hasResumedChannels()).toBe(false);
 
     const editedFilter = pageState({
-      isHalted: false,
+      isSubscribed: false,
       feedVideos: [],
       filter: {
         ...KEEP_FILTER,
         pattern: "something else"
       }
     });
-    session.trackHaltTransitions(editedFilter);
+    session.trackSubscriptionTransitions(editedFilter);
     expect(
       session.findRemovedVideoIds({
         contents,
@@ -190,16 +191,16 @@ describe("a semi-subscription resumed by an official unsubscribe", () => {
 
   it("forgets the resume when the user subscribes again first", () => {
     resume();
-    const halted = pageState({
-      isHalted: true,
+    const subscribed = pageState({
+      isSubscribed: true,
       feedVideos: []
     });
-    session.trackHaltTransitions(halted);
+    session.trackSubscriptionTransitions(subscribed);
     expect(session.hasResumedChannels()).toBe(false);
     expect(
       session.findRemovedVideoIds({
         contents: [semiChannelItem({ index: 2 })],
-        state: halted
+        state: subscribed
       })
     ).toEqual(new Set());
   });
@@ -235,17 +236,17 @@ describe("a semi-subscription resumed by an official unsubscribe", () => {
   });
 });
 
-describe("a semi-subscription's Shorts across a halt and a resume", () => {
+describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", () => {
   const SHORT = feedVideo({
     index: 60,
     hours: 2,
     isShort: true
   });
 
-  function haltAndResume(resumedFeedVideos: PageState["feedVideos"]) {
-    session.trackHaltTransitions(
+  function subscribeAndUnsubscribe(resumedFeedVideos: PageState["feedVideos"]) {
+    session.trackSubscriptionTransitions(
       pageState({
-        isHalted: false,
+        isSubscribed: false,
         feedVideos: [SHORT]
       })
     );
@@ -253,29 +254,29 @@ describe("a semi-subscription's Shorts across a halt and a resume", () => {
       insertedIds: [SHORT.videoId],
       removedIds: []
     });
-    const halted = pageState({
-      isHalted: true,
+    const subscribed = pageState({
+      isSubscribed: true,
       feedVideos: []
     });
-    session.trackHaltTransitions(halted);
-    const removedWhileHalted = session.findRemovedVideoIds({
+    session.trackSubscriptionTransitions(subscribed);
+    const removedWhileSubscribed = session.findRemovedVideoIds({
       contents: [],
-      state: halted
+      state: subscribed
     });
     const resumed = pageState({
-      isHalted: false,
+      isSubscribed: false,
       feedVideos: resumedFeedVideos
     });
-    session.trackHaltTransitions(resumed);
+    session.trackSubscriptionTransitions(resumed);
     return {
-      removedWhileHalted,
+      removedWhileSubscribed,
       resumed
     };
   }
 
-  it("hands an inserted Short over to YouTube on the halt, and takes it back on the resume when the filter rejects it", () => {
-    const { removedWhileHalted, resumed } = haltAndResume([]);
-    expect(removedWhileHalted).toEqual(new Set());
+  it("hands an inserted Short over to YouTube on a subscribe, and takes it back on an unsubscribe when the filter rejects it", () => {
+    const { removedWhileSubscribed, resumed } = subscribeAndUnsubscribe([]);
+    expect(removedWhileSubscribed).toEqual(new Set());
     expect(
       session.findRemovedVideoIds({
         contents: [],
@@ -285,7 +286,7 @@ describe("a semi-subscription's Shorts across a halt and a resume", () => {
   });
 
   it("manages a passing Short again after the resume, so a later filter edit takes it out", () => {
-    const { resumed } = haltAndResume([SHORT]);
+    const { resumed } = subscribeAndUnsubscribe([SHORT]);
     expect(
       session.findRemovedVideoIds({
         contents: [],
@@ -294,14 +295,14 @@ describe("a semi-subscription's Shorts across a halt and a resume", () => {
     ).toEqual(new Set());
 
     const editedFilter = pageState({
-      isHalted: false,
+      isSubscribed: false,
       feedVideos: [],
       filter: {
         ...KEEP_FILTER,
         pattern: "something else"
       }
     });
-    session.trackHaltTransitions(editedFilter);
+    session.trackSubscriptionTransitions(editedFilter);
     expect(
       session.findRemovedVideoIds({
         contents: [],

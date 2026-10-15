@@ -1,6 +1,7 @@
-import type { TitleFilter } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER, type TitleFilter } from "@/lib/filter/title-filter";
 import type { ChannelInfo } from "@/lib/schemas/channel";
-import type { SemiSubscription, SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { type SemiSubscription, type SemiSubscriptions, withModeFilter } from "@/lib/schemas/semi-subscription";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { mutateStorageItem, semiSubscriptionsItem } from "@/lib/storage";
 
 // Every write to the semi-subscriptions goes through here, so each kind of change is made one way everywhere
@@ -11,22 +12,30 @@ export async function readSemiSubscription(channelId: string) {
 }
 
 /**
- * The stored entry after a save: `createdAt` and a halt survive an edit, and a channel opened from a page that lacks
- * its avatar or handle keeps the ones stored before
+ * The stored entry after a save of one mode's filter: `createdAt`, the subscription state and the other mode's filter
+ * survive an edit, and a channel opened from a page that lacks its avatar or handle keeps the ones stored before. A
+ * new entry starts subscribed when it is saved in hide mode, with the other filter empty
  */
-export function mergeSemiSubscription({ previous, channel, filter, now }: {
+export function mergeSemiSubscription({ previous, channel, mode, filter, now }: {
   previous: SemiSubscription | undefined;
   channel: ChannelInfo;
+  mode: SubscriptionMode;
   filter: TitleFilter;
   now: number;
 }) {
-  const subscription: SemiSubscription = {
+  const base: SemiSubscription = {
     channelId: channel.channelId,
     title: channel.title || previous?.title || "",
-    filter,
+    followFilter: previous?.followFilter ?? { ...DEFAULT_TITLE_FILTER },
+    hideFilter: previous?.hideFilter ?? { ...DEFAULT_TITLE_FILTER },
     createdAt: previous?.createdAt ?? now,
-    isHalted: previous?.isHalted ?? false
+    isSubscribed: previous?.isSubscribed ?? mode === SubscriptionMode.hide
   };
+  const subscription = withModeFilter({
+    subscription: base,
+    mode,
+    filter
+  });
   const handle = channel.handle ?? previous?.handle;
   if (handle) {
     subscription.handle = handle;
@@ -40,9 +49,9 @@ export function mergeSemiSubscription({ previous, channel, filter, now }: {
   return subscription;
 }
 
-export function saveSemiSubscription({ channel, filter }: Pick<
+export function saveSemiSubscription({ channel, mode, filter }: Pick<
   Parameters<typeof mergeSemiSubscription>[0],
-  "channel" | "filter"
+  "channel" | "mode" | "filter"
 >) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
@@ -52,6 +61,7 @@ export function saveSemiSubscription({ channel, filter }: Pick<
         [channel.channelId]: mergeSemiSubscription({
           previous: subscriptions[channel.channelId],
           channel,
+          mode,
           filter,
           now: Date.now()
         })
@@ -81,8 +91,11 @@ export function restoreSemiSubscription(subscription: SemiSubscription) {
   });
 }
 
-/** Replaces the filter of a channel that is still semi-subscribed; a removed one stays removed */
-export function setSemiSubscriptionFilter({ channelId, filter }: Pick<SemiSubscription, "channelId" | "filter">) {
+/** Replaces one mode's filter of a channel that is still semi-subscribed; a removed one stays removed */
+export function setSemiSubscriptionFilter({ channelId, mode, filter }: Pick<SemiSubscription, "channelId"> & Pick<
+  Parameters<typeof mergeSemiSubscription>[0],
+  "mode" | "filter"
+>) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
     mutator(subscriptions) {
@@ -93,24 +106,28 @@ export function setSemiSubscriptionFilter({ channelId, filter }: Pick<SemiSubscr
 
       return {
         ...subscriptions,
-        [channelId]: {
-          ...current,
+        [channelId]: withModeFilter({
+          subscription: current,
+          mode,
           filter
-        }
+        })
       };
     }
   });
 }
 
 /**
- * Halts a semi-subscription while the user is officially subscribed to its channel, and resumes it once they
- * unsubscribe. The filter is kept either way; a channel that isn't semi-subscribed is left alone
+ * Switches a semi-subscription to hiding while the user is subscribed to its channel on YouTube, and back to following
+ * once they unsubscribe. Both filters are kept either way; a channel that isn't semi-subscribed is left alone
  */
-export function haltSemiSubscription({ subscriptions, channelId, isHalted }: Pick<SemiSubscription, "channelId" | "isHalted"> & {
+export function applyOfficialSubscription({ subscriptions, channelId, isSubscribed }: Pick<
+  SemiSubscription,
+  "channelId" | "isSubscribed"
+> & {
   subscriptions: SemiSubscriptions;
 }) {
   const current = subscriptions[channelId];
-  const isUnchanged = !current || current.isHalted === isHalted;
+  const isUnchanged = !current || current.isSubscribed === isSubscribed;
   if (isUnchanged) {
     return subscriptions;
   }
@@ -119,18 +136,21 @@ export function haltSemiSubscription({ subscriptions, channelId, isHalted }: Pic
     ...subscriptions,
     [channelId]: {
       ...current,
-      isHalted
+      isSubscribed
     }
   };
 }
 
-export function setSemiSubscriptionHalted({ channelId, isHalted }: Pick<SemiSubscription, "channelId" | "isHalted">) {
+export function setSemiSubscriptionSubscribed({ channelId, isSubscribed }: Pick<
+  SemiSubscription,
+  "channelId" | "isSubscribed"
+>) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
-    mutator: subscriptions => haltSemiSubscription({
+    mutator: subscriptions => applyOfficialSubscription({
       subscriptions,
       channelId,
-      isHalted
+      isSubscribed
     })
   });
 }

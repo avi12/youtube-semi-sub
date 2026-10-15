@@ -1,11 +1,15 @@
 import { channelIdSchema } from "@/lib/schemas/channel";
-import { migrateSemiSubscriptionsToV2, migrateSemiSubscriptionsToV3 } from "@/lib/schemas/semi-subscription";
+import {
+  migrateSemiSubscriptionsToV2,
+  migrateSemiSubscriptionsToV3,
+  migrateSemiSubscriptionsToV4
+} from "@/lib/schemas/semi-subscription";
 import { type StoredState, storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
 import { storage } from "#imports";
 import type { StorageItemKey, WxtStorageItemOptions } from "wxt/utils/storage";
 
-const SEMI_SUBSCRIPTIONS_VERSION = 3;
+const SEMI_SUBSCRIPTIONS_VERSION = 4;
 /**
  * The cached uploads' shape. v2 marks Shorts, which a cache from before can't tell apart. A cache is refilled from the
  * network, so an upgrade drops it - together with the refresh throttle that guards it, so it is refetched at once
@@ -66,7 +70,8 @@ export const semiSubscriptionsItem = defineSchemaItem({
   version: SEMI_SUBSCRIPTIONS_VERSION,
   migrations: {
     2: migrateSemiSubscriptionsToV2,
-    3: migrateSemiSubscriptionsToV3
+    3: migrateSemiSubscriptionsToV3,
+    4: migrateSemiSubscriptionsToV4
   }
 });
 

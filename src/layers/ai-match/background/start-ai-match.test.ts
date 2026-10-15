@@ -2,7 +2,7 @@ import { classifyPendingVideos } from "./classification";
 import { startAiMatch } from "./start-ai-match";
 import { AiEngine } from "@/lib/ai/ai-status";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, FilterKind } from "@/lib/filter/title-filter";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { aiVerdictsItem, channelVideosItem, isAiEnabledItem, semiSubscriptionsItem } from "@/lib/storage";
@@ -51,9 +51,10 @@ async function semiSubscribeWithAiFilter() {
     [CHANNEL_ID]: {
       channelId: CHANNEL_ID,
       title: "Channel",
-      filter: AI_FILTER,
+      followFilter: AI_FILTER,
       createdAt: 0,
-      isHalted: false
+      hideFilter: DEFAULT_TITLE_FILTER,
+      isSubscribed: false
     }
   });
   await channelVideosItem.setValue({
