@@ -1,0 +1,180 @@
+{
+  "responseContext": {
+    "maxAgeSeconds": 900
+  },
+  "items": [
+    {
+      "guideSectionRenderer": {
+        "items": [
+          {
+            "guideEntryRenderer": {
+              "navigationEndpoint": {
+                "commandMetadata": {
+                  "webCommandMetadata": {
+                    "url": "/",
+                    "webPageType": "WEB_PAGE_TYPE_BROWSE",
+                    "rootVe": 3854,
+                    "apiUrl": "/youtubei/v1/browse"
+                  }
+                },
+                "browseEndpoint": {
+                  "browseId": "FEwhat_to_watch"
+                }
+              },
+              "icon": {
+                "iconType": "TAB_HOME_CAIRO"
+              },
+              "formattedTitle": {
+                "simpleText": "Home"
+              },
+              "isPrimary": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "guideSubscriptionsSectionRenderer": {
+        "sort": "CHANNEL_ACTIVITY",
+        "items": [
+          {
+            "guideCollapsibleSectionEntryRenderer": {
+              "headerEntry": {
+                "guideEntryRenderer": {
+                  "navigationEndpoint": {
+                    "commandMetadata": {
+                      "webCommandMetadata": {
+                        "url": "/feed/channels",
+                        "webPageType": "WEB_PAGE_TYPE_CHANNELS",
+                        "rootVe": 6827,
+                        "apiUrl": "/youtubei/v1/browse"
+                      }
+                    },
+                    "browseEndpoint": {
+                      "browseId": "FEchannels"
+                    }
+                  },
+                  "icon": {
+                    "iconType": "SUBSCRIPTIONS_CAIRO"
+                  },
+                  "formattedTitle": {
+                    "simpleText": "Subscriptions"
+                  },
+                  "entryData": {
+                    "guideEntryData": {
+                      "guideEntryId": "subscriptions-channels-header"
+                    }
+                  },
+                  "isPrimary": true
+                }
+              },
+              "handlerDatas": ["GUIDE_ACTION_ADD_TO_SUBSCRIPTIONS", "GUIDE_ACTION_REMOVE_FROM_SUBSCRIPTIONS"]
+            }
+          },
+          {
+            "guideEntryRenderer": {
+              "navigationEndpoint": {
+                "commandMetadata": {
+                  "webCommandMetadata": {
+                    "url": "/@DrJango1",
+                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                    "apiUrl": "/youtubei/v1/browse"
+                  }
+                },
+                "browseEndpoint": {
+                  "browseId": "UC4REwc30LXHzKSkpqSwhR-Q",
+                  "canonicalBaseUrl": "/@DrJango1"
+                }
+              },
+              "thumbnail": {
+                "thumbnails": [
+                  {
+                    "url": "https://yt3.ggpht.com/HArksUvWMaQxow7jb6Yct1rnFnUUJuq5dmSMDmsZtZfDNoMm7RZhCjWtGeSc2kw_3idcUExdyPM=s88-c-k-c0x00ffffff-no-rj"
+                  }
+                ]
+              },
+              "badges": {
+                "liveBroadcasting": false
+              },
+              "formattedTitle": {
+                "simpleText": "DrGameria"
+              },
+              "accessibility": {
+                "accessibilityData": {
+                  "label": "DrGameria. New content available."
+                }
+              },
+              "entryData": {
+                "guideEntryData": {
+                  "guideEntryId": "UC4REwc30LXHzKSkpqSwhR-Q"
+                }
+              },
+              "presentationStyle": "GUIDE_ENTRY_PRESENTATION_STYLE_NEW_CONTENT"
+            }
+          },
+          {
+            "guideCollapsibleEntryRenderer": {
+              "expanderItem": {
+                "guideEntryRenderer": {
+                  "icon": {
+                    "iconType": "EXPAND_CAIRO"
+                  },
+                  "formattedTitle": {
+                    "simpleText": "Show more"
+                  }
+                }
+              },
+              "expandableItems": [
+                {
+                  "guideEntryRenderer": {
+                    "navigationEndpoint": {
+                      "commandMetadata": {
+                        "webCommandMetadata": {
+                          "url": "/@OfficialNSYNC",
+                          "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                          "apiUrl": "/youtubei/v1/browse"
+                        }
+                      },
+                      "browseEndpoint": {
+                        "browseId": "UCjkyfFH-MWZhasolgds05EA",
+                        "canonicalBaseUrl": "/@OfficialNSYNC"
+                      }
+                    },
+                    "formattedTitle": {
+                      "simpleText": "*NSYNC"
+                    },
+                    "entryData": {
+                      "guideEntryData": {
+                        "guideEntryId": "UCjkyfFH-MWZhasolgds05EA"
+                      }
+                    },
+                    "presentationStyle": "GUIDE_ENTRY_PRESENTATION_STYLE_NONE"
+                  }
+                }
+              ],
+              "collapserItem": {
+                "guideEntryRenderer": {
+                  "icon": {
+                    "iconType": "COLLAPSE_CAIRO"
+                  },
+                  "formattedTitle": {
+                    "simpleText": "Show fewer"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "handlerDatas": ["GUIDE_ACTION_ADD_TO_SUBSCRIPTIONS", "GUIDE_ACTION_REMOVE_FROM_SUBSCRIPTIONS"]
+      }
+    },
+    {
+      "guideSectionRenderer": {
+        "formattedTitle": {
+          "simpleText": "Explore"
+        },
+        "items": []
+      }
+    }
+  ]
+}
