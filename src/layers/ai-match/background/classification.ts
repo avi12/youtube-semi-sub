@@ -1,0 +1,204 @@
+import { AiEngine } from "@/lib/ai/ai-status";
+import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
+import { aiFilterSchema, FilterKind } from "@/lib/filter/title-filter";
+import { feedVideoSchema, sortNewestFirst } from "@/lib/schemas/feed-video";
+import type { StoredState } from "@/lib/schemas/stored-state";
+import {
+  aiVerdictsItem,
+  channelVideosItem,
+  isAiEnabledItem,
+  mutateStorageItem,
+  semiSubscriptionsItem
+} from "@/lib/storage";
+import { z } from "@/lib/zod";
+import { readAiStatus } from "#ai-match/background/read-ai-status";
+import { createBuiltInJudge } from "#ai-match/classify/built-in-judge";
+import { type BatchJudge, classifyVideos } from "#ai-match/classify/classifier";
+import { buildPrefaceMessages } from "#ai-match/classify/prompt";
+import { openBuiltInSession } from "#ai-match/engine/prompt-api";
+
+/** The editor previews at most a channel's cached uploads (50), so a request never needs more */
+const MAX_REQUEST_VIDEOS = 50;
+
+/** The editor's ask: judge these videos against this filter (verdicts land in the shared cache) */
+export const classifyRequestSchema = z.object({
+  filter: aiFilterSchema,
+  videos: z.array(feedVideoSchema).max(MAX_REQUEST_VIDEOS)
+});
+type ClassifyRequest = z.infer<typeof classifyRequestSchema>;
+
+/** Every video one filter still has to judge, under the key its verdicts are stored by */
+const classificationJobSchema = z.object({
+  key: z.string(),
+  description: z.string(),
+  videos: z.array(feedVideoSchema)
+});
+type ClassificationJob = z.infer<typeof classificationJobSchema>;
+
+/**
+ * What a pass has to judge, grouped by filter key: the editor's requests first (someone is watching the preview), then
+ * each AI filter's cached uploads, newest first. Videos that already have a verdict are left out, and a video is
+ * judged once per key even when several requests and channels share it
+ */
+export function collectClassificationJobs({ requests, subscriptions, channelVideos, aiVerdicts }: {
+  requests: ClassifyRequest[];
+} & Pick<StoredState, "subscriptions" | "channelVideos" | "aiVerdicts">) {
+  const jobsByKey = new Map<string, ClassificationJob>();
+  const queuedVideoIdsByKey = new Map<string, Set<string>>();
+
+  function addVideos({ filter, videos }: ClassifyRequest) {
+    const key = getAiFilterKey(filter);
+    const judged = aiVerdicts[key] ?? {};
+    const job = jobsByKey.get(key) ?? {
+      key,
+      description: normalizeAiDescription(filter.description),
+      videos: []
+    };
+    const queuedVideoIds = queuedVideoIdsByKey.get(key) ?? new Set();
+    for (const video of videos) {
+      const isKnown = judged[video.videoId] !== undefined || queuedVideoIds.has(video.videoId);
+      if (!isKnown) {
+        queuedVideoIds.add(video.videoId);
+        job.videos.push(video);
+      }
+    }
+    jobsByKey.set(key, job);
+    queuedVideoIdsByKey.set(key, queuedVideoIds);
+  }
+
+  for (const request of requests) {
+    addVideos(request);
+  }
+
+  for (const channelId in subscriptions) {
+    const filter = subscriptions[channelId]?.filter;
+    if (filter?.kind === FilterKind.aiMatch) {
+      addVideos({
+        filter,
+        videos: sortNewestFirst(channelVideos[channelId]?.videos ?? [])
+      });
+    }
+  }
+
+  return [...jobsByKey.values()].filter(job => job.videos.length > 0);
+}
+
+/** A judge for the engine this browser resolves to - only when its model is already on disk, so nothing downloads */
+async function openReadyJudge() {
+  const status = await readAiStatus();
+  const isReady = status.engine !== AiEngine.none && status.isModelReady;
+  if (!isReady) {
+    return null;
+  }
+
+  if (status.engine === AiEngine.builtIn) {
+    const judge: BatchJudge = createBuiltInJudge(() => openBuiltInSession(buildPrefaceMessages()));
+    return judge;
+  }
+
+  return null;
+}
+
+function storeVerdicts({ key, verdicts }: {
+  key: string;
+  verdicts: Record<string, boolean>;
+}) {
+  return mutateStorageItem({
+    item: aiVerdictsItem,
+    mutator: aiVerdicts => ({
+      ...aiVerdicts,
+      [key]: {
+        ...aiVerdicts[key],
+        ...verdicts
+      }
+    })
+  });
+}
+
+async function runJobs({ jobs, judge }: {
+  jobs: ClassificationJob[];
+  judge: BatchJudge;
+}) {
+  for (const { key, description, videos } of jobs) {
+    await classifyVideos({
+      description,
+      videos,
+      judge,
+      onVerdicts: verdicts => storeVerdicts({
+        key,
+        verdicts
+      }),
+      // Turning AI match off stops the pass at the next batch
+      shouldContinue: () => isAiEnabledItem.getValue()
+    });
+  }
+}
+
+const queuedRequests: ClassifyRequest[] = [];
+
+async function runPass() {
+  const requests = queuedRequests.splice(0);
+  if (!await isAiEnabledItem.getValue()) {
+    return;
+  }
+
+  const [subscriptions, channelVideos, aiVerdicts] = await Promise.all([
+    semiSubscriptionsItem.getValue(),
+    channelVideosItem.getValue(),
+    aiVerdictsItem.getValue()
+  ]);
+  const jobs = collectClassificationJobs({
+    requests,
+    subscriptions,
+    channelVideos,
+    aiVerdicts
+  });
+  if (jobs.length === 0) {
+    return;
+  }
+
+  const judge = await openReadyJudge();
+  if (!judge) {
+    return;
+  }
+
+  try {
+    await runJobs({
+      jobs,
+      judge
+    });
+  } finally {
+    await judge.close();
+  }
+}
+
+let currentRun: Promise<void> | null = null;
+let isRerunNeeded = false;
+
+async function runUntilSettled() {
+  do {
+    isRerunNeeded = false;
+    await runPass().catch(console.error);
+  } while (isRerunNeeded);
+}
+
+/**
+ * Judges whatever AI filters still have to judge, one pass at a time: a call while a pass runs queues one more pass
+ * after it, so triggers in a burst (new uploads, a filter edit, a preview) coalesce. Does nothing while AI match is
+ * off or the model isn't on disk. An editor `request` is judged first
+ */
+export function classifyPendingVideos(request?: ClassifyRequest) {
+  if (request) {
+    queuedRequests.push(request);
+  }
+
+  if (currentRun) {
+    isRerunNeeded = true;
+    return currentRun;
+  }
+
+  currentRun = runUntilSettled().finally(() => {
+    currentRun = null;
+  });
+  return currentRun;
+}

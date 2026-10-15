@@ -5,6 +5,7 @@ import { channelIdSchema } from "@/lib/schemas/channel";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { semiSubscriptionsItem } from "@/lib/storage";
 import { z } from "@/lib/zod";
+import { classifyPendingVideos, startAiMatch } from "#ai-match";
 import {
   pruneChannelCaches,
   refreshAllChannels,
@@ -97,9 +98,10 @@ export function startBackground() {
   browser.alarms.onAlarm.addListener(alarm => {
     const isRefreshAlarm = alarm.name === REFRESH_ALARM_NAME;
     if (isRefreshAlarm) {
+      // New uploads trigger classification by themselves; this also retries what an earlier pass left pending
       refreshAllChannels({
         isForced: false
-      }).catch(console.error);
+      }).then(() => classifyPendingVideos()).catch(console.error);
     }
   });
 
@@ -133,6 +135,8 @@ export function startBackground() {
       isForced: false
     });
   });
+
+  startAiMatch();
 
   // Alarms can be lost (the extension was disabled, or the browser dropped them on restart) - restore on every wake
   ensureRefreshAlarm().catch(console.error);

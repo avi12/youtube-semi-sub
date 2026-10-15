@@ -29,7 +29,7 @@ const regexFilterSchema = z.object({
 });
 export type RegexFilter = z.infer<typeof regexFilterSchema>;
 
-const aiFilterSchema = z.object({
+export const aiFilterSchema = z.object({
   kind: z.literal(FilterKind.aiMatch),
   description: z.string().trim().min(1).max(AI_DESCRIPTION_MAX_LENGTH)
 });
