@@ -1,4 +1,12 @@
-import { compileTitleFilter, getTitleFilterError, MatchState, type RegexFilter } from "@/lib/filter/title-filter";
+import {
+  type AiFilter,
+  type AiJudgeContext,
+  compileTitleFilter,
+  createVideoJudge,
+  getTitleFilterError,
+  MatchState,
+  type RegexFilter
+} from "@/lib/filter/title-filter";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
 
@@ -132,6 +140,44 @@ export function previewTitleFilter({ filter, videos }: {
 }
 
 export type TitleFilterPreview = ReturnType<typeof previewTitleFilter>;
+
+/**
+ * How an AI filter treats each preview video, by the verdicts `selectFeedVideos` reads: a video without one yet is
+ * pending. Not valid while the description is blank or AI match is off - then nothing is judged at all
+ */
+export function previewAiFilter({ filter, videos, aiVerdicts, isAiEnabled }: AiJudgeContext & {
+  filter: AiFilter;
+  videos: FeedVideo[];
+}) {
+  const judge = createVideoJudge({
+    filter,
+    aiVerdicts,
+    isAiEnabled
+  });
+  const rows: PreviewRow[] = judge
+    ? videos.map(video => ({
+      video,
+      matchState: judge(video),
+      segments: [{
+        text: video.title,
+        isHighlighted: false
+      }]
+    }))
+    : [];
+  const preview: TitleFilterPreview = {
+    isValid: judge !== null,
+    ...partitionPreviewRows(rows)
+  };
+  return preview;
+}
+
+/** What the preview says when the filter can't run, and when nothing matches - worded per filter kind */
+const previewHintsSchema = z.object({
+  invalidSummary: z.string(),
+  invalid: z.string(),
+  noMatch: z.string()
+});
+export type PreviewHints = z.infer<typeof previewHintsSchema>;
 
 /** The engine's error minus V8's `Invalid regular expression: /<pattern>/<flags>: ` echo of the input */
 export function getReadableFilterError(filter: RegexFilter) {

@@ -9,6 +9,7 @@ import {
   readLocalModelDownloadFraction
 } from "#ai-match/engine/litert/litert-client";
 import { isLiteRtModelCached } from "#ai-match/engine/litert/litert-model";
+import { browser } from "#imports";
 
 const INVALID_CLASSIFY_REQUEST_ERROR = "Invalid classification request";
 
@@ -53,6 +54,10 @@ async function deleteModelWhileOff() {
   }
 }
 
+async function openAiSettings() {
+  await browser.action.openPopup().catch(() => browser.tabs.create({ url: browser.runtime.getURL("/popup.html") }));
+}
+
 /**
  * Background: answers the popup's and the editor's AI questions and keeps verdicts current. Every trigger runs a pass
  * that does nothing unless AI match is on and its model is on disk. The built-in model is never downloaded from here;
@@ -61,6 +66,7 @@ async function deleteModelWhileOff() {
 export function startAiMatch() {
   onMessage(MessageType.getAiStatus, () => readAiStatus());
   onMessage(MessageType.downloadAiModel, () => downloadRequestedModel());
+  onMessage(MessageType.openAiSettings, () => openAiSettings());
 
   onMessage(MessageType.classifyVideos, ({ data }) => {
     const parsed = classifyRequestSchema.safeParse(data);

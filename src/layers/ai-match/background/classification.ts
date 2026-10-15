@@ -21,6 +21,8 @@ import { openBuiltInSession } from "#ai-match/engine/prompt-api";
 
 /** The editor previews at most a channel's cached uploads (50), so a request never needs more */
 const MAX_REQUEST_VIDEOS = 50;
+/** Editor requests kept while the model isn't ready yet - older ones are previews the user has moved on from */
+const MAX_QUEUED_REQUESTS = 8;
 
 /** The editor's ask: judge these videos against this filter (verdicts land in the shared cache) */
 export const classifyRequestSchema = z.object({
@@ -138,10 +140,12 @@ async function runJobs({ jobs, judge }: {
 const queuedRequests: ClassifyRequest[] = [];
 
 async function runPass() {
-  const requests = queuedRequests.splice(0);
   if (!await isAiEnabledItem.getValue()) {
+    queuedRequests.length = 0;
     return;
   }
+
+  const requests = [...queuedRequests];
 
   const [subscriptions, channelVideos, aiVerdicts] = await Promise.all([
     semiSubscriptionsItem.getValue(),
@@ -155,13 +159,17 @@ async function runPass() {
     aiVerdicts
   });
   if (jobs.length === 0) {
+    queuedRequests.splice(0, requests.length);
     return;
   }
 
+  // Without a ready model the editor's requests wait, so a preview typed during the download is judged after it
   const judge = await openReadyJudge();
   if (!judge) {
     return;
   }
+
+  queuedRequests.splice(0, requests.length);
 
   try {
     await runJobs({
@@ -191,6 +199,7 @@ async function runUntilSettled() {
 export function classifyPendingVideos(request?: ClassifyRequest) {
   if (request) {
     queuedRequests.push(request);
+    queuedRequests.splice(0, queuedRequests.length - MAX_QUEUED_REQUESTS);
   }
 
   if (currentRun) {

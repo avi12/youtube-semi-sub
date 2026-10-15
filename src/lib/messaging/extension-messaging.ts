@@ -11,6 +11,7 @@ export enum MessageType {
   getAiStatus = "get-ai-status",
   classifyVideos = "classify-videos",
   downloadAiModel = "download-ai-model",
+  openAiSettings = "open-ai-settings",
   aiModelDownloadChanged = "ai-model-download-changed",
   offscreenAiDownload = "offscreen-ai-download",
   offscreenAiDownloadFraction = "offscreen-ai-download-fraction",
@@ -42,6 +43,11 @@ interface ProtocolMap {
    * ended, to whether the model is on disk; progress arrives as `aiModelDownloadChanged`
    */
   [MessageType.downloadAiModel](): boolean;
+  /**
+   * Content script -> background: the in-page dialog's way to AI match setup - the popup, where the download and
+   * its size are explained (opened as a tab where the browser won't open the popup without a click on it)
+   */
+  [MessageType.openAiSettings](): void;
   /** Downloading page (Firefox's background, Chromium's offscreen page) -> extension pages: progress, then null */
   [MessageType.aiModelDownloadChanged](data: ModelDownloadChange): void;
   /** Chromium background -> offscreen page: download the model there, out of the service worker's short lifetime */

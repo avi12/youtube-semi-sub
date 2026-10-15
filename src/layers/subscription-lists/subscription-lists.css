@@ -54,8 +54,29 @@
   overflow-wrap: anywhere;
 }
 
-.yss-filter-literal--any {
+.yss-filter-literal--any,
+.yss-filter-literal--ai {
   font-family: inherit;
+}
+
+.yss-filter-literal--ai {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.yss-filter-literal__badge,
+.yss-filter-literal__paused {
+  padding-inline: 4px;
+  border-radius: 4px;
+  background: var(--yt-sys-color-baseline--additive-background, var(--yt-spec-badge-chip-background, rgb(0 0 0 / 5%)));
+  font-weight: 500;
+  font-size: 0.85em;
+}
+
+.yss-filter-literal--paused {
+  opacity: 70%;
 }
 
 /* www.youtube.com sidebar: the manage button sits where a live badge or new-content dot would */

@@ -1,5 +1,12 @@
-import { getReadableFilterError, highlightMatches, partitionPreviewRows, previewTitleFilter } from "./title-matches";
-import { FilterKind, MatchState } from "@/lib/filter/title-filter";
+import {
+  getReadableFilterError,
+  highlightMatches,
+  partitionPreviewRows,
+  previewAiFilter,
+  previewTitleFilter
+} from "./title-matches";
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
+import { type AiFilter, FilterKind, MatchState } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { describe, expect, it } from "vitest";
 
@@ -168,6 +175,68 @@ describe("previewTitleFilter", () => {
     expect(preview.isValid).toBe(false);
     expect(preview.feedRows).toHaveLength(0);
     expect(preview.skippedRows).toHaveLength(videos.length);
+  });
+});
+
+describe("previewAiFilter", () => {
+  const filter: AiFilter = {
+    kind: FilterKind.aiMatch,
+    description: "only tutorials"
+  };
+  const videos = [
+    createVideo({
+      videoId: "aaaaaaaaaaa",
+      title: "Svelte 5 tutorial"
+    }),
+    createVideo({
+      videoId: "bbbbbbbbbbb",
+      title: "Vlog"
+    }),
+    createVideo({
+      videoId: "ccccccccccc",
+      title: "Runes deep dive"
+    })
+  ];
+  const aiVerdicts = {
+    [getAiFilterKey(filter)]: {
+      aaaaaaaaaaa: true,
+      bbbbbbbbbbb: false
+    }
+  };
+
+  it("shows matches and pending videos in the feed, judged ones that don't fit as skipped", () => {
+    const preview = previewAiFilter({
+      filter,
+      videos,
+      aiVerdicts,
+      isAiEnabled: true
+    });
+    expect(preview.isValid).toBe(true);
+    expect(preview.feedRows.map(row => [row.video.videoId, row.matchState])).toEqual([
+      ["aaaaaaaaaaa", MatchState.matches],
+      ["ccccccccccc", MatchState.pending]
+    ]);
+    expect(preview.skippedRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
+    expect(preview.matchCount).toBe(1);
+    expect(preview.pendingCount).toBe(1);
+  });
+
+  it.each([
+    ["AI match is off", filter, false],
+    ["the description is blank", {
+      kind: FilterKind.aiMatch,
+      description: " "
+    }, true]
+  ] satisfies [string, AiFilter, boolean][])("judges nothing while %s", (_reason, previewedFilter, isAiEnabled) => {
+    const preview = previewAiFilter({
+      filter: previewedFilter,
+      videos,
+      aiVerdicts,
+      isAiEnabled
+    });
+    expect(preview.isValid).toBe(false);
+    expect(preview.feedRows).toEqual([]);
+    expect(preview.skippedRows).toEqual([]);
   });
 });
 

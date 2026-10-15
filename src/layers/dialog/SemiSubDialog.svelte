@@ -1,12 +1,14 @@
 <script lang="ts">
   import { isPageDarkTheme } from "./page-theme";
   import { ToastMessage } from "./toast-message";
+  import { AiEngine } from "@/lib/ai/ai-status";
   import { DEFAULT_TITLE_FILTER, isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
   import { readSemiSubscription, removeSemiSubscription, saveSemiSubscription } from "@/lib/semi-subscription-storage";
+  import { isAiEnabledItem } from "@/lib/storage";
   import { FilterEditor } from "#filter-editor";
   import { onMount } from "svelte";
 
@@ -148,7 +150,7 @@
       </section>
 
       <p id={descriptionId} class="dialog__description">
-        Only videos whose titles match your filter land in your subscriptions feed
+        Only the videos your filter lets through land in your subscriptions feed
       </p>
 
       {#if isLoadFailed}
@@ -164,7 +166,23 @@
         bind:filter={() => filter, editedFilter => {
           filter = editedFilter;
           isFilterEdited = true;
-        }} />
+        }}>
+        {#snippet aiSetup({ isAiEnabled, aiStatus })}
+          <!-- With the model on disk, one click here; a download goes through the popup, which explains its size -->
+          {#if aiStatus && aiStatus.engine !== AiEngine.none && aiStatus.isModelReady && !isAiEnabled}
+            <button class="button button--tonal" onclick={() => isAiEnabledItem.setValue(true)} type="button">
+              Turn on AI match
+            </button>
+          {:else}
+            <button
+              class="button button--tonal"
+              onclick={() => sendMessage(MessageType.openAiSettings).catch(() => {})}
+              type="button">
+              Set up AI match
+            </button>
+          {/if}
+        {/snippet}
+      </FilterEditor>
     </div>
 
     <footer class="dialog__footer">
@@ -475,6 +493,14 @@
 
   .button--danger {
     color: var(--error);
+  }
+
+  .button--tonal {
+    background: var(--additive);
+
+    &:hover:not(:disabled) {
+      background: var(--yt-sys-color-baseline--button-chip-background-hover, var(--outline));
+    }
   }
 
   .button--filled {

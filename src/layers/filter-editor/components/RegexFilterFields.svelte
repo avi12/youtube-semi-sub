@@ -64,6 +64,7 @@
       aria-invalid={error !== null}
       autocapitalize="off"
       autocomplete="off"
+      data-filter-input
       dir="auto"
       placeholder="tutorial|review"
       spellcheck="false"

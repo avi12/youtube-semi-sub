@@ -19,7 +19,10 @@
     <p class="empty__text">
       Open a channel or video you're not subscribed to and press <strong>Semi-subscribe</strong> next to Subscribe
     </p>
-    <p class="empty__text">Then write a title filter - only the videos it matches land in your subscriptions feed</p>
+    <p class="empty__text">
+      Then write a filter - a RegExp, or a plain description an AI judges - and only the videos it lets through land in
+      your subscriptions feed
+    </p>
   </section>
 </Card>
 

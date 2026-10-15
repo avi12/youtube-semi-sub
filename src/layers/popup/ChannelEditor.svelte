@@ -6,6 +6,7 @@
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
   import { setSemiSubscriptionFilter } from "@/lib/semi-subscription-storage";
   import { FilterEditor } from "#filter-editor";
+  import AiSetupAction from "#popup/ai/AiSetupAction.svelte";
   import { Button, ConnectedButtons, Icon } from "m3-svelte";
   import { onMount, untrack } from "svelte";
 
@@ -34,15 +35,15 @@
     isFetching = false;
   });
 
-  function focusPatternInput(elForm: HTMLFormElement) {
-    elForm.querySelector("input")?.focus();
+  function focusFilterInput(elForm: HTMLFormElement) {
+    elForm.querySelector<HTMLElement>("[data-filter-input]")?.focus();
   }
 </script>
 
 <form
   {id}
   class="editor"
-  {@attach focusPatternInput}
+  {@attach focusFilterInput}
   aria-label="Filter for {subscription.title}"
   onsubmit={async e => {
     e.preventDefault();
@@ -57,7 +58,11 @@
     });
     onClose();
   }}>
-  <FilterEditor isLoading={isFetching && videos.length === 0} {videos} bind:filter={draftFilter} />
+  <FilterEditor isLoading={isFetching && videos.length === 0} {videos} bind:filter={draftFilter}>
+    {#snippet aiSetup({ isAiEnabled })}
+      <AiSetupAction {isAiEnabled} />
+    {/snippet}
+  </FilterEditor>
   <footer class="editor__actions">
     <Button iconType="left" onclick={onRemove} size="s" variant="text">
       <Icon icon={DELETE_ICON} />

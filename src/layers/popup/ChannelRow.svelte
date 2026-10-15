@@ -1,7 +1,7 @@
 <script lang="ts">
   import ChannelEditor from "./ChannelEditor.svelte";
   import { EDIT_ICON, OPEN_IN_NEW_ICON } from "./icons";
-  import { FilterKind } from "@/lib/filter/title-filter";
+  import { type AiJudgeContext, createVideoJudge, FilterKind, MatchState } from "@/lib/filter/title-filter";
   import { getChannelInitial } from "@/lib/schemas/channel";
   import type { ChannelVideos } from "@/lib/schemas/feed-video";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -10,16 +10,23 @@
   import { Button, Icon } from "m3-svelte";
   import { tick } from "svelte";
 
-  interface Props {
+  interface Props extends AiJudgeContext {
     subscription: SemiSubscription;
     channelVideos: ChannelVideos | undefined;
-    matchingVideoIds: ReadonlySet<string>;
     isEditing: boolean;
     onEditingChange: (isEditing: boolean) => void;
     onRemove: () => void;
   }
 
-  const { subscription, channelVideos, matchingVideoIds, isEditing, onEditingChange, onRemove }: Props = $props();
+  const {
+    subscription,
+    channelVideos,
+    aiVerdicts,
+    isAiEnabled,
+    isEditing,
+    onEditingChange,
+    onRemove
+  }: Props = $props();
 
   const id = $props.id();
   const editorId = `${id}-editor`;
@@ -28,9 +35,27 @@
   const filter = $derived(subscription.filter);
   const videos = $derived(channelVideos?.videos ?? []);
   const videosOldestFirst = $derived(videos.toSorted((left, right) => left.publishedAt - right.publishedAt));
-  const matchCount = $derived(videos.filter(video => matchingVideoIds.has(video.videoId)).length);
+  /** The same judge `selectFeedVideos` applies to the feed - null while the filter can't run (AI match is off) */
+  const judge = $derived(
+    createVideoJudge({
+      filter,
+      aiVerdicts,
+      isAiEnabled
+    })
+  );
+  const isPaused = $derived(filter.kind === FilterKind.aiMatch && !isAiEnabled);
+  const matchStateById = $derived(
+    new Map(videos.map(video => [video.videoId, judge?.(video) ?? MatchState.doesNotMatch]))
+  );
+  const matchStates = $derived([...matchStateById.values()]);
+  const matchCount = $derived(matchStates.filter(matchState => matchState === MatchState.matches).length);
+  const pendingCount = $derived(matchStates.filter(matchState => matchState === MatchState.pending).length);
   const initial = $derived(getChannelInitial(subscription.title));
   const matchSummary = $derived.by(() => {
+    if (isPaused) {
+      return "Paused - AI match is off";
+    }
+
     if (!channelVideos) {
       return "Waiting for the first check";
     }
@@ -40,7 +65,12 @@
       one: "video",
       other: "videos"
     });
-    return `${matchCount} matching ${noun}`;
+    const summary = `${matchCount} matching ${noun}`;
+    if (pendingCount === 0) {
+      return summary;
+    }
+
+    return `${summary} - checking ${pendingCount} more`;
   });
 
   async function closeEditor() {
@@ -108,21 +138,29 @@
       {videos} />
   {:else}
     <div class="channel__summary">
-      <code class="filter-literal" dir="ltr">
-        {#if filter.kind === FilterKind.aiMatch}
-          {filter.description}
-        {:else if filter.pattern}
-          {@const { pattern, flags } = filter}
-          <span class="filter-literal__pattern">{pattern}</span><span class="filter-literal__flags">{flags}</span>
-        {:else}
-          <span class="filter-literal__any">Any title</span>
-        {/if}
-      </code>
+      {#if filter.kind === FilterKind.aiMatch}
+        <p class={["ai-literal", isPaused && "ai-literal--paused"]}>
+          <span class="ai-literal__badge">AI</span>
+          <bdi class="ai-literal__description">{filter.description}</bdi>
+        </p>
+      {:else}
+        <code class="filter-literal" dir="ltr">
+          {#if filter.pattern}
+            {@const { pattern, flags } = filter}
+            <span class="filter-literal__pattern">{pattern}</span><span class="filter-literal__flags">{flags}</span>
+          {:else}
+            <span class="filter-literal__any">Any title</span>
+          {/if}
+        </code>
+      {/if}
       <p class="matches">
         {#if videosOldestFirst.length > 0}
           <span class="matches__strip" aria-hidden="true">
             {#each videosOldestFirst as video (video.videoId)}
-              <span class={["matches__tick", matchingVideoIds.has(video.videoId) && "matches__tick--match"]} title={video.title}></span>
+              <span
+                class="matches__tick"
+                data-match-state={matchStateById.get(video.videoId)}
+                title={video.title}></span>
             {/each}
           </span>
         {/if}
@@ -271,8 +309,52 @@
     background: var(--m3c-outline-variant);
   }
 
-  .matches__tick--match {
+  .matches__tick[data-match-state="matches"] {
     background: var(--m3c-primary);
+  }
+
+  .matches__tick[data-match-state="pending"] {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--m3c-outline-variant);
+  }
+
+  .ai-literal {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 0;
+    color: var(--m3c-on-surface);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .ai-literal__badge {
+    flex: none;
+    padding-inline: 6px;
+    border-radius: var(--m3-shape-full);
+    background: var(--m3c-primary-container);
+    color: var(--m3c-on-primary-container);
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 18px;
+  }
+
+  .ai-literal__description {
+    display: -webkit-box;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .ai-literal--paused {
+    color: var(--m3c-on-surface-variant);
+
+    & .ai-literal__badge {
+      background: var(--m3c-surface-container-highest);
+      color: var(--m3c-on-surface-variant);
+    }
   }
 
   .matches__summary {

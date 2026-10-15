@@ -6,6 +6,7 @@
   import { followsChannelLink } from "./spa-navigation";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
   import { formatHandle } from "@/lib/youtube/channel-link";
+  import { listsView } from "#subscription-lists/lists-view.svelte";
   import { getChannelPath } from "#subscription-lists/semi-channels";
 
   const { subscription }: { subscription: SemiSubscription } = $props();
@@ -30,7 +31,7 @@
         <p class="yss-channel__metadata" dir="auto">{formatHandle(subscription.handle)}</p>
       {/if}
       <p class="yss-channel__filter">
-        <FilterLiteral filter={subscription.filter} />
+        <FilterLiteral filter={subscription.filter} isAiEnabled={listsView.isAiEnabled} />
       </p>
     </a>
 

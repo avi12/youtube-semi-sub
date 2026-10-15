@@ -3,18 +3,19 @@
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
   import { popTile, slideTile } from "#filter-editor/tile-motion";
-  import type { PreviewRow, TitleFilterPreview } from "#filter-editor/title-matches";
+  import type { PreviewHints, PreviewRow, TitleFilterPreview } from "#filter-editor/title-matches";
 
   interface Props {
     /** `isStale`: the filter is mid-edit and invalid, so this is the last valid result */
     preview: TitleFilterPreview & { isStale: boolean };
+    hints: PreviewHints;
     videoCount: number;
     isLoading: boolean;
     /** The filter input the summary describes */
     inputId: string;
   }
 
-  const { preview, videoCount, isLoading, inputId }: Props = $props();
+  const { preview, hints, videoCount, isLoading, inputId }: Props = $props();
 
   const SKELETON_TILE_COUNT = 4;
   const SKELETON_TILES = Array.from({ length: SKELETON_TILE_COUNT }, (_, i) => i);
@@ -31,7 +32,7 @@
     }
 
     if (preview.isStale || !preview.isValid) {
-      return "Fix the pattern to update the preview";
+      return hints.invalidSummary;
     }
 
     const { matchCount, pendingCount } = preview;
@@ -112,9 +113,9 @@
       {:else}
         <li class="feed__empty">
           {#if preview.isValid}
-            Nothing recent matches - try a looser pattern
+            {hints.noMatch}
           {:else}
-            Fix the pattern to see what lands in your feed
+            {hints.invalid}
           {/if}
         </li>
       {/each}

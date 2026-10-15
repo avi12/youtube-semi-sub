@@ -96,7 +96,6 @@
       isAiEnabled
     })
   );
-  const matchingVideoIds = $derived(new Set(feedVideos.map(video => video.videoId)));
   const feedSummary = $derived.by(() => {
     const channelNoun = pluralize({
       count: subscriptionList.length,
@@ -202,9 +201,10 @@
       <ul class="group__list">
         {#each subscriptionList as subscription (subscription.channelId)}
           <ChannelRow
+            {aiVerdicts}
             channelVideos={channelVideos[subscription.channelId]}
+            {isAiEnabled}
             isEditing={editingChannelId === subscription.channelId}
-            {matchingVideoIds}
             onEditingChange={isEditing => {
               editingChannelId = isEditing ? subscription.channelId : null;
             }}

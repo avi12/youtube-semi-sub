@@ -19,6 +19,7 @@ export function installSubscriptionListsHook() {
 export function startSubscriptionLists() {
   onPageState(state => {
     listsView.subscriptions = listSemiSubscriptions(state);
+    listsView.isAiEnabled = state.isAiEnabled;
   });
 
   const isDesktop = getYouTubeSite() === YouTubeSite.desktop;
