@@ -1,0 +1,142 @@
+{
+  "page": "watch",
+  "response": {
+    "contents": {
+      "singleColumnWatchNextResults": {
+        "results": {
+          "results": {
+            "contents": [
+              {
+                "slimVideoMetadataSectionRenderer": {
+                  "contents": [
+                    {
+                      "slimVideoInformationRenderer": {}
+                    },
+                    {
+                      "slimOwnerRenderer": {
+                        "thumbnail": {
+                          "thumbnails": [
+                            {
+                              "url": "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s48-c-k-c0x00ffffff-no-rj",
+                              "width": 48,
+                              "height": 48
+                            },
+                            {
+                              "url": "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s88-c-k-c0x00ffffff-no-rj",
+                              "width": 88,
+                              "height": 88
+                            },
+                            {
+                              "url": "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s176-c-k-c0x00ffffff-no-rj",
+                              "width": 176,
+                              "height": 176
+                            }
+                          ]
+                        },
+                        "title": {
+                          "runs": [
+                            {
+                              "text": "Rick Astley",
+                              "navigationEndpoint": {
+                                "clickTrackingParams": "CIABEOqeBBgBIhMIuZqhwZC8lwMV5wW_BB1SFhleygEEzBmTTA==",
+                                "commandMetadata": {
+                                  "webCommandMetadata": {
+                                    "url": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                                    "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                    "rootVe": 3611,
+                                    "apiUrl": "/youtubei/v1/browse"
+                                  }
+                                },
+                                "browseEndpoint": {
+                                  "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                                  "canonicalBaseUrl": "/channel/UCuAXFkgsw1L7xaCfnd5JJOw"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "navigationEndpoint": {
+                          "clickTrackingParams": "CIABEOqeBBgBIhMIuZqhwZC8lwMV5wW_BB1SFhleygEEzBmTTA==",
+                          "commandMetadata": {
+                            "webCommandMetadata": {
+                              "url": "/@RickAstleyYT",
+                              "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                              "rootVe": 3611,
+                              "apiUrl": "/youtubei/v1/browse"
+                            }
+                          },
+                          "browseEndpoint": {
+                            "browseId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                            "canonicalBaseUrl": "/@RickAstleyYT"
+                          }
+                        },
+                        "channelName": "Rick Astley",
+                        "channelUrl": "http://www.youtube.com/channel/UCuAXFkgsw1L7xaCfnd5JJOw",
+                        "subscribeButton": {
+                          "subscribeButtonRenderer": {
+                            "buttonText": {
+                              "runs": [
+                                {
+                                  "text": "Subscribe"
+                                }
+                              ]
+                            },
+                            "subscribed": false,
+                            "enabled": true,
+                            "type": "FREE",
+                            "channelId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+                            "subscribedEntityKey": "EhhVQ3VBWEZrZ3N3MUw3eGFDZm5kNUpKT3cgMygB"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "frameworkUpdates": {
+      "entityBatchUpdate": {
+        "mutations": [
+          {
+            "entityKey": "EgtkUXc0dzlXZ1hjUSD8AygB",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "teasersOrderEntity": {
+                "collectionKey": "video_metadata_carousel_collection",
+                "teasersInOrder": [
+                  "VIDEO_METADATA_CAROUSEL_PAGINATION_TYPE_UNKNOWN"
+                ],
+                "orderedTeasers": [
+                  "WATCH_UI_TEASER_TYPE_COMMENT"
+                ]
+              }
+            }
+          },
+          {
+            "entityKey": "EhhVQ3VBWEZrZ3N3MUw3eGFDZm5kNUpKT3cgMygB",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionStateEntity": {
+                "key": "EhhVQ3VBWEZrZ3N3MUw3eGFDZm5kNUpKT3cgMygB",
+                "subscribed": false
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "playerResponse": {
+    "videoDetails": {
+      "videoId": "dQw4w9WgXcQ",
+      "title": "Rick Astley - Never Gonna Give You Up (Official Video) (4K Remaster)",
+      "channelId": "UCuAXFkgsw1L7xaCfnd5JJOw",
+      "author": "Rick Astley",
+      "isOwnerViewing": false
+    }
+  }
+}

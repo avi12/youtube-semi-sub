@@ -1,0 +1,26 @@
+/* The Semi-subscribe button (features/channel-button/SemiSubButton.svelte). Its look comes from YouTube's own button
+   classes; this only places it and hides it */
+.yss-channel-button {
+  @media (prefers-reduced-motion: no-preference) {
+    @starting-style {
+      opacity: 0%;
+    }
+
+    transition: opacity 150ms cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  &[hidden] {
+    display: none;
+  }
+
+  &[data-placement="owner-row"] {
+    margin-inline-start: 8px;
+  }
+}
+
+.yss-channel-button__icon > svg {
+  display: block;
+  block-size: 100%;
+  inline-size: 100%;
+  fill: currentColor;
+}

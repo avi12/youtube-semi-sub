@@ -1,0 +1,97 @@
+{
+  "page": "channel",
+  "response": {
+    "header": {
+      "pageHeaderRenderer": {
+        "pageTitle": "Marques Brownlee",
+        "content": {
+          "pageHeaderViewModel": {
+            "image": {
+              "decoratedAvatarViewModel": {
+                "avatar": {
+                  "avatarViewModel": {
+                    "image": {
+                      "sources": [
+                        {
+                          "url": "https://yt3.googleusercontent.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s72-c-k-c0x00ffffff-no-rj",
+                          "width": 72,
+                          "height": 72
+                        },
+                        {
+                          "url": "https://yt3.googleusercontent.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s120-c-k-c0x00ffffff-no-rj",
+                          "width": 120,
+                          "height": 120
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "actions": {
+              "flexibleActionsViewModel": {
+                "actionsRows": [
+                  {
+                    "actions": [
+                      {
+                        "subscribeButtonViewModel": {
+                          "subscribeButtonContent": {
+                            "buttonText": "Subscribe",
+                            "accessibilityText": "Subscribe to Marques Brownlee."
+                          },
+                          "unsubscribeButtonContent": {
+                            "buttonText": "Subscribed",
+                            "accessibilityText": "Unsubscribe from Marques Brownlee."
+                          },
+                          "stateEntityStoreKey": "EhhVQ0JKeWNzbWR1dllFTDgzUl9VNEpyaVEgMygB",
+                          "notificationStateEntityStoreKeys": {
+                            "subsNotificationStateKey": "EhhVQ0JKeWNzbWR1dllFTDgzUl9VNEpyaVEgiwIoAQ%3D%3D"
+                          },
+                          "channelId": "UCBJycsmduvYEL83R_U4JriQ",
+                          "enableSubscribeButtonPostClickAnimation": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "channelMetadataRenderer": {
+        "title": "Marques Brownlee",
+        "externalId": "UCBJycsmduvYEL83R_U4JriQ",
+        "vanityChannelUrl": "http://www.youtube.com/@mkbhd"
+      }
+    },
+    "frameworkUpdates": {
+      "entityBatchUpdate": {
+        "mutations": [
+          {
+            "entityKey": "EhhVQ0JKeWNzbWR1dllFTDgzUl9VNEpyaVEgiwIoAQ%3D%3D",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionNotificationStateEntity": {
+                "key": "EhhVQ0JKeWNzbWR1dllFTDgzUl9VNEpyaVEgiwIoAQ%3D%3D",
+                "state": "SUBSCRIPTION_NOTIFICATION_STATE_OCCASIONAL"
+              }
+            }
+          },
+          {
+            "entityKey": "EhhVQ0JKeWNzbWR1dllFTDgzUl9VNEpyaVEgMygB",
+            "type": "ENTITY_MUTATION_TYPE_REPLACE",
+            "payload": {
+              "subscriptionStateEntity": {
+                "key": "EhhVQ0JKeWNzbWR1dllFTDgzUl9VNEpyaVEgMygB",
+                "subscribed": true
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

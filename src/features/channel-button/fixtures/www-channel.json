@@ -1,0 +1,238 @@
+{
+  "page": "channel",
+  "response": {
+    "header": {
+      "pageHeaderRenderer": {
+        "pageTitle": "Marques Brownlee",
+        "content": {
+          "pageHeaderViewModel": {
+            "image": {
+              "decoratedAvatarViewModel": {
+                "avatar": {
+                  "avatarViewModel": {
+                    "image": {
+                      "sources": [
+                        {
+                          "url": "https://yt3.googleusercontent.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s72-c-k-c0x00ffffff-no-rj",
+                          "width": 72,
+                          "height": 72
+                        },
+                        {
+                          "url": "https://yt3.googleusercontent.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s120-c-k-c0x00ffffff-no-rj",
+                          "width": 120,
+                          "height": 120
+                        },
+                        {
+                          "url": "https://yt3.googleusercontent.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s160-c-k-c0x00ffffff-no-rj",
+                          "width": 160,
+                          "height": 160
+                        }
+                      ],
+                      "processor": {
+                        "borderImageProcessor": {
+                          "circular": true
+                        }
+                      }
+                    },
+                    "avatarImageSize": "AVATAR_SIZE_XL",
+                    "loggingDirectives": {
+                      "trackingParams": "CCIQ6OENIhMIlMyMwJC8lwMVCHhBAh1wtAYM",
+                      "visibility": {
+                        "types": "12"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "metadata": {
+              "contentMetadataViewModel": {
+                "metadataRows": [
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "@mkbhd",
+                          "styleRuns": [
+                            {
+                              "weightLabel": "FONT_WEIGHT_MEDIUM",
+                              "styleRunExtensions": {
+                                "styleRunColorMapExtension": {
+                                  "colorMap": [
+                                    {
+                                      "key": "USER_INTERFACE_THEME_DARK",
+                                      "value": 4294967295
+                                    },
+                                    {
+                                      "key": "USER_INTERFACE_THEME_LIGHT",
+                                      "value": 4279440147
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "enableTruncation": true
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "21.4M subscribers"
+                        },
+                        "accessibilityLabel": "21.4 million subscribers"
+                      },
+                      {
+                        "text": {
+                          "content": "1.8K videos",
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 11
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "delimiter": "•",
+                "rendererContext": {
+                  "loggingContext": {
+                    "loggingDirectives": {
+                      "trackingParams": "CCEQ9eQKIhMIlMyMwJC8lwMVCHhBAh1wtAYM",
+                      "visibility": {
+                        "types": "12"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "actions": {
+              "flexibleActionsViewModel": {
+                "actionsRows": [
+                  {
+                    "actions": [
+                      {
+                        "buttonViewModel": {
+                          "title": "Subscribe",
+                          "onTap": {
+                            "innertubeCommand": {
+                              "clickTrackingParams": "CBIQot8KIhMIlMyMwJC8lwMVCHhBAh1wtAYMygEE6AX-eg==",
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "ignoreNavigation": true
+                                }
+                              },
+                              "modalEndpoint": {
+                                "modal": {
+                                  "modalWithTitleAndButtonRenderer": {
+                                    "title": {
+                                      "simpleText": "Want to subscribe to this channel?"
+                                    },
+                                    "content": {
+                                      "simpleText": "Sign in to subscribe to this channel."
+                                    },
+                                    "button": {
+                                      "buttonRenderer": {
+                                        "style": "STYLE_MONO_FILLED",
+                                        "size": "SIZE_DEFAULT",
+                                        "isDisabled": false,
+                                        "text": {
+                                          "simpleText": "Sign in"
+                                        },
+                                        "navigationEndpoint": {
+                                          "clickTrackingParams": "CCAQ_YYEIhMIlMyMwJC8lwMVCHhBAh1wtAYMMglzdWJzY3JpYmXKAQToBf56",
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3D%252F%2540mkbhd%26continue_action%3DQUZZTVljSDFFNDQyazBzMGJYSFllb1dIQ3UtQnxBSTVJdTV0NHVqaE4ycHY3bjhsdVBqR1drWVdiZUFsU3RZazRIZjhrWFlLdVlCYUJid25pUWlEVnQtZmpQaUh1dUY3azFZa19fcUFJeDM3dmE0ZzZOMWlLenhONEdBdm0xMk1kUFJCSFVRaHpoYVF5YnRMbWZYLXFoQTJGcEF3cHlVRmppZ25PZHlqcWpVSmQxMGRHMlgzMzFVTlYxTlNSdjc1dUh0bnlzeGpUOEdrbkNOakVrdUt6NFhF&hl=en&ec=66429",
+                                              "webPageType": "WEB_PAGE_TYPE_UNKNOWN",
+                                              "rootVe": 83769
+                                            }
+                                          },
+                                          "signInEndpoint": {
+                                            "nextEndpoint": {
+                                              "clickTrackingParams": "CCAQ_YYEIhMIlMyMwJC8lwMVCHhBAh1wtAYMygEE6AX-eg==",
+                                              "commandMetadata": {
+                                                "webCommandMetadata": {
+                                                  "url": "/@mkbhd",
+                                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                  "rootVe": 3611,
+                                                  "apiUrl": "/youtubei/v1/browse"
+                                                }
+                                              },
+                                              "browseEndpoint": {
+                                                "browseId": "UCBJycsmduvYEL83R_U4JriQ",
+                                                "params": "EgA%3D",
+                                                "canonicalBaseUrl": "/@mkbhd"
+                                              }
+                                            },
+                                            "continueAction": "QUZZTVljSDFFNDQyazBzMGJYSFllb1dIQ3UtQnxBSTVJdTV0NHVqaE4ycHY3bjhsdVBqR1drWVdiZUFsU3RZazRIZjhrWFlLdVlCYUJid25pUWlEVnQtZmpQaUh1dUY3azFZa19fcUFJeDM3dmE0ZzZOMWlLenhONEdBdm0xMk1kUFJCSFVRaHpoYVF5YnRMbWZYLXFoQTJGcEF3cHlVRmppZ25PZHlqcWpVSmQxMGRHMlgzMzFVTlYxTlNSdjc1dUh0bnlzeGpUOEdrbkNOakVrdUt6NFhF",
+                                            "idamTag": "66429"
+                                          }
+                                        },
+                                        "trackingParams": "CCAQ_YYEIhMIlMyMwJC8lwMVCHhBAh1wtAYM"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "accessibilityText": "Subscribe",
+                          "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                          "trackingParams": "CBIQot8KIhMIlMyMwJC8lwMVCHhBAh1wtAYM",
+                          "isFullWidth": false,
+                          "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                          "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                          "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "justifyContent": "FLEXIBLE_ACTIONS_JUSTIFY_CONTENT_START",
+                "minimumRowHeight": 44,
+                "rendererContext": {
+                  "loggingContext": {
+                    "loggingDirectives": {
+                      "trackingParams": "CBIQot8KIhMIlMyMwJC8lwMVCHhBAh1wtAYM",
+                      "visibility": {
+                        "types": "12"
+                      },
+                      "clientVeSpec": {
+                        "uiType": 184974,
+                        "veCounter": 780461447
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "channelMetadataRenderer": {
+        "title": "Marques Brownlee",
+        "externalId": "UCBJycsmduvYEL83R_U4JriQ",
+        "avatar": {
+          "thumbnails": [
+            {
+              "url": "https://yt3.googleusercontent.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s900-c-k-c0x00ffffff-no-rj",
+              "width": 900,
+              "height": 900
+            }
+          ]
+        },
+        "channelUrl": "https://www.youtube.com/channel/UCBJycsmduvYEL83R_U4JriQ",
+        "vanityChannelUrl": "http://www.youtube.com/@mkbhd"
+      }
+    }
+  }
+}

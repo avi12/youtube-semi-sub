@@ -1,5 +1,5 @@
 /** MAIN world, document_start: detect successful official Subscribe/Unsubscribe presses */
-export function installSubscriptionWatch() {}
+export { installSubscriptionWatch } from "./official-subscription";
 
 /** MAIN world, document_start: inject the Semi-subscribe button next to YouTube's Subscribe button */
-export function startChannelButton() {}
+export { startChannelButton } from "./channel-button.svelte";
