@@ -1,0 +1,9 @@
+minimumReleaseAge: 0
+verifyDepsBeforeRun: false
+
+allowBuilds:
+  esbuild: true
+  spawn-sync: true
+
+patchedDependencies:
+  zod: patches/zod.patch

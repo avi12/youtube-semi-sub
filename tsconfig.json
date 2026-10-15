@@ -1,0 +1,9 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "types": ["svelte"]
+  },
+  "files": [".wxt/wxt.d.ts"],
+  "include": ["src/**/*", "*.ts"]
+}
