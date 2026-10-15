@@ -1,7 +1,7 @@
 import { isPolymerElement } from "@/lib/youtube/page/polymer";
 import { getYouTubeSite, SHORTS_PATH_PATTERN, WATCH_VIDEO_PARAM, YouTubeSite } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
-import { videoIdFromContent } from "#feed/items/feed-items";
+import { shortsLockupFromItem, videoIdFromContent } from "#feed/items/feed-items";
 
 // The live subscriptions grid. www: a Polymer element whose model is written with `set("data.contents", ...)`.
 // m: the grid is rendered by a signals framework that is not known to expose its model - a `data` property is
@@ -9,6 +9,7 @@ import { videoIdFromContent } from "#feed/items/feed-items";
 
 const DESKTOP_GRID_SELECTOR = "ytd-browse[page-subtype=\"subscriptions\"] ytd-rich-grid-renderer";
 const DESKTOP_TILE_SELECTOR = ":scope > #contents > ytd-rich-item-renderer";
+const DESKTOP_SHELF_TILE_SELECTOR = ":scope > #contents > ytd-rich-section-renderer ytd-rich-item-renderer";
 const MOBILE_GRID_SELECTOR = "ytm-rich-grid-renderer";
 const MOBILE_TILE_SELECTOR = "ytm-rich-item-renderer";
 const VIDEO_LINK_SELECTOR = "a[href*=\"/watch?v=\"], a[href*=\"/shorts/\"]";
@@ -53,7 +54,22 @@ export interface FeedGrid {
   element: HTMLElement;
   readContents(): unknown[] | null;
   writeContents(contents: unknown[]): void;
+  /** The root-level tiles, and the Shorts shelf's */
   findTiles(): HTMLElement[];
+  findShortsShelfTiles(): HTMLElement[];
+}
+
+function isShortsTile(elTile: HTMLElement) {
+  const parsed = "data" in elTile ? tileDataSchema.safeParse(elTile.data) : null;
+  return !!parsed?.success && shortsLockupFromItem(parsed.data.content) !== null;
+}
+
+/**
+ * A Short sits nowhere but the Shorts shelf, so its tile is the only one with its video id - unlike the videos in
+ * "Most relevant", which the band repeats. www only: m's grid is not written live
+ */
+function findShortsShelfTiles(elGrid: HTMLElement) {
+  return [...elGrid.querySelectorAll<HTMLElement>(DESKTOP_SHELF_TILE_SELECTOR)].filter(isShortsTile);
 }
 
 function findGridElement() {
@@ -82,7 +98,10 @@ export function findFeedGrid() {
       });
     },
     findTiles() {
-      return [...element.querySelectorAll<HTMLElement>(tileSelector)];
+      return [...element.querySelectorAll<HTMLElement>(tileSelector), ...findShortsShelfTiles(element)];
+    },
+    findShortsShelfTiles() {
+      return findShortsShelfTiles(element);
     }
   };
   return {

@@ -12,8 +12,9 @@ import { alignOpenMenuToItsVideo, pinOpenMenuToItsVideo, releaseOpenMenu } from 
 import { settleBefore } from "#feed/feed-session";
 
 // The animated grid write (FLIP): leaving tiles fade out in place, then the model is written, surviving tiles are
-// pinned to their old positions and released to glide into their new slots while new tiles scale and fade in. An open
-// tile menu rides along with its video
+// pinned to their old positions and released to glide into their new slots while new tiles scale and fade in. The
+// Shorts shelf moves the same way inside its row; a Short that slides into view from behind "Show more" fades in like a
+// new one. An open tile menu rides along with its video
 
 const THUMBNAIL_DECODE_BUDGET_MS = 1500;
 const TILE_STAMP_MICROTASK_LIMIT = 20;
@@ -122,6 +123,22 @@ function pinSurvivors({ grid, oldRects, insertedIds }: {
   return elPinned;
 }
 
+/** Shelf tiles that only came into view with the write: they stood behind the shelf's "Show more" */
+function hideRevealedShelfTiles({ grid, oldRects, insertedIds }: {
+  grid: FeedGrid;
+  oldRects: ReadonlyMap<string, DOMRect>;
+  insertedIds: ReadonlySet<string>;
+}) {
+  const elRevealed = grid.findShortsShelfTiles().filter(elTile => {
+    const videoId = videoIdFromTile(elTile);
+    return !!videoId && !insertedIds.has(videoId) && !oldRects.has(videoId) && isInViewport(elTile);
+  });
+  for (const elTile of elRevealed) {
+    elTile.classList.add(FeedMotionClass.pending);
+  }
+  return elRevealed;
+}
+
 async function enter(elTile: HTMLElement) {
   elTile.classList.remove(FeedMotionClass.pending);
 
@@ -196,8 +213,13 @@ export async function writeGridContents({
     oldRects,
     insertedIds
   });
+  const elRevealed = hideRevealedShelfTiles({
+    grid,
+    oldRects,
+    insertedIds
+  });
   pinOpenMenuToItsVideo();
   await nextFrame();
-  await Promise.all([...elPinned.map(glide), ...elEntering.map(enter), releaseOpenMenu()]);
+  await Promise.all([...elPinned.map(glide), ...[...elEntering, ...elRevealed].map(enter), releaseOpenMenu()]);
   return true;
 }
