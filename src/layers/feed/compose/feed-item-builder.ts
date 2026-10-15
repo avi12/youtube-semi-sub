@@ -1,3 +1,4 @@
+import { buildSemiSubscribedRichItem } from "./semi-subscribed-tag";
 import { withSemiUnsubscribeItem } from "./semi-unsubscribe-menu";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
@@ -368,15 +369,13 @@ export function buildFeedItem({ video, channel, native, template, now, locale }:
   }
 
   // Detached from the cached native renderer, which later responses reuse
-  return structuredClone({
-    richItemRenderer: {
-      content: {
-        [template.kind]: withSemiUnsubscribeItem({
-          kind: template.kind,
-          renderer,
-          channelId: channel.channelId
-        })
-      }
-    }
-  });
+  return structuredClone(
+    buildSemiSubscribedRichItem({
+      [template.kind]: withSemiUnsubscribeItem({
+        kind: template.kind,
+        renderer,
+        channelId: channel.channelId
+      })
+    })
+  );
 }

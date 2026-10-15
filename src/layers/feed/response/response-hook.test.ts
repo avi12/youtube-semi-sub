@@ -1,5 +1,6 @@
 import { readSubscriptionsFeed } from "./feed-response";
 import type { PageState } from "@/lib/messaging/page-messaging";
+import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
 import {
   CHANNEL_ID,
   channelVideosTabResponse,
@@ -126,6 +127,16 @@ describe("the feed response hook", () => {
       body: JSON.stringify(feedResponseBody())
     }).json();
     expect(feedIds(data)).toEqual([videoId(1), videoId(50), videoId(2), null]);
+  });
+
+  it("tags the injected item, and only that one", async () => {
+    const data = await responseAt({
+      url: BROWSE_URL,
+      body: JSON.stringify(feedResponseBody())
+    }).json();
+    const contents = readSubscriptionsFeed(data)?.contents ?? [];
+    expect(contents.filter(item => JSON.stringify(item).includes(SEMI_SUBSCRIBED_TAG)).map(videoIdFromGridItem))
+      .toEqual([videoId(50)]);
   });
 
   it("injects it into a /browse feed read with text(), and into its clone", async () => {

@@ -1,4 +1,5 @@
 import { buildFeedItem, findTemplate } from "./feed-item-builder";
+import { SEMI_SUBSCRIBED_TAG } from "./semi-subscribed-tag";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import {
   CHANNEL_ID,
@@ -111,6 +112,20 @@ describe("buildFeedItem on www", () => {
             }
           }
         }
+      }
+    });
+  });
+
+  it("tags the item as semi-subscribed, beside its content", () => {
+    const item = build({ template: DESKTOP_TEMPLATE });
+    expect(item).toMatchObject({
+      richItemRenderer: {
+        content: {
+          lockupViewModel: {
+            contentId: videoId(50)
+          }
+        },
+        [SEMI_SUBSCRIBED_TAG]: true
       }
     });
   });
