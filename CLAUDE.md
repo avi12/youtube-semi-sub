@@ -7,6 +7,7 @@ A browser extension that lets the user **semi-subscribe** to a YouTube channel: 
 - `src/entrypoints/main-world.content.ts` - MAIN world, `document_start`. Everything that needs YouTube's own JS objects: the feed response hook and live feed insertion (`features/feed/`), the Semi-subscribe button and official-subscription detection (`features/channel-button/`). Reads state only through `@/lib/page/page-state`.
 - `src/entrypoints/page-styles.content/` - page-level CSS (button and feed animations).
 - `src/entrypoints/popup/` - manage semi-subscriptions and settings.
+- `src/features/subscription-lists/` - MAIN world: lists semi-subscribed channels in the sidebar guide and on `/feed/channels` (and their m.youtube.com equivalents), each with a way to open the dialog.
 - Message channels:
   - background <-> extension pages/ISOLATED: `@/lib/messaging/extension-messaging` (`defineExtensionMessaging`)
   - ISOLATED <-> MAIN: `@/lib/messaging/page-messaging` (`defineCustomEventMessaging`, namespace `youtube-semi-sub`)
@@ -14,6 +15,8 @@ A browser extension that lets the user **semi-subscribe** to a YouTube channel: 
 
 # Constraints
 - The Semi-subscribe button only appears for channels the user is **not** subscribed to. Pressing YouTube's own Subscribe on a semi-subscribed channel removes the semi-subscription (the full subscription supersedes it).
+- Semi-subscriptions are manageable from four places, all opening the same dialog or editor: the Semi-subscribe button, the YouTube sidebar's Subscriptions section (`features/subscription-lists/`), `/feed/channels` (same module), and the browser popup.
+- All UI is Svelte 5. In-page UI (content scripts, MAIN or ISOLATED world) is mounted with `mount()` and looks native to YouTube; Polymer elements may sit in Svelte templates with `.data` set from a MAIN-world `$effect`. The popup is Material 3 Expressive via `m3-svelte`. `FilterEditor.svelte` is shared by the popup and the in-page dialog, so it stays library-free and is themed only through its `--filter-editor-*` custom properties.
 - Mutate YouTube's Polymer components through their model (`el.set("data.contents", ...)`, `.data = ...`), never through `innerHTML`.
 - InnerTube shapes are modelled as zod schemas (optional fields, `looseObject` passthrough) and read only through those guards - never index into raw shapes.
 - Section structure of the feed is read-only: only add videos within a section, never reorder or move section markers.
@@ -22,7 +25,7 @@ A browser extension that lets the user **semi-subscribe** to a YouTube channel: 
 # Stack
 - pnpm
 - WXT extension framework
-- Svelte 5 (popup and dialog)
+- Svelte 5 for every UI surface; popup with `m3-svelte` (Material 3 Expressive, its CSS needs the `vite-plugin-functions-mixins` plugin registered in `wxt.config.ts`)
 - TypeScript (100% type safety, let TypeScript infer return types - never write them explicitly; type predicates are the exception)
 - zod for every loose payload (storage, messages, InnerTube, RSS); import `z` from `@/lib/zod` (jitless CSP wrapper - YouTube's Trusted Types block zod's eval probe)
 - `@webext-core/messaging` for message passing, `wxt/storage` (`storage.defineItem` in `@/lib/storage`) for storage
