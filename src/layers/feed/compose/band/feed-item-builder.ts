@@ -1,5 +1,3 @@
-import { buildSemiSubscribedRichItem } from "./semi-subscribed-tag";
-import { withSemiUnsubscribeItem } from "./semi-unsubscribe-menu";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { formatHandle } from "@/lib/youtube/channel-link";
@@ -12,6 +10,8 @@ import {
   RendererKind
 } from "@/lib/youtube/schemas/renderers";
 import { readText } from "@/lib/youtube/schemas/text";
+import { buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
+import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
 import { labelFromFormatted, rendererFromGridItem } from "#feed/items/feed-items";
 import type { VideoRenderer } from "#feed/items/feed-schemas";
 

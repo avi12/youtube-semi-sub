@@ -3,7 +3,7 @@ import { createVideoJudge, MatchState } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
-import { planFeedBand } from "#feed/compose/feed-band";
+import { planFeedBand } from "#feed/compose/band/feed-band";
 import { composeFeedContents } from "#feed/compose/feed-compose";
 import { channelIdFromGridItem, titleFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 

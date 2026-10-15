@@ -1,6 +1,6 @@
 import { buildFeedItem, findTemplate } from "./feed-item-builder";
-import { SEMI_SUBSCRIBED_TAG } from "./semi-subscribed-tag";
 import type { ChannelInfo } from "@/lib/schemas/channel";
+import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
 import {
   CHANNEL_ID,
   contextRendererItem,

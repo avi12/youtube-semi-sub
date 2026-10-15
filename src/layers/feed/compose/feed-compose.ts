@@ -1,8 +1,8 @@
-import { planFeedBand, reflowBandIntoRuns } from "./feed-band";
-import { buildFeedItem, findTemplate } from "./feed-item-builder";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { planFeedBand, reflowBandIntoRuns } from "#feed/compose/band/feed-band";
+import { buildFeedItem, findTemplate } from "#feed/compose/band/feed-item-builder";
 import type { VideoRenderer } from "#feed/items/feed-schemas";
 
 /**
