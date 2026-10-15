@@ -7,7 +7,7 @@ export enum ChatRole {
 }
 
 /** One chat turn, the shape both engines take: Prompt API `initialPrompts` and LiteRT-LM conversation messages */
-const chatMessageSchema = z.object({
+export const chatMessageSchema = z.object({
   role: z.enum(ChatRole),
   content: z.string()
 });

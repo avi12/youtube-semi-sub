@@ -14,7 +14,9 @@ import { z } from "@/lib/zod";
 import { readAiStatus } from "#ai-match/background/read-ai-status";
 import { createBuiltInJudge } from "#ai-match/classify/built-in-judge";
 import { type BatchJudge, classifyVideos } from "#ai-match/classify/classifier";
+import { createLiteRtJudge } from "#ai-match/classify/litert-judge";
 import { buildPrefaceMessages } from "#ai-match/classify/prompt";
+import { inferLocally } from "#ai-match/engine/litert/litert-client";
 import { openBuiltInSession } from "#ai-match/engine/prompt-api";
 
 /** The editor previews at most a channel's cached uploads (50), so a request never needs more */
@@ -92,11 +94,10 @@ async function openReadyJudge() {
   }
 
   if (status.engine === AiEngine.builtIn) {
-    const judge: BatchJudge = createBuiltInJudge(() => openBuiltInSession(buildPrefaceMessages()));
-    return judge;
+    return createBuiltInJudge(() => openBuiltInSession(buildPrefaceMessages()));
   }
 
-  return null;
+  return createLiteRtJudge(inferLocally);
 }
 
 function storeVerdicts({ key, verdicts }: {

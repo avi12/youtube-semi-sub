@@ -71,9 +71,15 @@ async function semiSubscribeWithAiFilter() {
   });
 }
 
+const getContexts = vi.spyOn(fakeBrowser.runtime, "getContexts");
+const closeDocument = vi.spyOn(fakeBrowser.offscreen, "closeDocument");
+
 describe("startAiMatch with the built-in model", () => {
   beforeAll(() => {
     fakeBrowser.reset();
+    // The fakes have no in-memory offscreen documents; their callback overloads type these as returning void
+    getContexts.mockImplementation(async () => []);
+    closeDocument.mockImplementation(async () => {});
     vi.stubGlobal("LanguageModel", fakeLanguageModel);
     startAiMatch();
   });
@@ -148,6 +154,27 @@ describe("startAiMatch with the built-in model", () => {
         ccccccccccc: true
       });
     });
+  });
+
+  it("deletes the local model on opt-out, closing the offscreen page that holds it", async () => {
+    const deleteCache = vi.fn(async () => true);
+    vi.stubGlobal("caches", {
+      delete: deleteCache
+    });
+    getContexts.mockImplementationOnce(async () => [{
+      contextId: "offscreen",
+      contextType: "OFFSCREEN_DOCUMENT",
+      frameId: -1,
+      incognito: false,
+      tabId: -1,
+      windowId: -1
+    }]);
+    await isAiEnabledItem.setValue(true);
+    await isAiEnabledItem.setValue(false);
+
+    await vi.waitFor(() => expect(deleteCache).toHaveBeenCalled());
+    expect(closeDocument).toHaveBeenCalled();
+    vi.stubGlobal("caches", undefined);
   });
 
   it("rejects a malformed preview request", async () => {

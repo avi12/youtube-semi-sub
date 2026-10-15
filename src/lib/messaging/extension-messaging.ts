@@ -1,4 +1,5 @@
-import type { AiStatus } from "@/lib/ai/ai-status";
+import type { AiStatus, ModelDownloadChange } from "@/lib/ai/ai-status";
+import type { ChatMessage } from "@/lib/ai/chat-message";
 import type { AiFilter } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { defineExtensionMessaging } from "@webext-core/messaging";
@@ -8,7 +9,12 @@ export enum MessageType {
   refreshAllChannels = "refresh-all-channels",
   refreshStaleChannels = "refresh-stale-channels",
   getAiStatus = "get-ai-status",
-  classifyVideos = "classify-videos"
+  classifyVideos = "classify-videos",
+  downloadAiModel = "download-ai-model",
+  aiModelDownloadChanged = "ai-model-download-changed",
+  offscreenAiDownload = "offscreen-ai-download",
+  offscreenAiDownloadFraction = "offscreen-ai-download-fraction",
+  offscreenAiInfer = "offscreen-ai-infer"
 }
 
 interface ProtocolMap {
@@ -31,6 +37,19 @@ interface ProtocolMap {
     filter: AiFilter;
     videos: FeedVideo[];
   }): void;
+  /**
+   * Popup -> background: download the local LiteRT-LM model (the user just opted in). Resolves once the download
+   * ended, to whether the model is on disk; progress arrives as `aiModelDownloadChanged`
+   */
+  [MessageType.downloadAiModel](): boolean;
+  /** Downloading page (Firefox's background, Chromium's offscreen page) -> extension pages: progress, then null */
+  [MessageType.aiModelDownloadChanged](data: ModelDownloadChange): void;
+  /** Chromium background -> offscreen page: download the model there, out of the service worker's short lifetime */
+  [MessageType.offscreenAiDownload](): boolean;
+  /** Chromium background -> offscreen page: the running download's progress, null when none runs */
+  [MessageType.offscreenAiDownloadFraction](): number | null;
+  /** Chromium background -> offscreen page: one LiteRT-LM chat turn; null when the model can't run */
+  [MessageType.offscreenAiInfer](data: { messages: ChatMessage[] }): string | null;
 }
 
 export const { onMessage, sendMessage } = defineExtensionMessaging<ProtocolMap>();

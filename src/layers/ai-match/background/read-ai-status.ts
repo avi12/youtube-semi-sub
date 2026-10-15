@@ -1,6 +1,8 @@
 import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
 import { type AiEngineProbes, resolveAiEngine } from "#ai-match/engine/engine-resolution";
 import { probeLiteRtSupport } from "#ai-match/engine/litert-support";
+import { readLocalModelDownloadFraction } from "#ai-match/engine/litert/litert-client";
+import { isLiteRtModelCached } from "#ai-match/engine/litert/litert-model";
 import { BuiltInAvailability, readBuiltInAvailability } from "#ai-match/engine/prompt-api";
 
 // The background's own view: classification runs here, so the Prompt API counts only when this very context (the
@@ -24,6 +26,20 @@ async function readBuiltInStatus() {
   return status;
 }
 
+async function readLiteRtStatus() {
+  const [isModelReady, fraction] = await Promise.all([isLiteRtModelCached(), readLocalModelDownloadFraction()]);
+  const status: AiStatus = {
+    engine: AiEngine.liteRt,
+    isModelReady,
+    download: fraction === null
+      ? null
+      : {
+        fraction
+      }
+  };
+  return status;
+}
+
 /** The engine this browser uses for AI match and whether its model is on disk - probed fresh on every call */
 export async function readAiStatus() {
   const choice = await resolveAiEngine(BACKGROUND_PROBES);
@@ -32,12 +48,7 @@ export async function readAiStatus() {
   }
 
   if (choice.engine === AiEngine.liteRt) {
-    const status: AiStatus = {
-      engine: AiEngine.liteRt,
-      isModelReady: false,
-      download: null
-    };
-    return status;
+    return await readLiteRtStatus();
   }
 
   const status: AiStatus = choice;

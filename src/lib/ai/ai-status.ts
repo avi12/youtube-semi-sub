@@ -52,3 +52,9 @@ export type AiEngineChoice = z.infer<typeof aiEngineChoiceSchema>;
 /** What the background reports to the popup and the editor: the engine this browser uses, and whether it's ready */
 const aiStatusSchema = z.discriminatedUnion("engine", [builtInStatusSchema, liteRtStatusSchema, unavailableStatusSchema]);
 export type AiStatus = z.infer<typeof aiStatusSchema>;
+
+/** Broadcast by the page downloading the local model: its 0..1 progress, then null once the download ended */
+export const modelDownloadChangeSchema = z.object({
+  fraction: z.number().min(0).max(1).nullable()
+});
+export type ModelDownloadChange = z.infer<typeof modelDownloadChangeSchema>;
