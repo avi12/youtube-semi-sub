@@ -23,11 +23,15 @@ export const officialSubscriptionChangeSchema = z.object({
 });
 export type OfficialSubscriptionChange = z.infer<typeof officialSubscriptionChangeSchema>;
 
+export const semiUnsubscribeRequestSchema = officialSubscriptionChangeSchema.pick({ channelId: true });
+type SemiUnsubscribeRequest = z.infer<typeof semiUnsubscribeRequestSchema>;
+
 export enum PageMessage {
   getPageState = "getPageState",
   pageStateChanged = "pageStateChanged",
   openSemiSubDialog = "openSemiSubDialog",
-  officialSubscriptionChanged = "officialSubscriptionChanged"
+  officialSubscriptionChanged = "officialSubscriptionChanged",
+  semiUnsubscribe = "semiUnsubscribe"
 }
 
 interface PageProtocolMap {
@@ -39,6 +43,8 @@ interface PageProtocolMap {
   [PageMessage.openSemiSubDialog](channel: ChannelInfo): void;
   /** MAIN -> ISOLATED: the user pressed YouTube's own Subscribe/Unsubscribe and it succeeded */
   [PageMessage.officialSubscriptionChanged](change: OfficialSubscriptionChange): void;
+  /** MAIN -> ISOLATED: "Semi-unsubscribe" was picked in an inserted video's menu */
+  [PageMessage.semiUnsubscribe](request: SemiUnsubscribeRequest): void;
 }
 
 export const pageMessenger = defineCustomEventMessaging<PageProtocolMap>({ namespace: "youtube-semi-sub" });

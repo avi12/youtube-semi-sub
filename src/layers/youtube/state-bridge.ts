@@ -4,7 +4,8 @@ import {
   officialSubscriptionChangeSchema,
   PageMessage,
   pageMessenger,
-  type PageState
+  type PageState,
+  semiUnsubscribeRequestSchema
 } from "@/lib/messaging/page-messaging";
 import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
 import { removeSemiSubscription } from "@/lib/semi-subscription-storage";
@@ -63,6 +64,14 @@ export function startStateBridge(context: ContentScriptContext) {
     }
 
     // A full subscription supersedes the semi one
+    await removeSemiSubscription(parsed.data.channelId);
+  });
+  pageMessenger.onMessage(PageMessage.semiUnsubscribe, async ({ data }) => {
+    const parsed = semiUnsubscribeRequestSchema.safeParse(data);
+    if (!parsed.success) {
+      return;
+    }
+
     await removeSemiSubscription(parsed.data.channelId);
   });
 
