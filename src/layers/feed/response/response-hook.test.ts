@@ -1,4 +1,4 @@
-import { readSubscriptionsFeed } from "./feed-response";
+import { readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
 import { isSemiSubscribedItem } from "#feed/compose/semi-subscribed-tag";
@@ -6,11 +6,15 @@ import {
   CHANNEL_ID,
   channelShortsTabResponse,
   channelVideosTabResponse,
+  contextRendererItem,
   continuationItem,
   desktopChannelTabLockup,
   desktopFeedItem,
   desktopFeedResponse,
+  feedContinuationResponse,
   feedVideo,
+  mobileFeedResponse,
+  mobileShortsShelf,
   NOW,
   richItem,
   shortsLockup,
@@ -39,6 +43,7 @@ const GUIDE_URL = "https://www.youtube.com/youtubei/v1/guide?prettyPrint=false";
 const FEED_PAGE_URL = "https://www.youtube.com/feed/subscriptions";
 
 const pageState: { current: PageState | null } = { current: null };
+const site = { current: "desktop" };
 
 vi.mock("@/lib/page/page-state", () => ({
   getPageState: () => pageState.current,
@@ -72,7 +77,7 @@ vi.mock("@/lib/youtube/page/innertube", () => ({
 
 vi.mock("@/lib/youtube/site", async importOriginal => ({
   ...await importOriginal<typeof import("@/lib/youtube/site")>(),
-  getYouTubeSite: () => "desktop"
+  getYouTubeSite: () => site.current
 }));
 
 const originalJson = Response.prototype.json;
@@ -181,7 +186,44 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  site.current = "desktop";
 });
+
+function laterPageWithShortsShelf() {
+  return feedContinuationResponse([
+    contextRendererItem({
+      index: 3,
+      published: "1 day ago"
+    }),
+    mobileShortsShelf([90]),
+    contextRendererItem({
+      index: 4,
+      published: "2 days ago"
+    }),
+    continuationItem()
+  ]);
+}
+
+/** A feed load starts from its first page - here one without a Shorts shelf */
+async function readFirstPageWithoutShelf() {
+  await responseAt({
+    url: BROWSE_URL,
+    body: JSON.stringify(mobileFeedResponse([continuationItem()]))
+  }).json();
+}
+
+async function readLaterPage() {
+  const data = await responseAt({
+    url: BROWSE_URL,
+    body: JSON.stringify(laterPageWithShortsShelf())
+  }).json();
+  const contents = readSubscriptionsContinuation(data)?.contents ?? [];
+  return {
+    data,
+    shelfIds: contents.flatMap(shelfItemsFromGridItem).map(videoIdFromShelfItem),
+    rootIds: contents.map(videoIdFromGridItem)
+  };
+}
 
 describe("the feed response hook", () => {
   it("injects the semi-sub video into a /browse feed read with json()", async () => {
@@ -307,5 +349,35 @@ describe("the feed response hook", () => {
     vi.stubGlobal(YTAF_CONTRACT_VERSION_GLOBAL, version);
     const data = await readFeedWithShelf();
     expect(shelfItems(data).map(videoIdFromShelfItem)).toEqual([videoId(60), videoId(90)]);
+  });
+
+  it("fills the Shorts shelf m puts on a later page, with Shorts only", async () => {
+    site.current = "mobile";
+    await readFirstPageWithoutShelf();
+    const { data, shelfIds, rootIds } = await readLaterPage();
+    expect(shelfIds).toEqual([videoId(60), videoId(90)]);
+    expect(rootIds).toEqual([videoId(3), null, videoId(4), null]);
+    const [short] = (readSubscriptionsContinuation(data)?.contents ?? []).flatMap(shelfItemsFromGridItem);
+    expect(isSemiSubscribedItem(short)).toBe(true);
+  });
+
+  it("never repeats on m's later page a Short the first page shelved", async () => {
+    site.current = "mobile";
+    await responseAt({
+      url: BROWSE_URL,
+      body: JSON.stringify(mobileFeedResponse([mobileShortsShelf([91])]))
+    }).json();
+    expect((await readLaterPage()).shelfIds).toEqual([videoId(90)]);
+
+    await readFirstPageWithoutShelf();
+    expect((await readLaterPage()).shelfIds).toEqual([videoId(60), videoId(90)]);
+  });
+
+  it("leaves www's later pages to the live write", async () => {
+    const data = await responseAt({
+      url: BROWSE_URL,
+      body: JSON.stringify(laterPageWithShortsShelf())
+    }).json();
+    expect(data).toEqual(laterPageWithShortsShelf());
   });
 });

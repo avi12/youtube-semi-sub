@@ -47,3 +47,16 @@ export const browseResponseSchema = z.looseObject({
   }).optional()
 });
 export type BrowseResponse = z.infer<typeof browseResponseSchema>;
+
+/** A later page of a feed: its items arrive as a continuation of the grid the first page rendered */
+export const continuationResponseSchema = z.looseObject({
+  responseContext: browseResponseSchema.shape.responseContext,
+  onResponseReceivedActions: z.array(
+    z.looseObject({
+      appendContinuationItemsAction: z.looseObject({
+        continuationItems: z.array(z.unknown()),
+        targetId: z.string().optional()
+      }).optional()
+    })
+  )
+});

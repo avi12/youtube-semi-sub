@@ -490,6 +490,19 @@ export function desktopFeedResponse(contents: unknown[]) {
   };
 }
 
+/** A later page of the feed, as m loads it while scrolling */
+export function feedContinuationResponse(contents: unknown[]) {
+  return {
+    responseContext: trackingParams("FEsubscriptions"),
+    onResponseReceivedActions: [{
+      appendContinuationItemsAction: {
+        continuationItems: contents,
+        targetId: "browse-feedFEsubscriptions"
+      }
+    }]
+  };
+}
+
 export function mobileFeedResponse(contents: unknown[]) {
   return {
     responseContext: {},

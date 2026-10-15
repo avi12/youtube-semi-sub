@@ -1,9 +1,10 @@
 import { findInitialDataJson } from "@/lib/youtube/initial-data";
 import type { BrowseTab } from "@/lib/youtube/schemas/browse";
-import { type BrowseResponse, browseResponseSchema } from "#feed/items/feed-schemas";
+import { type BrowseResponse, browseResponseSchema, continuationResponseSchema } from "#feed/items/feed-schemas";
 
 // Recognizes the first page of the subscriptions feed in a /browse response or ytInitialData - www nests it under
-// twoColumnBrowseResultsRenderer, m under singleColumnBrowseResultsRenderer - and swaps its grid contents
+// twoColumnBrowseResultsRenderer, m under singleColumnBrowseResultsRenderer - and swaps its grid contents. A later
+// page, a continuation of that grid, is recognized and swapped the same way
 
 export const SUBSCRIPTIONS_BROWSE_ID = "FEsubscriptions";
 const SUBSCRIPTIONS_GRID_TARGET_ID = `browse-feed${SUBSCRIPTIONS_BROWSE_ID}`;
@@ -15,7 +16,7 @@ enum BrowseColumn {
   singleColumn = "singleColumnBrowseResultsRenderer"
 }
 
-function isSubscriptionsBrowseIdTracked(response: BrowseResponse) {
+function isSubscriptionsBrowseIdTracked(response: Pick<BrowseResponse, "responseContext">) {
   const trackingParams = response.responseContext?.serviceTrackingParams ?? [];
   return trackingParams.some(service => service.params?.some(param =>
     param.key === BROWSE_ID_TRACKING_KEY && param.value === SUBSCRIPTIONS_BROWSE_ID));
@@ -84,6 +85,41 @@ export function readSubscriptionsFeed(data: unknown) {
             tabs: column.tabs.with(iTab, patchedTab)
           }
         }
+      };
+    }
+  };
+}
+
+/** A later page of the subscriptions feed: the items a continuation appends to its grid */
+export function readSubscriptionsContinuation(data: unknown) {
+  const parsed = continuationResponseSchema.safeParse(data);
+  if (!parsed.success) {
+    return null;
+  }
+
+  const response = parsed.data;
+  const actions = response.onResponseReceivedActions;
+  const iAction = actions.findIndex(action => !!action.appendContinuationItemsAction);
+  const appendAction = actions[iAction]?.appendContinuationItemsAction;
+  const isSubscriptionsFeed = appendAction?.targetId === SUBSCRIPTIONS_GRID_TARGET_ID
+    || isSubscriptionsBrowseIdTracked(response);
+  if (!appendAction || !isSubscriptionsFeed) {
+    return null;
+  }
+
+  return {
+    contents: appendAction.continuationItems,
+    /** A copy of the response with the appended items replaced; the original is left untouched */
+    withContents(contents: unknown[]) {
+      return {
+        ...response,
+        onResponseReceivedActions: actions.with(iAction, {
+          ...actions[iAction],
+          appendContinuationItemsAction: {
+            ...appendAction,
+            continuationItems: contents
+          }
+        })
       };
     }
   };

@@ -5,7 +5,8 @@ import { shortsLockupFromItem, videoIdFromContent } from "#feed/items/feed-items
 
 // The live subscriptions grid. www: a Polymer element whose model is written with `set("data.contents", ...)`.
 // m: the grid is rendered by a signals framework that is not known to expose its model - a `data` property is
-// used when present, otherwise the grid is left alone (the response and ytInitialData hooks cover m)
+// written when present, though m has not been seen re-rendering its grid or Shorts shelf from one; the response and
+// ytInitialData hooks are what cover m
 
 const DESKTOP_GRID_SELECTOR = "ytd-browse[page-subtype=\"subscriptions\"] ytd-rich-grid-renderer";
 const DESKTOP_TILE_SELECTOR = ":scope > #contents > ytd-rich-item-renderer";

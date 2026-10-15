@@ -1,4 +1,5 @@
-import { readInitialDataHtml, readSubscriptionsFeed } from "./feed-response";
+import { readInitialDataHtml, readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
+import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
 import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
@@ -14,7 +15,10 @@ import {
 // (YouTube's own /browse fetch, YouTube Auto Feed's clone of it and its own polls) and, on m.youtube.com, the
 // ytInitialData a hard load renders from. Patching Response.prototype instead of wrapping fetch keeps this
 // independent of which extension's fetch wrapper ends up outermost. Anything that is not the feed passes through
-// untouched, and any failure falls back to the original data
+// untouched, and any failure falls back to the original data.
+// The first page takes videos into its band and Shorts into its Shorts shelf. m puts its Shorts shelf on a later
+// page, past the first page and outside the grid it writes live, so on m a later page's Shorts shelf is filled here
+// too - with the Shorts no earlier page of the same load shelved. www's later pages are left to the live write
 
 const BROWSE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/youtubei\/v1\/browse(?:[?#]|$)/;
 const FEED_PAGE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/feed\/subscriptions\/?(?:[?#]|$)/;
@@ -22,17 +26,71 @@ const FEED_PAGE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/feed\/subscri
 const RESPONSE_PATCH_BUDGET_MS = 1500;
 const NO_REMOVALS: ReadonlySet<string> = new Set();
 
+/** The Shorts the current feed load put in a shelf already */
+const shelvedShortIds = new Set<string>();
+
+function readFeedPage(data: unknown) {
+  const firstPage = readSubscriptionsFeed(data);
+  if (firstPage) {
+    return {
+      ...firstPage,
+      isLaterPage: false
+    };
+  }
+
+  const laterPage = getYouTubeSite() === YouTubeSite.mobile ? readSubscriptionsContinuation(data) : null;
+  return laterPage && {
+    ...laterPage,
+    isLaterPage: true
+  };
+}
+
+/** What a page is filled from: a later page only takes the Shorts no earlier page shelved */
+function stateForPage({ state, isLaterPage }: {
+  state: PageState;
+  isLaterPage: boolean;
+}) {
+  if (!isLaterPage) {
+    return state;
+  }
+
+  const pageState: PageState = {
+    ...state,
+    feedVideos: state.feedVideos.filter(video => video.isShort && !shelvedShortIds.has(video.videoId))
+  };
+  return pageState;
+}
+
+function recordShelvedShorts({ insertedIds, state }: {
+  insertedIds: readonly string[];
+  state: PageState;
+}) {
+  const shortIds = new Set(state.feedVideos.filter(video => video.isShort).map(video => video.videoId));
+  for (const videoId of insertedIds) {
+    if (shortIds.has(videoId)) {
+      shelvedShortIds.add(videoId);
+    }
+  }
+}
+
 /** Synchronous: uses whatever page state and native renderers are already loaded */
 function patchFeedDataNow(data: unknown) {
-  const feed = readSubscriptionsFeed(data);
+  const page = readFeedPage(data);
+  if (page && !page.isLaterPage) {
+    shelvedShortIds.clear();
+  }
+
   const state = getPageState();
-  if (!feed || !state?.isExtensionEnabled) {
+  if (!page || !state?.isExtensionEnabled) {
     return null;
   }
 
   const composed = composeForPageState({
-    contents: feed.contents,
-    state,
+    contents: page.contents,
+    state: stateForPage({
+      state,
+      isLaterPage: page.isLaterPage
+    }),
     removedVideoIds: NO_REMOVALS
   });
   if (!composed) {
@@ -40,12 +98,16 @@ function patchFeedDataNow(data: unknown) {
   }
 
   recordFeedChange(composed);
-  return feed.withContents(composed.contents);
+  recordShelvedShorts({
+    insertedIds: composed.insertedIds,
+    state
+  });
+  return page.withContents(composed.contents);
 }
 
 async function patchFeedData(data: unknown) {
-  const feed = readSubscriptionsFeed(data);
-  if (!feed) {
+  const page = readFeedPage(data);
+  if (!page) {
     return null;
   }
 
@@ -56,8 +118,11 @@ async function patchFeedData(data: unknown) {
   }
 
   const { insertedVideos } = planForPageState({
-    contents: feed.contents,
-    state,
+    contents: page.contents,
+    state: stateForPage({
+      state,
+      isLaterPage: page.isLaterPage
+    }),
     removedVideoIds: NO_REMOVALS
   });
   await loadNativesFor({
