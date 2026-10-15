@@ -1,6 +1,6 @@
 import SemiSubDialog from "./SemiSubDialog.svelte";
-import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
-import { type ChannelInfo, channelInfoSchema } from "@/lib/schemas/channel";
+import { openDialogRequestSchema, PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import type { ChannelInfo } from "@/lib/schemas/channel";
 import { type ContentScriptContext, createShadowRootUi, type ShadowRootContentScriptUi } from "#imports";
 import { mount, unmount } from "svelte";
 
@@ -10,7 +10,10 @@ const DIALOG_HOST_NAME = "yss-semi-sub-dialog";
 export function registerSemiSubDialog(context: ContentScriptContext) {
   let currentUi: ShadowRootContentScriptUi<ReturnType<typeof mount>> | null = null;
 
-  async function openDialog(channel: ChannelInfo) {
+  async function openDialog({ channel, isSubscribed }: {
+    channel: ChannelInfo;
+    isSubscribed: boolean | undefined;
+  }) {
     const ui = await createShadowRootUi(context, {
       name: DIALOG_HOST_NAME,
       position: "inline",
@@ -22,6 +25,7 @@ export function registerSemiSubDialog(context: ContentScriptContext) {
           target: container,
           props: {
             channel,
+            isSubscribed,
             onDone() {
               ui.remove();
 
@@ -44,9 +48,15 @@ export function registerSemiSubDialog(context: ContentScriptContext) {
   }
 
   pageMessenger.onMessage(PageMessage.openSemiSubDialog, ({ data }) => {
-    const parsed = channelInfoSchema.safeParse(data);
-    if (parsed.success) {
-      openDialog(parsed.data).catch(console.error);
+    const parsed = openDialogRequestSchema.safeParse(data);
+    if (!parsed.success) {
+      return;
     }
+
+    const { isSubscribed, ...channel } = parsed.data;
+    openDialog({
+      channel,
+      isSubscribed
+    }).catch(console.error);
   });
 }

@@ -6,7 +6,7 @@
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
-  import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
   import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { readSemiSubscription, removeSemiSubscription, saveSemiSubscription } from "@/lib/semi-subscription-storage";
   import { isAiEnabledItem } from "@/lib/storage";
@@ -15,11 +15,30 @@
 
   interface Props {
     channel: ChannelInfo;
+    /** Whether the user is subscribed, as the page that opened the dialog shows it - else the stored mode decides */
+    isSubscribed: boolean | undefined;
     /** Called once the dialog and its confirmation are gone */
     onDone: () => void;
   }
 
-  const { channel, onDone }: Props = $props();
+  const { channel, isSubscribed, onDone }: Props = $props();
+
+  const MODE_TEXT = {
+    [SubscriptionMode.follow]: {
+      title: "Follow without subscribing",
+      description: "You're not subscribed, so only the videos your filter lets through are added to your feed",
+      createLabel: "Semi-subscribe",
+      createdMessage: ToastMessage.semiSubscribed,
+      savedMessage: ToastMessage.filterSaved
+    },
+    [SubscriptionMode.hide]: {
+      title: "Subscribe with a filter",
+      description: "You're subscribed, so the videos your filter matches are hidden from your feed",
+      createLabel: "Save",
+      createdMessage: ToastMessage.hideFilterSaved,
+      savedMessage: ToastMessage.hideFilterSaved
+    }
+  } as const;
 
   const CLOSE_ICON_PATH = "m12.71 12 8.15 8.15-.71.71L12 12.71l-8.15 8.15-.71-.71L11.29 12 3.15 3.85l.71-.71L12 11.29l8.15-8.15.71.71L12.71 12z";
 
@@ -43,19 +62,26 @@
   const isFilterValid = $derived(isTitleFilterValid(filter));
   const isEditing = $derived(storedSubscription !== null);
   const canSave = $derived(isStoredSubscriptionRead && isFilterValid && !isSaving);
+  /** What the page shows outranks what is stored, which follows it a moment later */
+  const mode = $derived(
+    getSubscriptionMode({
+      isSubscribed: isSubscribed ?? storedSubscription?.isSubscribed ?? false
+    })
+  );
+  const modeText = $derived(MODE_TEXT[mode]);
   const submitLabel = $derived.by(() => {
     if (isEditing) {
       return "Save";
     }
 
-    return "Semi-subscribe";
+    return modeText.createLabel;
   });
   const savedMessage = $derived.by(() => {
     if (isEditing) {
-      return ToastMessage.filterSaved;
+      return modeText.savedMessage;
     }
 
-    return ToastMessage.semiSubscribed;
+    return modeText.createdMessage;
   });
   const channelInitial = $derived(getChannelInitial(channel.title));
 
@@ -83,7 +109,12 @@
       storedSubscription = stored;
 
       if (stored && !isFilterEdited) {
-        filter = { ...stored.followFilter };
+        filter = {
+          ...getModeFilter({
+            subscription: stored,
+            mode
+          })
+        };
       }
     }).catch(() => {}).finally(() => {
       isStoredSubscriptionRead = true;
@@ -115,7 +146,7 @@
       try {
         await saveSemiSubscription({
           channel: $state.snapshot(channel),
-          mode: SubscriptionMode.follow,
+          mode,
           filter: $state.snapshot(filter)
         });
         closeWithToast(savedMessage);
@@ -124,7 +155,7 @@
       }
     }}>
     <header class="dialog__header">
-      <h2 id={titleId} class="dialog__title">Semi-subscribe</h2>
+      <h2 id={titleId} class="dialog__title">{modeText.title}</h2>
       <button
         class="icon-button"
         aria-label="Close"
@@ -151,13 +182,7 @@
         </span>
       </section>
 
-      <p id={descriptionId} class="dialog__description">
-        Only the videos your filter lets through land in your subscriptions feed
-      </p>
-
-      {#if storedSubscription?.isSubscribed}
-        <p class="notice">Paused - you're subscribed, so this kicks back in once you unsubscribe</p>
-      {/if}
+      <p id={descriptionId} class="dialog__description">{modeText.description}</p>
 
       {#if isLoadFailed}
         <p class="notice" role="alert">
@@ -168,7 +193,7 @@
 
       <FilterEditor
         isLoading={isLoadingVideos}
-        mode={SubscriptionMode.follow}
+        {mode}
         {videos}
         bind:filter={() => filter, editedFilter => {
           filter = editedFilter;

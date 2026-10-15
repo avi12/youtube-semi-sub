@@ -103,7 +103,10 @@
   }
 
   function openDialog() {
-    pageMessenger.sendMessage(PageMessage.openSemiSubDialog, $state.snapshot(channel)).catch(() => {});
+    pageMessenger.sendMessage(PageMessage.openSemiSubDialog, {
+      ...$state.snapshot(channel),
+      isSubscribed: isOfficiallySubscribed
+    }).catch(() => {});
   }
 </script>
 

@@ -95,13 +95,23 @@ const FILTER_KEY_BY_MODE = {
   [SubscriptionMode.hide]: "hideFilter"
 } as const satisfies Record<SubscriptionMode, keyof SemiSubscription>;
 
-function getSubscriptionMode({ isSubscribed }: Pick<SemiSubscription, "isSubscribed">) {
+export function getSubscriptionMode({ isSubscribed }: Pick<SemiSubscription, "isSubscribed">) {
   return isSubscribed ? SubscriptionMode.hide : SubscriptionMode.follow;
+}
+
+export function getModeFilter({ subscription, mode }: {
+  subscription: Pick<SemiSubscription, "followFilter" | "hideFilter">;
+  mode: SubscriptionMode;
+}) {
+  return subscription[FILTER_KEY_BY_MODE[mode]];
 }
 
 /** The filter the channel's current mode applies */
 export function getActiveFilter(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
-  return subscription[FILTER_KEY_BY_MODE[getSubscriptionMode(subscription)]];
+  return getModeFilter({
+    subscription,
+    mode: getSubscriptionMode(subscription)
+  });
 }
 
 /**

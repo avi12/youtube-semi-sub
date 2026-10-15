@@ -1,4 +1,4 @@
-import type { ChannelInfo } from "@/lib/schemas/channel";
+import { channelInfoSchema } from "@/lib/schemas/channel";
 import { feedVideoSchema, videoIdSchema } from "@/lib/schemas/feed-video";
 import { storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
@@ -27,6 +27,12 @@ export const officialSubscriptionChangeSchema = z.object({
 export type OfficialSubscriptionChange = z.infer<typeof officialSubscriptionChangeSchema>;
 
 export const semiUnsubscribeRequestSchema = officialSubscriptionChangeSchema.pick({ channelId: true });
+
+/** The channel to open the dialog for, and - from a page that shows it - whether the user is subscribed to it */
+export const openDialogRequestSchema = channelInfoSchema.extend(
+  officialSubscriptionChangeSchema.pick({ isSubscribed: true }).partial().shape
+);
+type OpenDialogRequest = z.infer<typeof openDialogRequestSchema>;
 type SemiUnsubscribeRequest = z.infer<typeof semiUnsubscribeRequestSchema>;
 
 export enum PageMessage {
@@ -42,8 +48,8 @@ interface PageProtocolMap {
   [PageMessage.getPageState](): PageState | null;
   /** ISOLATED -> MAIN: pushed on every storage change, and once when the bridge is ready */
   [PageMessage.pageStateChanged](state: PageState): void;
-  /** MAIN -> ISOLATED: the injected Semi-subscribe button was pressed */
-  [PageMessage.openSemiSubDialog](channel: ChannelInfo): void;
+  /** MAIN -> ISOLATED: the injected button or a list's manage button was pressed */
+  [PageMessage.openSemiSubDialog](request: OpenDialogRequest): void;
   /** MAIN -> ISOLATED: the user pressed YouTube's own Subscribe/Unsubscribe and it succeeded */
   [PageMessage.officialSubscriptionChanged](change: OfficialSubscriptionChange): void;
   /** MAIN -> ISOLATED: "Semi-unsubscribe" was picked in an inserted video's menu */
