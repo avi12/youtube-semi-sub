@@ -1,7 +1,7 @@
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
+import { IRON_DROPDOWN_SELECTOR, isIronDropdown } from "@/lib/youtube/page/iron-dropdown";
 import { WATCH_VIDEO_PARAM } from "@/lib/youtube/site";
-import { z } from "@/lib/zod";
 import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
 
 // Handles the "Semi-unsubscribe" item the built tiles carry in their menus. Its command is not one YouTube knows, so
@@ -16,16 +16,7 @@ const MENU_ITEM_SELECTOR = [
   "ytm-menu-service-item-renderer",
   "ytm-menu-item"
 ].join(", ");
-const DROPDOWN_SELECTOR = "tp-yt-iron-dropdown";
 const ESCAPE_KEY = "Escape";
-
-const closableSchema = z.object({
-  close: z.custom<() => void>(value => typeof value === "function")
-});
-
-function isClosable(element: Element | null): element is Element & z.infer<typeof closableSchema> {
-  return closableSchema.safeParse(element).success;
-}
 
 let lastTileChannelId: string | null = null;
 
@@ -37,8 +28,8 @@ function channelIdOfTile(elTile: Element) {
 }
 
 function closeMenu(elItem: Element) {
-  const elDropdown = elItem.closest(DROPDOWN_SELECTOR);
-  if (isClosable(elDropdown)) {
+  const elDropdown = elItem.closest(IRON_DROPDOWN_SELECTOR);
+  if (isIronDropdown(elDropdown)) {
     elDropdown.close();
     return;
   }
