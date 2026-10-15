@@ -3,6 +3,7 @@ import expandNestedTypeLiteral from "./eslint-rules/expand-nested-type-literal.j
 import expandSvelteBlock from "./eslint-rules/expand-svelte-block.js";
 import multilineArgParenNewline from "./eslint-rules/multiline-arg-paren-newline.js";
 import noPaddedTag from "./eslint-rules/no-padded-tag.js";
+import singleObjectParam from "./eslint-rules/single-object-param.js";
 import stylistic from "@stylistic/eslint-plugin";
 import importNewlines from "eslint-plugin-import-newlines";
 import perfectionist from "eslint-plugin-perfectionist";
@@ -245,7 +246,8 @@ const sharedPlugins = {
       "expand-nested-type-literal": expandNestedTypeLiteral,
       "expand-svelte-block": expandSvelteBlock,
       "multiline-arg-paren-newline": multilineArgParenNewline,
-      "no-padded-tag": noPaddedTag
+      "no-padded-tag": noPaddedTag,
+      "single-object-param": singleObjectParam
     }
   }
 };
@@ -307,6 +309,13 @@ export default [
       "svelte/shorthand-attribute": ["error", { prefer: "always" }],
       "local/expand-svelte-block": "error",
       "prefer-const": ["error", { destructuring: "all" }]
+    }
+  },
+  {
+    // Our own code; the eslint-rules/ helpers follow ESLint's positional plugin API
+    files: ["src/**/*.{ts,svelte}", "wxt.config.ts"],
+    rules: {
+      "local/single-object-param": "error"
     }
   }
 ];

@@ -105,6 +105,9 @@ importers:
       wxt:
         specifier: ^0.21.4
         version: 0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
+      wxt-module-layers:
+        specifier: ^1.3.0
+        version: 1.3.0(magicast@0.5.5)(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)))
 
 packages:
 
@@ -225,6 +228,11 @@ packages:
     peerDependencies:
       postcss-selector-parser: ^7.1.1
 
+  '@davestewart/wxt-utils@0.6.0':
+    resolution: {integrity: sha512-K9JuT0P4p683itcNAz/bc6vzW4u0J/8P7yb2PQEdABE/fMjRNRZdVVX46KXRKM5sjEDKOKwtZU11CsBas+BRCQ==}
+    peerDependencies:
+      wxt: '>=0.17.0'
+
   '@double-great/stylelint-a11y@3.8.1':
     resolution: {integrity: sha512-UpqFwJJXFBVevkQg2PpgiieTiwCR86y3q5AlW5eq+n5EdibjHISb4Iah4+ywVSUsLEMwKUH8m5ny+tDp+EV3Hw==}
     engines: {node: '>=22.0.0'}
@@ -326,6 +334,10 @@ packages:
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
+
+  '@isaacs/cliui@9.0.0':
+    resolution: {integrity: sha512-AokJm4tuBHillT+FpMtxQ60n8ObyXBatq7jD2/JA9dxbDDokKQm8KMht5ibGzLVU9IJDIKK4TPKgMHEYMn3lMg==}
+    engines: {node: '>=18'}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1339,6 +1351,10 @@ packages:
   flatted@3.4.4:
     resolution: {integrity: sha512-5+ybhBZANEJxaH3X5evAFatUxLfEHSr7n6kYJ+1Qd0mUqr4eu9gIf6GDbWHf8RJijHrjjO8G+la14SlL2SeS1Q==}
 
+  foreground-child@3.3.1:
+    resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
+    engines: {node: '>=14'}
+
   fs-extra@10.0.1:
     resolution: {integrity: sha512-NbdoVMZso2Lsrn/QwLXOy6rm0ufY2zEOKCDzJR/0kBsb0E6qed0P3iYK+Ath3BfvXEeu4JhEtXLgILx5psUfag==}
     engines: {node: '>=12'}
@@ -1378,6 +1394,12 @@ packages:
 
   glob-to-regexp@0.4.1:
     resolution: {integrity: sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==}
+
+  glob@11.1.0:
+    resolution: {integrity: sha512-vuNwKSaKiqm7g0THUBu2x7ckSs3XJLXE+2ssL7/MfTGPLLcrJQ/4Uq1CjPTtO5cCIiRxqvN6Twy1qOwhL0Xjcw==}
+    engines: {node: 20 || >=22}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+    hasBin: true
 
   global-modules@2.0.0:
     resolution: {integrity: sha512-NGbfmJBp9x8IxyJSd1P+otYK8vonoJactOogrVfFRIAEY1ukil8RSKDz2Yo7wh1oihl51l/r6W4epkeKJHqL8A==}
@@ -1533,6 +1555,10 @@ packages:
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
+
+  jackspeak@4.2.3:
+    resolution: {integrity: sha512-ykkVRwrYvFm1nb2AJfKKYPr0emF6IiXDYUaFx4Zn9ZuIH7MrzEZ3sD5RlqGXNRpHtvUHJyOnCEFxOlNDtGo7wg==}
+    engines: {node: 20 || >=22}
 
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
@@ -1701,6 +1727,10 @@ packages:
   lodash@4.18.1:
     resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
 
+  lru-cache@11.5.3:
+    resolution: {integrity: sha512-U4N8FgzmWxc8k1VH8Kr6lQg18U7Fjvby6wXHVRX/ZZ7IwWbRMgrRbP0Wrb5q5NVinryp4SQampHKdvtecItxUg==}
+    engines: {node: 20 || >=22}
+
   m3-svelte@7.2.1:
     resolution: {integrity: sha512-6AfSDUx28FKxIoa+dvd8bP+uIRSQmikbE1htBd/PBytCtCZdy9VMqsspDXytgritliXP5LnHqn/sLTk0H52MPg==}
     peerDependencies:
@@ -1760,6 +1790,10 @@ packages:
 
   minimatch@3.1.5:
     resolution: {integrity: sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w==}
+
+  minipass@7.1.3:
+    resolution: {integrity: sha512-tEBHqDnIoM/1rXME1zgka9g6Q2lcoCkxHLuc7ODJ5BxbP5d4c2Z5cGgtXAku59200Cx7diuHTOYfSBD8n6mm8A==}
+    engines: {node: '>=16 || 14 >=14.17'}
 
   mlly@1.8.2:
     resolution: {integrity: sha512-d+ObxMQFmbt10sretNDytwt85VrbkhhUA/JBGm1MPaWJ65Cl4wOgLaB1NYvJSZ0Ef03MMEU/0xpPMXUIQ29UfA==}
@@ -1851,6 +1885,9 @@ packages:
     resolution: {integrity: sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==}
     engines: {node: '>=10'}
 
+  package-json-from-dist@1.0.1:
+    resolution: {integrity: sha512-UEZIS3/by4OC8vL3P2dTXRETpebLI2NiI5vIrjaD/5UtrkFX/tNbwjTSRAGC/+7CAo2pIcBaRgWmcBBHcsaCIw==}
+
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
@@ -1873,6 +1910,10 @@ packages:
 
   path-parse@1.0.7:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
+
+  path-scurry@2.0.2:
+    resolution: {integrity: sha512-3O/iVVsJAPsOnpwWIeD+d6z/7PmqApyQePUtCndjatj/9I5LylHvt5qluFaBT3I5h3r1ejfR056c+FCv+NnNXg==}
+    engines: {node: 18 || 20 || >=22}
 
   path-type@4.0.0:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
@@ -2545,6 +2586,11 @@ packages:
     resolution: {integrity: sha512-OTIk8iR8/aCRWBqvxrzxR0hgxWpnYBblY1S5hDWBQfk/VFmJwzmJgQFN3WsoUKHISv2eAwe+PpbUzyL1CKTLXg==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
+  wxt-module-layers@1.3.0:
+    resolution: {integrity: sha512-T51/dhcK4cvciTurq7AzMM6F+iG5dM45yAnOBISLbZC6h4yhgGmgxFbC6w91RmP9B2OmGKVJzB0OjpgHsB2BSQ==}
+    peerDependencies:
+      wxt: '>=0.17.0'
+
   wxt@0.21.4:
     resolution: {integrity: sha512-iyVMTXb37BQAbsPHCuPzrK3ZxnO9pZmvbKl7VJWIHe3RG40On2NyP2FOjArtOITO96plEYnh3o+iUlRp9qE90w==}
     engines: {bun: '>=1.2.0', node: '>=22'}
@@ -2692,6 +2738,11 @@ snapshots:
     dependencies:
       postcss-selector-parser: 7.1.6
 
+  '@davestewart/wxt-utils@0.6.0(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)))':
+    dependencies:
+      picocolors: 1.1.1
+      wxt: 0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
+
   '@double-great/stylelint-a11y@3.8.1(stylelint@17.16.0(typescript@6.0.3))':
     dependencies:
       postcss: 8.5.30
@@ -2771,6 +2822,8 @@ snapshots:
   '@humanwhocodes/retry@0.4.3': {}
 
   '@iconify/types@2.0.0': {}
+
+  '@isaacs/cliui@9.0.0': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -3687,6 +3740,11 @@ snapshots:
 
   flatted@3.4.4: {}
 
+  foreground-child@3.3.1:
+    dependencies:
+      cross-spawn: 7.0.6
+      signal-exit: 4.1.0
+
   fs-extra@10.0.1:
     dependencies:
       graceful-fs: 4.2.11
@@ -3716,6 +3774,15 @@ snapshots:
       is-glob: 4.0.3
 
   glob-to-regexp@0.4.1: {}
+
+  glob@11.1.0:
+    dependencies:
+      foreground-child: 3.3.1
+      jackspeak: 4.2.3
+      minimatch: 10.2.6
+      minipass: 7.1.3
+      package-json-from-dist: 1.0.1
+      path-scurry: 2.0.2
 
   global-modules@2.0.0:
     dependencies:
@@ -3849,6 +3916,10 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  jackspeak@4.2.3:
+    dependencies:
+      '@isaacs/cliui': 9.0.0
+
   jiti@2.7.0: {}
 
   js-tokens@10.0.0: {}
@@ -3973,6 +4044,8 @@ snapshots:
 
   lodash@4.18.1: {}
 
+  lru-cache@11.5.3: {}
+
   m3-svelte@7.2.1(@ktibow/material-color-utilities-nightly@0.4.1772748028000)(svelte@5.57.2(@typescript-eslint/types@8.71.2))(vite-plugin-functions-mixins@0.4.1(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))):
     dependencies:
       '@iconify/types': 2.0.0
@@ -4024,6 +4097,8 @@ snapshots:
   minimatch@3.1.5:
     dependencies:
       brace-expansion: 1.1.21
+
+  minipass@7.1.3: {}
 
   mlly@1.8.2:
     dependencies:
@@ -4129,6 +4204,8 @@ snapshots:
     dependencies:
       p-limit: 3.1.0
 
+  package-json-from-dist@1.0.1: {}
+
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
@@ -4147,6 +4224,11 @@ snapshots:
   path-key@3.1.1: {}
 
   path-parse@1.0.7: {}
+
+  path-scurry@2.0.2:
+    dependencies:
+      lru-cache: 11.5.3
+      minipass: 7.1.3
 
   path-type@4.0.0: {}
 
@@ -4845,6 +4927,16 @@ snapshots:
   write-file-atomic@7.0.1:
     dependencies:
       signal-exit: 4.1.0
+
+  wxt-module-layers@1.3.0(magicast@0.5.5)(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))):
+    dependencies:
+      '@davestewart/wxt-utils': 0.6.0(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)))
+      c12: 3.3.4(magicast@0.5.5)
+      glob: 11.1.0
+      picocolors: 1.1.1
+      wxt: 0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
+    transitivePeerDependencies:
+      - magicast
 
   wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)):
     dependencies:

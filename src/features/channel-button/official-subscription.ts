@@ -126,7 +126,7 @@ async function reportSubscriptionRequest({ endpointPath, requestBody, response }
 export function installSubscriptionWatch() {
   const previousFetch = globalThis.fetch;
 
-  function watchedFetch(input: RequestInfo | URL, init?: RequestInit) {
+  globalThis.fetch = function watchedFetch(input: RequestInfo | URL, init?: RequestInit) {
     const endpointPath = getSubscriptionEndpointPath(input);
     if (!endpointPath) {
       return previousFetch(input, init);
@@ -143,7 +143,5 @@ export function installSubscriptionWatch() {
       response
     }).catch(() => {});
     return response;
-  }
-
-  globalThis.fetch = watchedFetch;
+  };
 }

@@ -47,7 +47,7 @@ A browser extension that lets the user **semi-subscribe** to a YouTube channel: 
 - Avoid comments unless absolutely necessary - prefer descriptive names
 - Don't use em dashes - use regular hyphens
 - If a callback arrow function has a typed param, don't annotate the type explicitly
-- Functions with 2+ params take a single destructured object param (`f({ a, b }: {...})`). Exempt: key/value accessors and framework-positional signatures (HOF callbacks, event handlers, `browser.*` listeners)
+- Functions with 2+ params take a single destructured object param (`f({ a, b }: {...})`). Reuse an existing type for the object when one fits (a zod-inferred type, `Pick<PageState, "subscriptions">`, a library's options type); only inline the object type when nothing fits. The one exception we write ourselves: an event-subscription function takes `(eventName, callback)` positionally. Signatures someone else dictates stay positional (callbacks passed to a call, object-literal members implementing a type, Svelte actions/transitions, a function replacing a native API). Enforced by `local/single-object-param`
 - Avoid nested try/catch - flatten with early returns or extracted functions
 - Validate loose data with zod, not hand-rolled checks: a module-level schema + `safeParse`. Validity only: `schema.safeParse(x).success` inline or into an `is`-prefixed boolean. `.data`/`.error` consumed: store the result as `parsed` and guard with `parsed.success`
 - Inline one-off variables when it stays readable - but keep a named variable for a magic number/string or an opaque expression
