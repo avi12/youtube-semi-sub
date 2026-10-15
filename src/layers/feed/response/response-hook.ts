@@ -1,6 +1,6 @@
 import { readInitialDataHtml, readSubscriptionsFeed } from "./feed-response";
 import { getPageState } from "@/lib/page/page-state";
-import { INITIAL_DATA_GLOBAL } from "@/lib/youtube/initial-data";
+import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
 import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
 import {
   composeForPageState,
@@ -123,37 +123,12 @@ function installResponsePatch() {
   Response.prototype.text = text;
 }
 
-function patchInitialData(value: unknown) {
-  try {
-    return patchFeedDataNow(value) ?? value;
-  } catch {
-    return value;
-  }
-}
-
-/**
- * m.youtube.com renders a hard load from `var ytInitialData = '<json>'`, then re-assigns it parsed. An accessor
- * declared before that script sees the parsed object and patches it; the JSON string passes through
- */
-function installInitialDataHook() {
-  let initialData: unknown;
-  Object.defineProperty(globalThis, INITIAL_DATA_GLOBAL, {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return initialData;
-    },
-    set(value: unknown) {
-      initialData = patchInitialData(value);
-    }
-  });
-}
-
 export function installResponseHooks() {
   installResponsePatch();
 
-  // www renders a hard load as is and inserts live, animated, with full native renderers
+  // www renders a hard load as is and inserts live, animated, with full native renderers. m.youtube.com renders it
+  // from `ytInitialData`, patched as it is assigned (the first assignment, a JSON string, passes through)
   if (getYouTubeSite() === YouTubeSite.mobile) {
-    installInitialDataHook();
+    interceptInitialData(value => patchFeedDataNow(value) ?? value);
   }
 }
