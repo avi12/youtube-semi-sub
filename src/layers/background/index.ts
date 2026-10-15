@@ -1,8 +1,7 @@
-import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { FilterKind } from "@/lib/filter/title-filter";
+import { collectAiFilterKeys } from "@/lib/filter/ai-verdicts";
 import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
 import { channelIdSchema } from "@/lib/schemas/channel";
-import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { isUploadsWatched, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { semiSubscriptionsItem } from "@/lib/storage";
 import { z } from "@/lib/zod";
 import { classifyPendingVideos, startAiMatch } from "#ai-match";
@@ -49,14 +48,9 @@ async function handleInstalled() {
 /** An AI filter was edited away or removed, so the verdicts judged under it may have no user left */
 function hasDroppedAiFilter({ subscriptions, previousSubscriptions }: Parameters<typeof handleSubscriptionsChange>[0]) {
   for (const channelId in previousSubscriptions) {
-    const previousFilter = previousSubscriptions[channelId]?.followFilter;
-    if (previousFilter?.kind !== FilterKind.aiMatch) {
-      continue;
-    }
-
-    const filter = subscriptions[channelId]?.followFilter;
-    const isKept = filter?.kind === FilterKind.aiMatch && getAiFilterKey(filter) === getAiFilterKey(previousFilter);
-    if (!isKept) {
+    const keys = collectAiFilterKeys(subscriptions[channelId]);
+    const isDropped = [...collectAiFilterKeys(previousSubscriptions[channelId])].some(key => !keys.has(key));
+    if (isDropped) {
       return true;
     }
   }
@@ -78,11 +72,13 @@ async function handleSubscriptionsChange({ subscriptions, previousSubscriptions 
     await pruneChannelCaches();
   }
 
+  // Fetched as soon as their uploads matter: a new channel, an unsubscribe, a hide filter that starts hiding
   await refreshChannels({
     channelIds: Object.values(subscriptions)
-      .filter(({ channelId, isSubscribed }) => {
-        const wasFollowed = previousSubscriptions[channelId]?.isSubscribed === false;
-        return !isSubscribed && !wasFollowed;
+      .filter(subscription => {
+        const previous = previousSubscriptions[subscription.channelId];
+        const wasWatched = !!previous && isUploadsWatched(previous);
+        return isUploadsWatched(subscription) && !wasWatched;
       })
       .map(({ channelId }) => channelId),
     isForced: true

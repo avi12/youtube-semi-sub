@@ -121,3 +121,29 @@ describe("collectClassificationJobs", () => {
     ).toEqual([]);
   });
 });
+
+describe("collectClassificationJobs across modes", () => {
+  it("judges a subscribed channel by its hide filter, and leaves its follow filter until they unsubscribe", () => {
+    const jobs = collectClassificationJobs({
+      requests: [],
+      subscriptions: {
+        [CHANNEL_ID]: {
+          channelId: CHANNEL_ID,
+          title: "Channel",
+          followFilter: REVIEWS,
+          hideFilter: TUTORIALS,
+          createdAt: 0,
+          isSubscribed: true
+        }
+      },
+      channelVideos: {
+        [CHANNEL_ID]: {
+          fetchedAt: 0,
+          videos: [OLD]
+        }
+      },
+      aiVerdicts: {}
+    });
+    expect(jobs.map(job => job.key)).toEqual([getAiFilterKey(TUTORIALS)]);
+  });
+});

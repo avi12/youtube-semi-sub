@@ -1,5 +1,6 @@
 import {
   DEFAULT_TITLE_FILTER,
+  isHidingNothing,
   legacyRegexFilterSchema,
   type TitleFilter,
   titleFilterSchema
@@ -93,6 +94,26 @@ const FILTER_KEY_BY_MODE = {
   [SubscriptionMode.follow]: "followFilter",
   [SubscriptionMode.hide]: "hideFilter"
 } as const satisfies Record<SubscriptionMode, keyof SemiSubscription>;
+
+function getSubscriptionMode({ isSubscribed }: Pick<SemiSubscription, "isSubscribed">) {
+  return isSubscribed ? SubscriptionMode.hide : SubscriptionMode.follow;
+}
+
+/** The filter the channel's current mode applies */
+export function getActiveFilter(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
+  return subscription[FILTER_KEY_BY_MODE[getSubscriptionMode(subscription)]];
+}
+
+/**
+ * Whether the background keeps the channel's uploads current: a followed channel always, a subscribed one only while
+ * its hide filter hides something - the uploads are what it is judged against, Shorts included
+ */
+export function isUploadsWatched(subscription: Pick<SemiSubscription, "hideFilter" | "isSubscribed">) {
+  return !subscription.isSubscribed || !isHidingNothing({
+    filter: subscription.hideFilter,
+    mode: SubscriptionMode.hide
+  });
+}
 
 /** The subscription with one mode's filter replaced */
 export function withModeFilter({ subscription, mode, filter }: {

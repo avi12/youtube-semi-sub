@@ -2,6 +2,7 @@ import { AiEngine } from "@/lib/ai/ai-status";
 import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
 import { aiFilterSchema, FilterKind } from "@/lib/filter/title-filter";
 import { feedVideoSchema, sortNewestFirst } from "@/lib/schemas/feed-video";
+import { getActiveFilter } from "@/lib/schemas/semi-subscription";
 import type { StoredState } from "@/lib/schemas/stored-state";
 import {
   aiVerdictsItem,
@@ -41,8 +42,8 @@ type ClassificationJob = z.infer<typeof classificationJobSchema>;
 
 /**
  * What a pass has to judge, grouped by filter key: the editor's requests first (someone is watching the preview), then
- * each AI filter's cached uploads, newest first. Videos that already have a verdict are left out, and a video is
- * judged once per key even when several requests and channels share it
+ * the cached uploads of each channel whose current mode applies an AI filter, newest first. Videos that already have a
+ * verdict are left out, and a video is judged once per key even when several requests and channels share it
  */
 export function collectClassificationJobs({ requests, subscriptions, channelVideos, aiVerdicts }: {
   requests: ClassifyRequest[];
@@ -75,7 +76,8 @@ export function collectClassificationJobs({ requests, subscriptions, channelVide
   }
 
   for (const channelId in subscriptions) {
-    const filter = subscriptions[channelId]?.followFilter;
+    const subscription = subscriptions[channelId];
+    const filter = subscription && getActiveFilter(subscription);
     if (filter?.kind === FilterKind.aiMatch) {
       addVideos({
         filter,

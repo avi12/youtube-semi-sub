@@ -16,6 +16,7 @@ import { fakeBrowser } from "wxt/testing/fake-browser";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const REFRESH_ALARM_NAME = "refresh-channels";
+const SETTLE_MS = 50;
 
 const SUBSCRIPTION: SemiSubscription = {
   channelId: CHANNEL_ID,
@@ -96,5 +97,36 @@ describe("startBackground", () => {
       expect((await channelVideosItem.getValue())[CHANNEL_ID]?.videos).toHaveLength(4);
     });
     expect(await aiVerdictsItem.getValue()).toEqual(verdicts);
+  });
+
+  it("fetches a subscribed channel only once its hide filter hides something", async () => {
+    await semiSubscriptionsItem.setValue({});
+    await vi.waitFor(async () => {
+      expect(await channelVideosItem.getValue()).toEqual({});
+    });
+    const subscribed: SemiSubscription = {
+      ...SUBSCRIPTION,
+      isSubscribed: true
+    };
+    await semiSubscriptionsItem.setValue({
+      [CHANNEL_ID]: subscribed
+    });
+    // A tick for the watcher to act on, had it anything to fetch
+    await new Promise(resolve => setTimeout(resolve, SETTLE_MS));
+    expect(await channelVideosItem.getValue()).toEqual({});
+
+    await semiSubscriptionsItem.setValue({
+      [CHANNEL_ID]: {
+        ...subscribed,
+        hideFilter: {
+          kind: FilterKind.regex,
+          pattern: "unboxing",
+          flags: "i"
+        }
+      }
+    });
+    await vi.waitFor(async () => {
+      expect((await channelVideosItem.getValue())[CHANNEL_ID]?.videos).toHaveLength(4);
+    });
   });
 });

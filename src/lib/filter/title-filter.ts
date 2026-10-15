@@ -141,7 +141,7 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
 }
 
 /** A hide filter left empty hides nothing - where an empty follow filter lets every video through */
-function isHidingNothing({ filter, mode }: {
+export function isHidingNothing({ filter, mode }: {
   filter: TitleFilter;
   mode: SubscriptionMode;
 }) {

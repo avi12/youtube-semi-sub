@@ -1,12 +1,23 @@
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { FilterKind } from "@/lib/filter/title-filter";
 import { type ChannelVideosCache, videoIdSchema } from "@/lib/schemas/feed-video";
-import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import type { SemiSubscription, SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
 
 /** What the model said about each video, per AI filter key (`getAiFilterKey`): true lets the video into the feed */
 export const aiVerdictsSchema = z.record(z.string(), z.record(videoIdSchema, z.boolean()));
 export type AiVerdicts = z.infer<typeof aiVerdictsSchema>;
+
+/** The keys of a channel's AI filters - in either mode, so switching modes back and forth keeps their verdicts */
+export function collectAiFilterKeys(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter"> | undefined) {
+  const keys = new Set<string>();
+  for (const filter of [subscription?.followFilter, subscription?.hideFilter]) {
+    if (filter?.kind === FilterKind.aiMatch) {
+      keys.add(getAiFilterKey(filter));
+    }
+  }
+  return keys;
+}
 
 /** Per AI filter key in use, the videos a channel using it still has cached */
 function collectReferencedVideoIds({ subscriptions, channelVideos }: {
@@ -15,17 +26,13 @@ function collectReferencedVideoIds({ subscriptions, channelVideos }: {
 }) {
   const videoIdsByKey = new Map<string, Set<string>>();
   for (const channelId in subscriptions) {
-    const filter = subscriptions[channelId]?.followFilter;
-    if (filter?.kind !== FilterKind.aiMatch) {
-      continue;
+    for (const key of collectAiFilterKeys(subscriptions[channelId])) {
+      const videoIds = videoIdsByKey.get(key) ?? new Set();
+      for (const video of channelVideos[channelId]?.videos ?? []) {
+        videoIds.add(video.videoId);
+      }
+      videoIdsByKey.set(key, videoIds);
     }
-
-    const key = getAiFilterKey(filter);
-    const videoIds = videoIdsByKey.get(key) ?? new Set();
-    for (const video of channelVideos[channelId]?.videos ?? []) {
-      videoIds.add(video.videoId);
-    }
-    videoIdsByKey.set(key, videoIds);
   }
   return videoIdsByKey;
 }

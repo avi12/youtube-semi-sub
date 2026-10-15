@@ -128,6 +128,41 @@ describe("pruneAiVerdicts", () => {
   });
 });
 
+describe("pruneAiVerdicts across modes", () => {
+  it("keeps the verdicts of both a channel's follow filter and its hide filter, whichever mode is on", () => {
+    const aiVerdicts = {
+      [REVIEWS_KEY]: {
+        aaaaaaaaaaa: true
+      },
+      [TUTORIALS_KEY]: {
+        aaaaaaaaaaa: false
+      }
+    };
+    expect(
+      pruneAiVerdicts({
+        aiVerdicts,
+        subscriptions: {
+          [CHANNEL_ID]: {
+            channelId: CHANNEL_ID,
+            title: "Channel",
+            followFilter: {
+              kind: FilterKind.aiMatch,
+              description: "only reviews"
+            },
+            hideFilter: {
+              kind: FilterKind.aiMatch,
+              description: "only tutorials"
+            },
+            createdAt: 0,
+            isSubscribed: true
+          }
+        },
+        channelVideos: CHANNEL_VIDEOS
+      })
+    ).toEqual(aiVerdicts);
+  });
+});
+
 describe("countAiVerdicts", () => {
   it("counts verdicts across every key", () => {
     expect(

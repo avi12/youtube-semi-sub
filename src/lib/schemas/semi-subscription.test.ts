@@ -1,5 +1,6 @@
-import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER, FilterKind, type RegexFilter } from "@/lib/filter/title-filter";
 import {
+  isUploadsWatched,
   migrateSemiSubscriptionsToV2,
   migrateSemiSubscriptionsToV3,
   migrateSemiSubscriptionsToV4,
@@ -177,5 +178,34 @@ describe("migrateSemiSubscriptionsToV4", () => {
 
   it("leaves a value it can't read untouched", () => {
     expect(migrateSemiSubscriptionsToV4("not a record")).toBe("not a record");
+  });
+});
+
+describe("isUploadsWatched", () => {
+  const hideFilter: RegexFilter = {
+    kind: FilterKind.regex,
+    pattern: "shorts",
+    flags: "i"
+  };
+
+  it("watches a followed channel, and a subscribed one only while its hide filter hides something", () => {
+    expect(
+      isUploadsWatched({
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: false
+      })
+    ).toBe(true);
+    expect(
+      isUploadsWatched({
+        hideFilter: DEFAULT_TITLE_FILTER,
+        isSubscribed: true
+      })
+    ).toBe(false);
+    expect(
+      isUploadsWatched({
+        hideFilter,
+        isSubscribed: true
+      })
+    ).toBe(true);
   });
 });

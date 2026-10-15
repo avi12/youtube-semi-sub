@@ -2,7 +2,7 @@ import { mapWithConcurrency } from "./concurrency";
 import { isVideoListUnchanged, mergeChannelVideos } from "./merge-channel-videos";
 import { countAiVerdicts, pruneAiVerdicts } from "@/lib/filter/ai-verdicts";
 import type { ChannelVideosCache } from "@/lib/schemas/feed-video";
-import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { isUploadsWatched, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import {
   aiVerdictsItem,
   channelCheckedAtItem,
@@ -189,7 +189,7 @@ export async function refreshAllChannels({ isForced }: Pick<Parameters<typeof re
   const subscriptions = await semiSubscriptionsItem.getValue();
   return await refreshChannels({
     channelIds: Object.values(subscriptions)
-      .filter(subscription => !subscription.isSubscribed)
+      .filter(isUploadsWatched)
       .map(subscription => subscription.channelId),
     isForced
   });
