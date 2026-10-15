@@ -1,7 +1,7 @@
 import { fetchText } from "./fetch-text";
-import { parseRelativeTime } from "./relative-time";
 import { buildVideoThumbnailUrl } from "./video-thumbnail";
 import { type FeedVideo, feedVideoSchema } from "@/lib/feed-video";
+import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { z } from "@/lib/zod";
 
 // Fallback for when RSS is down: the channel's Videos tab. Its page embeds the InnerTube browse response as
@@ -167,16 +167,10 @@ function findPublishedAt({ timeTexts, now }: {
   timeTexts: string[];
   now: number;
 }) {
-  for (const text of timeTexts) {
-    const publishedAt = parseRelativeTime({
-      text,
-      now
-    });
-    if (publishedAt !== null) {
-      return publishedAt;
-    }
-  }
-  return now;
+  return parseFirstRelativeTime({
+    texts: timeTexts,
+    now
+  })?.approxTime ?? now;
 }
 
 function findGridContents(response: ChannelBrowseResponse) {

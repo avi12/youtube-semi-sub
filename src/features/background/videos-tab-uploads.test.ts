@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const NOW = Date.parse("2026-10-15T12:00:00Z");
 const DAY_MS = 86_400_000;
+const AVERAGE_MONTH_DAYS = 30.436875;
 
 function buildResponse(gridContents: unknown[]) {
   return {
@@ -73,7 +74,7 @@ describe("parseVideosTab", () => {
       thumbnailUrl: "https://i.ytimg.com/vi/QVv3mQzlrN0/hqdefault.jpg"
     });
     // A collaboration lists its channels before the view count and the time
-    expect(videos?.[3]?.publishedAt).toBe(NOW - 3 * 30 * DAY_MS);
+    expect(videos?.[3]?.publishedAt).toBe(NOW - 3 * AVERAGE_MONTH_DAYS * DAY_MS);
   });
 
   it("reads videoRenderer items, counting a live video as published now", () => {
