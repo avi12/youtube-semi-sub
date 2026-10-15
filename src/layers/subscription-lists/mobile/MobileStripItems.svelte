@@ -1,7 +1,7 @@
 <script lang="ts">
   import ChannelAvatar from "#subscription-lists/components/ChannelAvatar.svelte";
   import FilterGlyph from "#subscription-lists/components/FilterGlyph.svelte";
-  import { getManageLabel, opensSemiSubDialog } from "#subscription-lists/components/open-dialog";
+  import { describeManageButton, opensSemiSubDialog } from "#subscription-lists/components/open-dialog";
   import { listsView } from "#subscription-lists/lists-view.svelte";
   import { getChannelPath } from "#subscription-lists/semi-channels";
   import { markSurface, SemiListSurface } from "#subscription-lists/semi-list-surface";
@@ -18,7 +18,7 @@
       class="yss-m-strip-item__manage"
       {@attach opensSemiSubDialog(subscription)}
       aria-haspopup="dialog"
-      aria-label={getManageLabel(subscription)}
+      aria-label={describeManageButton(subscription).accessibilityText}
       type="button">
       <FilterGlyph />
     </button>

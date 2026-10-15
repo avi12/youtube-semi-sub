@@ -6,3 +6,6 @@ export { installSubscriptionEntityWatch } from "./subscription-entities";
 
 /** MAIN world, document_start: inject the Semi-subscribe button next to YouTube's Subscribe button */
 export { startChannelButton } from "./channel-button.svelte";
+
+/** The words on a channel's button, for every surface that opens its dialog */
+export { describeChannelButton } from "./button/button-label";

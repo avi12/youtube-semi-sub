@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { ButtonLabel } from "./button-label";
+  import { describeChannelButton } from "./button-label";
   import type { NativeButtonClasses } from "./native-button-classes";
-  import { isHidingNothing } from "@/lib/filter/title-filter";
   import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
   import { getPageState, onPageState } from "@/lib/page/page-state";
   import type { ChannelInfo } from "@/lib/schemas/channel";
-  import { getModeFilter } from "@/lib/schemas/semi-subscription";
-  import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
+  import { getSubscriptionMode } from "@/lib/schemas/semi-subscription";
   import {
     ButtonViewModelIcon,
     ButtonViewModelSize,
@@ -52,60 +50,19 @@
     pageState = state;
   }));
 
-  const BUTTON_TEXT = {
-    [SubscriptionMode.follow]: {
-      label: ButtonLabel.semiSubscribe,
-      activeLabel: ButtonLabel.semiSubscribed,
-      accessibilityText: (title: string) => `Semi-subscribe to ${title}`,
-      activeAccessibilityText: (title: string) => `Edit your semi-subscription to ${title}`
-    },
-    [SubscriptionMode.hide]: {
-      label: ButtonLabel.filter,
-      activeLabel: ButtonLabel.filtered,
-      accessibilityText: (title: string) => `Hide some of ${title}'s videos from your subscriptions feed`,
-      activeAccessibilityText: (title: string) => `Edit what's hidden from ${title} in your subscriptions feed`
-    }
-  } as const;
-
-  const subscription = $derived(pageState?.subscriptions[channel.channelId]);
   /** The channel's mode as the page shows it: the Subscribe button outranks the stored state, which follows it */
-  const mode = $derived.by(() => {
-    if (isOfficiallySubscribed) {
-      return SubscriptionMode.hide;
-    }
-
-    return SubscriptionMode.follow;
-  });
-  /** Semi-subscribed while following; while subscribed, hiding something */
-  const isActive = $derived.by(() => {
-    if (!subscription) {
-      return false;
-    }
-
-    return !isHidingNothing({
-      filter: getModeFilter({
-        subscription,
-        mode
-      }),
+  const mode = $derived(getSubscriptionMode({ isSubscribed: isOfficiallySubscribed }));
+  const description = $derived(
+    describeChannelButton({
+      channelTitle: channel.title,
+      subscription: pageState?.subscriptions[channel.channelId],
       mode
-    });
-  });
-  const buttonText = $derived(BUTTON_TEXT[mode]);
+    })
+  );
+  const isActive = $derived(description.isActive);
+  const label = $derived(description.label);
+  const accessibilityText = $derived(description.accessibilityText);
   const isVisible = $derived(!!pageState?.isExtensionEnabled);
-  const label = $derived.by(() => {
-    if (isActive) {
-      return buttonText.activeLabel;
-    }
-
-    return buttonText.label;
-  });
-  const accessibilityText = $derived.by(() => {
-    if (isActive) {
-      return buttonText.activeAccessibilityText(channel.title);
-    }
-
-    return buttonText.accessibilityText(channel.title);
-  });
   const nativeButtonClass = $derived.by(() => {
     if (isActive) {
       return nativeButtonClasses.buttonWithIcon;

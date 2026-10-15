@@ -1,5 +1,6 @@
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
-import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+import { getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
+import { describeChannelButton } from "#channel-button";
 import { toChannelInfo } from "#subscription-lists/semi-channels";
 import { on } from "svelte/events";
 
@@ -22,6 +23,11 @@ export function opensSemiSubDialog(subscription: SemiSubscription) {
   };
 }
 
-export function getManageLabel({ title }: SemiSubscription) {
-  return `Edit semi-subscription to ${title}`;
+/** What a manage button reads as, the same words the channel's own button would use */
+export function describeManageButton(subscription: SemiSubscription) {
+  return describeChannelButton({
+    channelTitle: subscription.title,
+    subscription,
+    mode: getSubscriptionMode(subscription)
+  });
 }

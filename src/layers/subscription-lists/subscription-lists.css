@@ -54,6 +54,16 @@
   overflow-wrap: anywhere;
 }
 
+/* Which mode applies, ahead of its filter */
+.yss-filter-literal__mode {
+  color: var(--yss-text-secondary);
+  font-weight: 500;
+
+  &::after {
+    content: " · ";
+  }
+}
+
 .yss-filter-literal--any,
 .yss-filter-literal--ai {
   font-family: inherit;

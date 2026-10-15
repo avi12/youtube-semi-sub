@@ -2,7 +2,7 @@
   import ChannelAvatar from "./ChannelAvatar.svelte";
   import FilterGlyph from "./FilterGlyph.svelte";
   import FilterLiteral from "./FilterLiteral.svelte";
-  import { getManageLabel, opensSemiSubDialog } from "./open-dialog";
+  import { describeManageButton, opensSemiSubDialog } from "./open-dialog";
   import { followsChannelLink } from "./spa-navigation";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
   import { formatHandle } from "@/lib/youtube/channel-link";
@@ -12,6 +12,7 @@
   const { subscription }: { subscription: SemiSubscription } = $props();
 
   const channelPath = $derived(getChannelPath(subscription));
+  const manageButton = $derived(describeManageButton(subscription));
 </script>
 
 <li class="yss-channel">
@@ -31,10 +32,7 @@
         <p class="yss-channel__metadata" dir="auto">{formatHandle(subscription.handle)}</p>
       {/if}
       <p class="yss-channel__filter">
-        <FilterLiteral
-          filter={subscription.followFilter}
-          isAiEnabled={listsView.isAiEnabled}
-          isSubscribed={subscription.isSubscribed} />
+        <FilterLiteral isAiEnabled={listsView.isAiEnabled} {subscription} />
       </p>
     </a>
 
@@ -42,10 +40,10 @@
       class="yss-button"
       {@attach opensSemiSubDialog(subscription)}
       aria-haspopup="dialog"
-      title={getManageLabel(subscription)}
+      title={manageButton.accessibilityText}
       type="button">
       <FilterGlyph />
-      Semi-subscribed
+      {manageButton.label}
     </button>
   </div>
 </li>
