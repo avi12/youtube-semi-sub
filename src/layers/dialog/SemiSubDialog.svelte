@@ -168,6 +168,7 @@
 
       <FilterEditor
         isLoading={isLoadingVideos}
+        mode={SubscriptionMode.follow}
         {videos}
         bind:filter={() => filter, editedFilter => {
           filter = editedFilter;

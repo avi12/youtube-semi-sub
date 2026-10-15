@@ -1,6 +1,7 @@
 <script lang="ts">
   import { watchAiMatchPreview } from "./ai-match-preview.svelte";
-  import { previewAiFilter, type PreviewHints, previewTitleFilter, type TitleFilterPreview } from "./title-matches";
+  import { MODE_COPY } from "./mode-copy";
+  import { previewAiFilter, previewTitleFilter, type TitleFilterPreview } from "./title-matches";
   import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
   import {
     DEFAULT_TITLE_FILTER,
@@ -10,6 +11,7 @@
     type TitleFilter
   } from "@/lib/filter/title-filter";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
+  import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import AiFilterFields from "#filter-editor/components/AiFilterFields.svelte";
   import FilterPreview from "#filter-editor/components/FilterPreview.svelte";
   import KindSwitch from "#filter-editor/components/KindSwitch.svelte";
@@ -18,6 +20,8 @@
 
   interface Props {
     filter: TitleFilter;
+    /** Following picks the videos added to the feed, hiding the ones hidden from it */
+    mode: SubscriptionMode;
     /** A sample of the channel's recent uploads to preview the filter on - may be empty */
     videos: FeedVideo[];
     isLoading?: boolean;
@@ -28,26 +32,12 @@
     }]>;
   }
 
-  let { filter = $bindable(), videos, isLoading = false, aiSetup }: Props = $props();
+  let { filter = $bindable(), mode, videos, isLoading = false, aiSetup }: Props = $props();
 
   const id = $props.id();
   const inputId = `${id}-filter`;
 
-  const REGEX_HINTS: PreviewHints = {
-    invalidSummary: "Fix the pattern to update the preview",
-    invalid: "Fix the pattern to see what lands in your feed",
-    noMatch: "Nothing recent matches - try a looser pattern"
-  };
-  const AI_HINTS: PreviewHints = {
-    invalidSummary: "Describe the videos you want",
-    invalid: "Describe the videos you want to see what lands in your feed",
-    noMatch: "Nothing recent fits - try a broader description"
-  };
-  const PAUSED_AI_HINTS: PreviewHints = {
-    ...AI_HINTS,
-    invalidSummary: "AI match is off",
-    invalid: "Turn on AI match to see what lands in your feed"
-  };
+  const copy = $derived(MODE_COPY[mode]);
 
   /** Switching kinds keeps what was typed for the other one, so flipping back and forth loses nothing */
   const parkedFilters: Partial<Record<FilterKind, TitleFilter>> = {};
@@ -117,7 +107,8 @@
   function buildRegexPreview(currentFilter: RegexFilter) {
     const currentPreview = previewTitleFilter({
       filter: currentFilter,
-      videos
+      videos,
+      mode
     });
     if (currentPreview.isValid) {
       lastValidRegexPreview = {
@@ -165,14 +156,18 @@
   });
   const hints = $derived.by(() => {
     if (regexFilter) {
-      return REGEX_HINTS;
+      return copy.regexHints;
     }
 
     if (!aiMatch.isAiEnabled) {
-      return PAUSED_AI_HINTS;
+      return {
+        ...copy.aiHints,
+        invalidSummary: "AI match is off",
+        invalid: copy.pausedAiInvalid
+      };
     }
 
-    return AI_HINTS;
+    return copy.aiHints;
   });
 </script>
 
@@ -180,9 +175,9 @@
   <header class="filter-editor__header">
     <label class="filter-editor__label" for={inputId}>
       {#if aiFilter}
-        Describe the videos you want
+        {copy.aiLabel}
       {:else}
-        Title filter
+        {copy.regexLabel}
       {/if}
     </label>
     <KindSwitch kind={filter.kind} onKindChange={switchKind} />
@@ -190,13 +185,17 @@
 
   {#if regexFilter}
     <RegexFilterFields
+      emptyPatternHint={copy.emptyPatternHint}
       {inputId}
+      placeholder={copy.regexPlaceholder}
       bind:filter={() => regexFilter, editedFilter => {
         filter = editedFilter;
       }} />
   {:else if aiFilter}
     <AiFilterFields
+      hint={copy.aiHint}
       {inputId}
+      placeholder={copy.aiPlaceholder}
       bind:filter={() => aiFilter, editedFilter => {
         filter = editedFilter;
       }} />
@@ -217,7 +216,14 @@
   {/if}
 
   {#if preview}
-    <FilterPreview {hints} {inputId} {isLoading} {preview} videoCount={videos.length} />
+    <FilterPreview
+      {hints}
+      {inputId}
+      {isLoading}
+      label={copy.previewLabel}
+      {preview}
+      skippedLabel={copy.skippedLabel}
+      videoCount={videos.length} />
   {/if}
 </div>
 

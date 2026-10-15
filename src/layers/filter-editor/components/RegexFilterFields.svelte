@@ -14,9 +14,12 @@
     filter: RegexFilter;
     /** The pattern input's id, so the editor's label and preview summary can point at it */
     inputId: string;
+    placeholder: string;
+    /** What an empty pattern does in this mode */
+    emptyPatternHint: string;
   }
 
-  let { filter = $bindable(), inputId }: Props = $props();
+  let { filter = $bindable(), inputId, placeholder, emptyPatternHint }: Props = $props();
 
   const hintId = $derived(`${inputId}-hint`);
   const errorId = $derived(`${inputId}-error`);
@@ -66,7 +69,7 @@
       autocomplete="off"
       data-filter-input
       dir="auto"
-      placeholder="tutorial|review"
+      {placeholder}
       spellcheck="false"
       type="text"
       bind:value={() => filter.pattern, pattern => {
@@ -77,7 +80,7 @@
       }} />
     <span class="regex__slash" aria-hidden="true">/<span class="regex__flags">{filter.flags}</span></span>
   </div>
-  <p id={hintId} class="regex__hint">Leave it empty to let every video through</p>
+  <p id={hintId} class="regex__hint">{emptyPatternHint}</p>
   <p id={errorId} class="regex__error" aria-live="polite">{error ?? ""}</p>
 
   <div class="flags">

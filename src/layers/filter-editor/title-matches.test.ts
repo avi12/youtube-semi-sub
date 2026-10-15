@@ -8,6 +8,7 @@ import {
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, FilterKind, MatchState } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UC0123456789abcdefghijkl";
@@ -139,7 +140,8 @@ describe("previewTitleFilter", () => {
         pattern: "tutorial",
         flags: "i"
       },
-      videos
+      videos,
+      mode: SubscriptionMode.follow
     });
     expect(preview.isValid).toBe(true);
     expect(preview.feedRows.map(row => row.video.videoId)).toEqual(["aaaaaaaaaaa", "ccccccccccc"]);
@@ -155,7 +157,8 @@ describe("previewTitleFilter", () => {
         pattern: "",
         flags: ""
       },
-      videos
+      videos,
+      mode: SubscriptionMode.follow
     });
     expect(preview.matchCount).toBe(videos.length);
     expect(preview.feedRows[1]?.segments).toEqual([{
@@ -171,10 +174,53 @@ describe("previewTitleFilter", () => {
         pattern: "(",
         flags: "i"
       },
-      videos
+      videos,
+      mode: SubscriptionMode.follow
     });
     expect(preview.isValid).toBe(false);
     expect(preview.feedRows).toHaveLength(0);
+    expect(preview.skippedRows).toHaveLength(videos.length);
+  });
+});
+
+describe("previewTitleFilter in hide mode", () => {
+  const videos = [
+    createVideo({
+      videoId: "aaaaaaaaaaa",
+      title: "Live: Q&A"
+    }),
+    createVideo({
+      videoId: "bbbbbbbbbbb",
+      title: "Review"
+    })
+  ];
+
+  it("lists the videos it hides", () => {
+    const preview = previewTitleFilter({
+      filter: {
+        kind: FilterKind.regex,
+        pattern: "^live",
+        flags: "i"
+      },
+      videos,
+      mode: SubscriptionMode.hide
+    });
+    expect(preview.feedRows.map(row => row.video.videoId)).toEqual(["aaaaaaaaaaa"]);
+    expect(preview.skippedRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
+  });
+
+  it("hides nothing with an empty pattern, and still counts as valid", () => {
+    const preview = previewTitleFilter({
+      filter: {
+        kind: FilterKind.regex,
+        pattern: "",
+        flags: "i"
+      },
+      videos,
+      mode: SubscriptionMode.hide
+    });
+    expect(preview.isValid).toBe(true);
+    expect(preview.matchCount).toBe(0);
     expect(preview.skippedRows).toHaveLength(videos.length);
   });
 });

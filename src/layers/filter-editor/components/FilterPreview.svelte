@@ -13,9 +13,13 @@
     isLoading: boolean;
     /** The filter input the summary describes */
     inputId: string;
+    /** What the listed videos are: added to the feed, or hidden from it */
+    label: string;
+    /** What the rest do */
+    skippedLabel: string;
   }
 
-  const { preview, hints, videoCount, isLoading, inputId }: Props = $props();
+  const { preview, hints, videoCount, isLoading, inputId, label, skippedLabel }: Props = $props();
 
   const SKELETON_TILE_COUNT = 4;
   const SKELETON_TILES = Array.from({ length: SKELETON_TILE_COUNT }, (_, i) => i);
@@ -90,7 +94,7 @@
 
 <section class="preview" aria-labelledby={labelId}>
   <header class="preview__header">
-    <span id={labelId} class="preview__label">Lands in your feed</span>
+    <span id={labelId} class="preview__label">{label}</span>
     <output class="preview__summary" for={inputId}>{summaryText}</output>
   </header>
 
@@ -128,7 +132,7 @@
     {#if preview.skippedRows.length > 0}
       <Disclosure>
         {#snippet summary()}
-          {preview.skippedRows.length} won't appear
+          {preview.skippedRows.length} {skippedLabel}
         {/snippet}
         <ul class="skipped">
           {#each preview.skippedRows as row (row.video.videoId)}

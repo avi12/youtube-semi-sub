@@ -60,7 +60,11 @@
     });
     onClose();
   }}>
-  <FilterEditor isLoading={isFetching && videos.length === 0} {videos} bind:filter={draftFilter}>
+  <FilterEditor
+    isLoading={isFetching && videos.length === 0}
+    mode={SubscriptionMode.follow}
+    {videos}
+    bind:filter={draftFilter}>
     {#snippet aiSetup({ isAiEnabled })}
       <AiSetupAction {isAiEnabled} />
     {/snippet}

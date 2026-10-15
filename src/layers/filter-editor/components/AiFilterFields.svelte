@@ -5,9 +5,12 @@
     filter: AiFilter;
     /** The description's id, so the editor's label and preview summary can point at it */
     inputId: string;
+    placeholder: string;
+    /** What the model does with the videos that fit, in this mode */
+    hint: string;
   }
 
-  let { filter = $bindable(), inputId }: Props = $props();
+  let { filter = $bindable(), inputId, placeholder, hint }: Props = $props();
 
   const hintId = $derived(`${inputId}-hint`);
 </script>
@@ -20,7 +23,7 @@
     data-filter-input
     dir="auto"
     maxlength={AI_DESCRIPTION_MAX_LENGTH}
-    placeholder="Only phone reviews, not unboxings"
+    {placeholder}
     rows="2"
     bind:value={() => filter.description, description => {
       filter = {
@@ -29,7 +32,7 @@
       };
     }}></textarea>
   <p id={hintId} class="ai-fields__hint">
-    <span>A model reads each video's title and description, and lets in the ones that fit</span>
+    <span>{hint}</span>
     <output class="ai-fields__count" for={inputId}>{filter.description.length}/{AI_DESCRIPTION_MAX_LENGTH}</output>
   </p>
 </div>

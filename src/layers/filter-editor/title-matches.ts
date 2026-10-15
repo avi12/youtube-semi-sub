@@ -4,10 +4,12 @@ import {
   compileTitleFilter,
   createVideoJudge,
   getTitleFilterError,
+  isHidingNothing,
   MatchState,
   type RegexFilter
 } from "@/lib/filter/title-filter";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
+import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";
 
 const GLOBAL_FLAG = "g";
@@ -123,18 +125,26 @@ export function partitionPreviewRows(rows: PreviewRow[]) {
   };
 }
 
-/** How the filter treats each preview video - the same compiled RegExp `selectFeedVideos` applies to the real feed */
-export function previewTitleFilter({ filter, videos }: {
+/**
+ * How the filter treats each preview video - the same compiled RegExp the real feed is filtered by. An empty hide
+ * filter matches nothing, where an empty follow filter matches every video
+ */
+export function previewTitleFilter({ filter, videos, mode }: {
   filter: RegexFilter;
   videos: FeedVideo[];
+  mode: SubscriptionMode;
 }) {
-  const regex = compileTitleFilter(filter);
+  const isMatchingNothing = isHidingNothing({
+    filter,
+    mode
+  });
+  const regex = isMatchingNothing ? null : compileTitleFilter(filter);
   const rows = videos.map(video => previewRegexRow({
     video,
     regex
   }));
   return {
-    isValid: regex !== null,
+    isValid: isMatchingNothing || regex !== null,
     ...partitionPreviewRows(rows)
   };
 }
