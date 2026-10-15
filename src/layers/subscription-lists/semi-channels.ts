@@ -1,7 +1,7 @@
-import { getChannelUrl } from "@/features/popup/channel-link";
 import type { ChannelInfo } from "@/lib/channel";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import type { SemiSubscription } from "@/lib/semi-subscription";
+import { getChannelUrl } from "#popup";
 
 const CHANNEL_PAGE_TYPE = "WEB_PAGE_TYPE_CHANNEL";
 const CHANNEL_ROOT_VISUAL_ELEMENT = 3611;

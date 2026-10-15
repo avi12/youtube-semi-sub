@@ -1,3 +1,3 @@
-import { startBackground } from "@/features/background";
+import { startBackground } from "#background";
 
 export default defineBackground(startBackground);

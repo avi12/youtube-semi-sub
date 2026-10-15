@@ -1,8 +1,4 @@
 <script lang="ts">
-  import ChannelRow from "@/features/popup/ChannelRow.svelte";
-  import EmptyState from "@/features/popup/EmptyState.svelte";
-  import { REFRESH_ICON } from "@/features/popup/icons";
-  import type { PopupState } from "@/features/popup/popup-state";
   import { videosByChannelFromCache } from "@/lib/feed-video";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { prefersReducedMotion } from "@/lib/motion";
@@ -17,6 +13,10 @@
   } from "@/lib/storage";
   import { selectFeedVideos } from "@/lib/title-filter";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
+  import ChannelRow from "#popup/ChannelRow.svelte";
+  import EmptyState from "#popup/EmptyState.svelte";
+  import { REFRESH_ICON } from "#popup/icons";
+  import type { PopupState } from "#popup/popup-state";
   import {
     Button,
     Icon,

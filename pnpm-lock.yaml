@@ -5,6 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@davestewart/wxt-utils@0.6.0': 0ef8576660b1d40a79c7b1d2516ff5869de7d67c22ba6d28c902dddca44978be
   zod: 53c559785728d494960d50593a7b88311fe1e9aa319ef0182d7af523081259e9
 
 importers:
@@ -2738,7 +2739,7 @@ snapshots:
     dependencies:
       postcss-selector-parser: 7.1.6
 
-  '@davestewart/wxt-utils@0.6.0(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)))':
+  '@davestewart/wxt-utils@0.6.0(patch_hash=0ef8576660b1d40a79c7b1d2516ff5869de7d67c22ba6d28c902dddca44978be)(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)))':
     dependencies:
       picocolors: 1.1.1
       wxt: 0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))
@@ -4930,7 +4931,7 @@ snapshots:
 
   wxt-module-layers@1.3.0(magicast@0.5.5)(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0))):
     dependencies:
-      '@davestewart/wxt-utils': 0.6.0(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)))
+      '@davestewart/wxt-utils': 0.6.0(patch_hash=0ef8576660b1d40a79c7b1d2516ff5869de7d67c22ba6d28c902dddca44978be)(wxt@0.21.4(eslint@10.12.0(jiti@2.7.0))(rolldown@1.2.14)(typescript@6.0.3)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)))
       c12: 3.3.4(magicast@0.5.5)
       glob: 11.1.0
       picocolors: 1.1.1

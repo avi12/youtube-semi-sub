@@ -6,4 +6,5 @@ allowBuilds:
   spawn-sync: true
 
 patchedDependencies:
+  '@davestewart/wxt-utils@0.6.0': patches/@davestewart__wxt-utils@0.6.0.patch
   zod: patches/zod.patch

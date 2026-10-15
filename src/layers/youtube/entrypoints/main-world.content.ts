@@ -1,8 +1,8 @@
-import { installSubscriptionWatch, startChannelButton } from "@/features/channel-button";
-import { installFeedResponseHook, startFeed } from "@/features/feed";
-import { installSubscriptionListsHook, startSubscriptionLists } from "@/features/subscription-lists";
 import { initPageState } from "@/lib/page/page-state";
 import { YOUTUBE_MATCHES } from "@/lib/youtube/site";
+import { installSubscriptionWatch, startChannelButton } from "#channel-button";
+import { installFeedResponseHook, startFeed } from "#feed";
+import { installSubscriptionListsHook, startSubscriptionLists } from "#subscription-lists";
 
 export default defineContentScript({
   matches: YOUTUBE_MATCHES,

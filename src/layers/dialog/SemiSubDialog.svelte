@@ -2,13 +2,13 @@
   import { isPageDarkTheme } from "./page-theme";
   import { readSemiSubscription, saveSemiSubscription } from "./semi-subscription-storage";
   import { ToastMessage } from "./toast-message";
-  import { removeSemiSubscription } from "@/features/bridge/state-bridge";
-  import FilterEditor from "@/features/filter-editor/FilterEditor.svelte";
   import type { ChannelInfo } from "@/lib/channel";
   import type { FeedVideo } from "@/lib/feed-video";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { SemiSubscription } from "@/lib/semi-subscription";
   import { compileTitleFilter, DEFAULT_TITLE_FILTER, type TitleFilter } from "@/lib/title-filter";
+  import { FilterEditor } from "#filter-editor";
+  import { removeSemiSubscription } from "#youtube";
   import { onMount } from "svelte";
 
   interface Props {

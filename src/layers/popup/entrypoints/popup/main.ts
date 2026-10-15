@@ -1,6 +1,6 @@
 import App from "./App.svelte";
 import "./popup.css";
-import { loadPopupState } from "@/features/popup/popup-state";
+import { loadPopupState } from "#popup/popup-state";
 import { mount } from "svelte";
 
 mount(App, {

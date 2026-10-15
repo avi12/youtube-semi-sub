@@ -1,5 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/getfallow/fallow/main/schema/fallowrc.json",
+  "entry": [
+    "src/layers/*/entrypoints/*.content.ts",
+    "src/layers/*/entrypoints/*/index.{ts,html}",
+    "src/layers/*/layer.config.ts"
+  ],
+  "ignoreUnresolvedImports": ["#imports"],
   "health": {
     "maxCognitive": 30,
     "maxCrap": 10000

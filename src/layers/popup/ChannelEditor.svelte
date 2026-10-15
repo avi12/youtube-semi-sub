@@ -1,11 +1,11 @@
 <script lang="ts">
   import { DELETE_ICON } from "./icons";
-  import FilterEditor from "@/features/filter-editor/FilterEditor.svelte";
   import type { FeedVideo } from "@/lib/feed-video";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { SemiSubscription } from "@/lib/semi-subscription";
   import { mutateStorageItem, semiSubscriptionsItem } from "@/lib/storage";
   import { compileTitleFilter } from "@/lib/title-filter";
+  import { FilterEditor } from "#filter-editor";
   import { Button, ConnectedButtons, Icon } from "m3-svelte";
   import { onMount, untrack } from "svelte";
 

@@ -2,12 +2,18 @@
 A browser extension that lets the user **semi-subscribe** to a YouTube channel: an unofficial "Semi-subscribe" button next to YouTube's own Subscribe button opens a dialog where the user sets a RegExp title filter. Only that channel's videos whose titles match the filter are inserted - animated - into the user's subscriptions feed (`/feed/subscriptions`). Works on `www.youtube.com` and `m.youtube.com`.
 
 # Architecture
-- `src/entrypoints/background.ts` - polls each semi-subscribed channel's uploads (RSS) on an alarm and caches them, unfiltered, in `local:channelVideos`. The only context that talks to the network outside the page.
-- `src/entrypoints/bridge.content/` - ISOLATED world, `document_start`. The only page-side context with storage access. `features/bridge/state-bridge.ts` computes `PageState` (settings + subscriptions + the filtered feed videos) and pushes it to the MAIN world on every storage change. Also mounts the semi-subscribe dialog (`features/dialog/`).
-- `src/entrypoints/main-world.content.ts` - MAIN world, `document_start`. Everything that needs YouTube's own JS objects: the feed response hook and live feed insertion (`features/feed/`), the Semi-subscribe button and official-subscription detection (`features/channel-button/`). Reads state only through `@/lib/page/page-state`.
-- `src/entrypoints/page-styles.content/` - page-level CSS (button and feed animations).
-- `src/entrypoints/popup/` - manage semi-subscriptions and settings.
-- `src/features/subscription-lists/` - MAIN world: lists semi-subscribed channels in the sidebar guide and on `/feed/channels` (and their m.youtube.com equivalents), each with a way to open the dialog.
+Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `entrypoints/` (if any) and exposes what other layers use through an `index.ts` barrel, imported as `#<name>`. Inside a layer, import its own files as `#<name>/...` (same directory: `./`); across layers only through the barrel. Code shared by several layers lives in `src/lib` (`@/lib/...`).
+- `background` - polls each semi-subscribed channel's uploads (RSS) on an alarm and caches them, unfiltered, in `local:channelVideos`. The only context that talks to the network outside the page. Its entrypoint stays at `src/entrypoints/background.ts`: wxt-module-layers turns any layer `background` entrypoint into its own virtual aggregate background.
+- `youtube` - the content scripts, composing the in-page layers (named in its `layer.config.ts`, so the output names stay `content-scripts/<name>.js`):
+  - `bridge.content` - ISOLATED world, `document_start`. The only page-side context with storage access. `state-bridge.ts` computes `PageState` (settings + subscriptions + the filtered feed videos) and pushes it to the MAIN world on every storage change. Also mounts the dialog (`#dialog`).
+  - `main-world.content` - MAIN world, `document_start`. Everything that needs YouTube's own JS objects: `#feed`, `#channel-button`, `#subscription-lists`. Reads state only through `@/lib/page/page-state`.
+  - `page-styles.content` - page-level CSS (button, feed and list styles), imported from each layer.
+- `feed` - MAIN world: the feed response hook and live feed insertion.
+- `channel-button` - MAIN world: the Semi-subscribe button and official-subscription detection.
+- `subscription-lists` - MAIN world: lists semi-subscribed channels in the sidebar guide and on `/feed/channels` (and their m.youtube.com equivalents), each with a way to open the dialog.
+- `dialog` - ISOLATED world: the semi-subscribe dialog.
+- `filter-editor` - `FilterEditor`, shared by the popup and the dialog.
+- `popup` - manage semi-subscriptions and settings.
 - Message channels:
   - background <-> extension pages/ISOLATED: `@/lib/messaging/extension-messaging` (`defineExtensionMessaging`)
   - ISOLATED <-> MAIN: `@/lib/messaging/page-messaging` (`defineCustomEventMessaging`, namespace `youtube-semi-sub`)
@@ -15,7 +21,7 @@ A browser extension that lets the user **semi-subscribe** to a YouTube channel: 
 
 # Constraints
 - The Semi-subscribe button only appears for channels the user is **not** subscribed to. Pressing YouTube's own Subscribe on a semi-subscribed channel removes the semi-subscription (the full subscription supersedes it).
-- Semi-subscriptions are manageable from four places, all opening the same dialog or editor: the Semi-subscribe button, the YouTube sidebar's Subscriptions section (`features/subscription-lists/`), `/feed/channels` (same module), and the browser popup.
+- Semi-subscriptions are manageable from four places, all opening the same dialog or editor: the Semi-subscribe button, the YouTube sidebar's Subscriptions section (`#subscription-lists`), `/feed/channels` (same module), and the browser popup.
 - A filter is either a RegExp or an **AI match** (a plain-language description judged per video by a model). AI is opt-in: nothing AI runs or downloads until the user enables it. Engine choice is a runtime check, the same on every browser: built-in AI (the Prompt API, `LanguageModel`) when available, otherwise LiteRT-LM (Gemma on WebGPU, model downloaded on opt-in). Verdicts are cached per (filter, video) so `selectFeedVideos` stays synchronous; a video without a verdict is pending and not inserted.
 - All UI is Svelte 5. In-page UI (content scripts, MAIN or ISOLATED world) is mounted with `mount()` and looks native to YouTube; Polymer elements may sit in Svelte templates with `.data` set from a MAIN-world `$effect`. The popup is Material 3 Expressive via `m3-svelte`. `FilterEditor.svelte` is shared by the popup and the in-page dialog, so it stays library-free and is themed only through its `--filter-editor-*` custom properties.
 - Mutate YouTube's Polymer components through their model (`el.set("data.contents", ...)`, `.data = ...`), never through `innerHTML`.
@@ -25,7 +31,7 @@ A browser extension that lets the user **semi-subscribe** to a YouTube channel: 
 
 # Stack
 - pnpm
-- WXT extension framework
+- WXT extension framework, with `wxt-module-layers` for the layers (WXT 0.21 needs the `@davestewart/wxt-utils` patch in `patches/`)
 - Svelte 5 for every UI surface; popup with `m3-svelte` (Material 3 Expressive, its CSS needs the `vite-plugin-functions-mixins` plugin registered in `wxt.config.ts`)
 - TypeScript (100% type safety, let TypeScript infer return types - never write them explicitly; type predicates are the exception)
 - zod for every loose payload (storage, messages, InnerTube, RSS); import `z` from `@/lib/zod` (jitless CSP wrapper - YouTube's Trusted Types block zod's eval probe)

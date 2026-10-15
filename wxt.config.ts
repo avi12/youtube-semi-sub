@@ -1,4 +1,5 @@
 import { YOUTUBE_MATCHES } from "./src/lib/youtube/site";
+import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { functionsMixins } from "vite-plugin-functions-mixins";
 import { defineConfig } from "wxt";
@@ -8,6 +9,7 @@ const AUTHOR_NAME = "Avi";
 const AUTHOR_URL = "https://avi12.com";
 // Apache-2.0 section 4: every distribution carries the license and the attribution NOTICE
 const LEGAL_FILES = ["LICENSE", "NOTICE"];
+const LAYERS_DIR = "src/layers";
 
 export default defineConfig({
   manifest: ({ browser }) => ({
@@ -39,7 +41,14 @@ export default defineConfig({
       }
     }
   }),
-  modules: ["@wxt-dev/module-svelte"],
+  modules: ["@wxt-dev/module-svelte", "wxt-module-layers"],
+  // wxt-module-layers' glob sources ("src/layers/*") break on Windows (path.resolve turns the trailing /* into \*,
+  // which its endsWith("/*") check misses), so the layer dirs are listed explicitly
+  layers: {
+    sources: readdirSync(new URL(LAYERS_DIR, import.meta.url), { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .map(entry => `${LAYERS_DIR}/${entry.name}`)
+  },
   srcDir: "src",
   publicDir: "src/public",
   zip: {
