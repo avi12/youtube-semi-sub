@@ -1,26 +1,28 @@
 import { channelIdSchema } from "@/lib/schemas/channel";
+import { migrateSemiSubscriptionsToV2 } from "@/lib/schemas/semi-subscription";
 import { type StoredState, storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
 import { storage } from "#imports";
-import type { StorageItemKey } from "wxt/utils/storage";
+import type { StorageItemKey, WxtStorageItemOptions } from "wxt/utils/storage";
 
-const STORAGE_SCHEMA_VERSION = 1;
+const SEMI_SUBSCRIPTIONS_VERSION = 2;
+const CHANNEL_VIDEOS_VERSION = 1;
 
 /**
  * A storage item whose type comes from its zod schema: every read (getValue, watch) is validated and falls back on a
  * malformed value, and every write is validated before it lands
  */
-function defineSchemaItem<Schema extends z.ZodType>({ key, schema, fallback, version }: {
+function defineSchemaItem<Schema extends z.ZodType>({ key, schema, fallback, ...versioning }: Pick<
+  WxtStorageItemOptions<z.infer<Schema>>,
+  "version" | "migrations"
+> & {
   key: StorageItemKey;
   schema: Schema;
   fallback: z.infer<Schema>;
-  version?: number;
 }) {
   const item = storage.defineItem<z.infer<Schema>>(key, {
     fallback,
-    ...version !== undefined && {
-      version
-    }
+    ...versioning
   });
 
   function parseOrFallback(value: unknown) {
@@ -46,7 +48,10 @@ export const semiSubscriptionsItem = defineSchemaItem({
   key: "local:semiSubscriptions",
   schema: storedStateSchema.shape.subscriptions,
   fallback: {},
-  version: STORAGE_SCHEMA_VERSION
+  version: SEMI_SUBSCRIPTIONS_VERSION,
+  migrations: {
+    2: migrateSemiSubscriptionsToV2
+  }
 });
 
 /** The latest uploads the background fetched per semi-subscribed channel - unfiltered, the filter is applied on read */
@@ -54,7 +59,7 @@ export const channelVideosItem = defineSchemaItem({
   key: "local:channelVideos",
   schema: storedStateSchema.shape.channelVideos,
   fallback: {},
-  version: STORAGE_SCHEMA_VERSION
+  version: CHANNEL_VIDEOS_VERSION
 });
 
 /**

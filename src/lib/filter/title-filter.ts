@@ -38,6 +38,15 @@ export type AiFilter = z.infer<typeof aiFilterSchema>;
 export const titleFilterSchema = z.discriminatedUnion("kind", [regexFilterSchema, aiFilterSchema]);
 export type TitleFilter = z.infer<typeof titleFilterSchema>;
 
+/** A filter saved before filters had a `kind`, when every filter was a RegExp, read as today's RegExp filter */
+export const legacyRegexFilterSchema = regexFilterSchema.omit({ kind: true }).transform(filter => {
+  const upgraded: RegexFilter = {
+    kind: FilterKind.regex,
+    ...filter
+  };
+  return upgraded;
+});
+
 export const DEFAULT_TITLE_FILTER: RegexFilter = {
   kind: FilterKind.regex,
   pattern: "",
