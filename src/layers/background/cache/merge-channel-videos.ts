@@ -1,4 +1,4 @@
-import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
+import { type FeedVideo, feedVideoSchema, sortNewestFirst } from "@/lib/schemas/feed-video";
 import { type ChannelUploads, UploadsSource } from "#background/uploads/channel-uploads";
 
 // RSS only lists the latest 15 uploads, so a matching video would vanish as soon as the channel posts 15 others.
@@ -85,7 +85,5 @@ export function mergeChannelVideos({ previous, uploads }: {
     const isRemovedUpload = isExact && video.publishedAt >= oldestFetchedAt;
     return !isRefetched && !isRemovedUpload;
   });
-  return [...fetchedVideos, ...retainedVideos]
-    .toSorted((left, right) => right.publishedAt - left.publishedAt)
-    .slice(0, MAX_CACHED_VIDEOS_PER_CHANNEL);
+  return sortNewestFirst([...fetchedVideos, ...retainedVideos]).slice(0, MAX_CACHED_VIDEOS_PER_CHANNEL);
 }

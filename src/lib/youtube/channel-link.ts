@@ -1,6 +1,6 @@
 import type { ChannelInfo } from "@/lib/schemas/channel";
+import { YOUTUBE_ORIGIN } from "@/lib/youtube/site";
 
-const YOUTUBE_ORIGIN = "https://www.youtube.com";
 const HANDLE_PREFIX = "@";
 
 export function formatHandle(handle: string) {

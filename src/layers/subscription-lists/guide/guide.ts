@@ -7,8 +7,8 @@ import {
 } from "./guide-data";
 import GuideEntryAction from "./GuideEntryAction.svelte";
 import { onPageState } from "@/lib/page/page-state";
-import { isPolymerElement, type PolymerElement } from "@/lib/youtube/polymer";
-import { createFrameScheduler, observeSubtree, waitForElement, whenDocumentParsed } from "#subscription-lists/dom";
+import { createFrameScheduler, observeSubtree, waitForElement, whenDocumentParsed } from "@/lib/utils/dom";
+import { isPolymerElement, type PolymerElement } from "@/lib/youtube/page/polymer";
 import { listsView } from "#subscription-lists/lists-view.svelte";
 import { mount, unmount } from "svelte";
 

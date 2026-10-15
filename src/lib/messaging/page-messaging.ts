@@ -1,16 +1,19 @@
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import { feedVideoSchema } from "@/lib/schemas/feed-video";
-import { semiSubscriptionsSchema } from "@/lib/schemas/semi-subscription";
+import { storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
 import { defineCustomEventMessaging } from "@webext-core/messaging/page";
 
-export const pageStateSchema = z.object({
-  isExtensionEnabled: z.boolean(),
-  isAnimationsEnabled: z.boolean(),
-  subscriptions: semiSubscriptionsSchema,
-  /** The semi-subscribed videos that pass their channel's filter, newest first */
-  feedVideos: z.array(feedVideoSchema)
-});
+export const pageStateSchema = storedStateSchema
+  .pick({
+    isExtensionEnabled: true,
+    isAnimationsEnabled: true,
+    subscriptions: true
+  })
+  .extend({
+    /** The semi-subscribed videos that pass their channel's filter, newest first */
+    feedVideos: z.array(feedVideoSchema)
+  });
 export type PageState = z.infer<typeof pageStateSchema>;
 
 export const officialSubscriptionChangeSchema = z.object({

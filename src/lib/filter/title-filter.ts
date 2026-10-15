@@ -1,4 +1,4 @@
-import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
 
@@ -57,5 +57,5 @@ export function selectFeedVideos({ subscriptions, videosByChannel }: {
       }
     }
   }
-  return [...selectedById.values()].toSorted((left, right) => right.publishedAt - left.publishedAt);
+  return sortNewestFirst([...selectedById.values()]);
 }

@@ -1,5 +1,5 @@
-import { mergeSemiSubscription } from "./semi-subscription-storage";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+import { mergeSemiSubscription } from "@/lib/semi-subscription-storage";
 import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";

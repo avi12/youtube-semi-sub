@@ -1,62 +1,33 @@
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { formatHandle } from "@/lib/youtube/channel-link";
+import { buildChannelEndpoint, buildWatchEndpoint } from "@/lib/youtube/endpoints";
 import { formatRelativeTime } from "@/lib/youtube/relative-time";
-import { labelFromFormatted, rendererFromGridItem, textFromFormatted } from "#feed/items/feed-items";
-import { type Lockup, type MetadataRow, RendererKind, type VideoRenderer } from "#feed/items/feed-schemas";
+import {
+  type Lockup,
+  LOCKUP_VIDEO_CONTENT_TYPE,
+  type MetadataRow,
+  RendererKind
+} from "@/lib/youtube/schemas/renderers";
+import { readText } from "@/lib/youtube/schemas/text";
+import { labelFromFormatted, rendererFromGridItem } from "#feed/items/feed-items";
+import type { VideoRenderer } from "#feed/items/feed-schemas";
 
 // Builds a feed tile for a semi-subscribed video in the renderer the feed already uses (a sibling item is the
 // template). The channel's own Videos-tab renderer ("native") supplies duration, views and menu when known; the
 // channel row and avatar a feed tile carries (and a channel page omits) are grafted on in the template's layout
 
-enum WebPageType {
-  watch = "WEB_PAGE_TYPE_WATCH",
-  channel = "WEB_PAGE_TYPE_CHANNEL"
-}
-
-enum RootVisualElement {
-  watch = 3832,
-  channel = 3611
-}
-
-const BROWSE_API_URL = "/youtubei/v1/browse";
-const VIDEO_CONTENT_TYPE = "LOCKUP_CONTENT_TYPE_VIDEO";
 const DEFAULT_BADGE_STYLE = "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT";
 const DEFAULT_AVATAR_SIZE = "AVATAR_SIZE_M";
 const AVATAR_PIXELS = 68;
 
-function watchCommand(videoId: string) {
-  return {
-    commandMetadata: {
-      webCommandMetadata: {
-        url: `/watch?v=${videoId}`,
-        webPageType: WebPageType.watch,
-        rootVe: RootVisualElement.watch
-      }
-    },
-    watchEndpoint: {
-      videoId
-    }
-  };
-}
-
 function channelCommand(channel: ChannelInfo) {
-  const canonicalBaseUrl = channel.handle ? `/@${channel.handle.replace(/^@/, "")}` : undefined;
-  return {
-    commandMetadata: {
-      webCommandMetadata: {
-        url: canonicalBaseUrl ?? `/channel/${channel.channelId}`,
-        webPageType: WebPageType.channel,
-        rootVe: RootVisualElement.channel,
-        apiUrl: BROWSE_API_URL
-      }
-    },
-    browseEndpoint: {
-      browseId: channel.channelId,
-      ...canonicalBaseUrl && {
-        canonicalBaseUrl
-      }
-    }
-  };
+  const canonicalBaseUrl = channel.handle ? `/${formatHandle(channel.handle)}` : undefined;
+  return buildChannelEndpoint({
+    channelId: channel.channelId,
+    url: canonicalBaseUrl ?? `/channel/${channel.channelId}`,
+    canonicalBaseUrl
+  });
 }
 
 function detailsFromNative(native: VideoRenderer | null) {
@@ -68,10 +39,10 @@ function detailsFromNative(native: VideoRenderer | null) {
     const { renderer } = native;
     return {
       thumbnailSources: renderer.thumbnail?.thumbnails,
-      durationText: textFromFormatted(renderer.lengthText) || undefined,
+      durationText: readText(renderer.lengthText) || undefined,
       durationLabel: labelFromFormatted(renderer.lengthText),
-      viewCountText: textFromFormatted(renderer.shortViewCountText ?? renderer.viewCountText) || undefined,
-      publishedText: textFromFormatted(renderer.publishedTimeText) || undefined
+      viewCountText: readText(renderer.shortViewCountText ?? renderer.viewCountText) || undefined,
+      publishedText: readText(renderer.publishedTimeText) || undefined
     };
   }
 
@@ -129,7 +100,7 @@ function fabricateLockup({ video, details, publishedText }: {
   ];
   return {
     contentId: video.videoId,
-    contentType: VIDEO_CONTENT_TYPE,
+    contentType: LOCKUP_VIDEO_CONTENT_TYPE,
     contentImage: {
       thumbnailViewModel: {
         image: {
@@ -156,7 +127,7 @@ function fabricateLockup({ video, details, publishedText }: {
       },
       commandContext: {
         onTap: {
-          innertubeCommand: watchCommand(video.videoId)
+          innertubeCommand: buildWatchEndpoint(video.videoId)
         }
       }
     }
@@ -287,7 +258,7 @@ function buildContextRenderer({ video, channel, native, details, publishedText }
 }) {
   const classic = native && native.kind !== RendererKind.lockupViewModel ? native.renderer : undefined;
   return {
-    ...(classic ?? { navigationEndpoint: watchCommand(video.videoId) }),
+    ...(classic ?? { navigationEndpoint: buildWatchEndpoint(video.videoId) }),
     videoId: video.videoId,
     headline: {
       runs: [{ text: video.title }]

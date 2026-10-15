@@ -1,12 +1,12 @@
+import type { VideoRenderer } from "./feed-schemas";
+import { VIDEO_ID_PATTERN } from "@/lib/schemas/feed-video";
 import {
   CLASSIC_RENDERER_KINDS,
-  type FormattedText,
   gridItemSchema,
   RendererKind,
-  richItemContentSchema,
-  type VideoRenderer
-} from "./feed-schemas";
-import { VIDEO_ID_PATTERN } from "@/lib/schemas/feed-video";
+  richItemContentSchema
+} from "@/lib/youtube/schemas/renderers";
+import { type FormattedText, readText } from "@/lib/youtube/schemas/text";
 
 // Read-only accessors over raw grid items (`{ richItemRenderer: { content } }`) and their renderers
 
@@ -90,10 +90,6 @@ export function collectContentVideoIds(contents: readonly unknown[]) {
   return videoIds;
 }
 
-export function textFromFormatted(text: FormattedText | undefined) {
-  return text?.simpleText ?? text?.runs?.map(run => run.text).join("") ?? "";
-}
-
 export function labelFromFormatted(text: FormattedText | undefined) {
   return text?.accessibility?.accessibilityData?.label;
 }
@@ -106,7 +102,7 @@ export function publishedTextsFromGridItem(item: unknown) {
   }
 
   if (video.kind !== RendererKind.lockupViewModel) {
-    return [textFromFormatted(video.renderer.publishedTimeText)];
+    return [readText(video.renderer.publishedTimeText)];
   }
 
   const rows = video.renderer.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows;

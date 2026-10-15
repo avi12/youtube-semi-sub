@@ -1,5 +1,6 @@
 import { buildSemiGuideEntry, patchGuideResponse } from "./guide-data";
 import { getPageState } from "@/lib/page/page-state";
+import { parseJson } from "@/lib/utils/json";
 import { listSemiSubscriptions } from "#subscription-lists/semi-channels";
 
 // www.youtube.com fetches the sidebar from /youtubei/v1/guide (and re-fetches it when it expires) and reads the body
@@ -21,15 +22,6 @@ function readSemiGuideEntries() {
 function patchSafely<T>(patch: () => T | null) {
   try {
     return patch();
-  } catch {
-    return null;
-  }
-}
-
-function parseJson(text: string) {
-  try {
-    const body: unknown = JSON.parse(text);
-    return body;
   } catch {
     return null;
   }

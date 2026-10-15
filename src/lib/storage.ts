@@ -1,6 +1,5 @@
 import { channelIdSchema } from "@/lib/schemas/channel";
-import { channelVideosCacheSchema } from "@/lib/schemas/feed-video";
-import { semiSubscriptionsSchema } from "@/lib/schemas/semi-subscription";
+import { type StoredState, storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
 import { storage } from "#imports";
 import type { StorageItemKey } from "wxt/utils/storage";
@@ -45,7 +44,7 @@ function defineSchemaItem<Schema extends z.ZodType>({ key, schema, fallback, ver
 /** The channels the user semi-subscribed to, keyed by channel id */
 export const semiSubscriptionsItem = defineSchemaItem({
   key: "local:semiSubscriptions",
-  schema: semiSubscriptionsSchema,
+  schema: storedStateSchema.shape.subscriptions,
   fallback: {},
   version: STORAGE_SCHEMA_VERSION
 });
@@ -53,7 +52,7 @@ export const semiSubscriptionsItem = defineSchemaItem({
 /** The latest uploads the background fetched per semi-subscribed channel - unfiltered, the filter is applied on read */
 export const channelVideosItem = defineSchemaItem({
   key: "local:channelVideos",
-  schema: channelVideosCacheSchema,
+  schema: storedStateSchema.shape.channelVideos,
   fallback: {},
   version: STORAGE_SCHEMA_VERSION
 });
@@ -70,15 +69,31 @@ export const channelCheckedAtItem = defineSchemaItem({
 
 export const isExtensionEnabledItem = defineSchemaItem({
   key: "sync:isExtensionEnabled",
-  schema: z.boolean(),
+  schema: storedStateSchema.shape.isExtensionEnabled,
   fallback: true
 });
 
 export const isAnimationsEnabledItem = defineSchemaItem({
   key: "local:isAnimationsEnabled",
-  schema: z.boolean(),
+  schema: storedStateSchema.shape.isAnimationsEnabled,
   fallback: true
 });
+
+export async function readStoredState() {
+  const [subscriptions, channelVideos, isExtensionEnabled, isAnimationsEnabled] = await Promise.all([
+    semiSubscriptionsItem.getValue(),
+    channelVideosItem.getValue(),
+    isExtensionEnabledItem.getValue(),
+    isAnimationsEnabledItem.getValue()
+  ]);
+  const state: StoredState = {
+    subscriptions,
+    channelVideos,
+    isExtensionEnabled,
+    isAnimationsEnabled
+  };
+  return state;
+}
 
 const pendingMutationByItem = new WeakMap<object, Promise<unknown>>();
 

@@ -1,4 +1,4 @@
-import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/innertube";
+import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/page/innertube";
 import { z } from "@/lib/zod";
 import { rendererFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 import { browseResponseSchema, type VideoRenderer, videoRendererSchema } from "#feed/items/feed-schemas";

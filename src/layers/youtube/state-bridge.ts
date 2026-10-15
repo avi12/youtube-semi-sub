@@ -7,11 +7,12 @@ import {
   type PageState
 } from "@/lib/messaging/page-messaging";
 import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
+import { removeSemiSubscription } from "@/lib/semi-subscription-storage";
 import {
   channelVideosItem,
   isAnimationsEnabledItem,
   isExtensionEnabledItem,
-  mutateStorageItem,
+  readStoredState,
   semiSubscriptionsItem
 } from "@/lib/storage";
 import { prefersReducedMotion } from "@/lib/utils/motion";
@@ -22,12 +23,7 @@ import type { ContentScriptContext } from "#imports";
 let currentState: PageState | null = null;
 
 async function readPageState() {
-  const [isExtensionEnabled, isAnimationsEnabled, subscriptions, channelVideos] = await Promise.all([
-    isExtensionEnabledItem.getValue(),
-    isAnimationsEnabledItem.getValue(),
-    semiSubscriptionsItem.getValue(),
-    channelVideosItem.getValue()
-  ]);
+  const { isExtensionEnabled, isAnimationsEnabled, subscriptions, channelVideos } = await readStoredState();
   const state: PageState = {
     isExtensionEnabled,
     isAnimationsEnabled: isAnimationsEnabled && !prefersReducedMotion(),
@@ -43,16 +39,6 @@ async function readPageState() {
 async function broadcastPageState() {
   currentState = await readPageState();
   await pageMessenger.sendMessage(PageMessage.pageStateChanged, currentState);
-}
-
-export function removeSemiSubscription(channelId: string) {
-  return mutateStorageItem({
-    item: semiSubscriptionsItem,
-    mutator(subscriptions) {
-      const { [channelId]: _removed, ...rest } = subscriptions;
-      return rest;
-    }
-  });
 }
 
 export function startStateBridge(context: ContentScriptContext) {

@@ -4,7 +4,7 @@
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-  import { mutateStorageItem, semiSubscriptionsItem } from "@/lib/storage";
+  import { setSemiSubscriptionFilter } from "@/lib/semi-subscription-storage";
   import { FilterEditor } from "#filter-editor";
   import { Button, ConnectedButtons, Icon } from "m3-svelte";
   import { onMount, untrack } from "svelte";
@@ -51,24 +51,9 @@
       return;
     }
 
-    const { channelId } = subscription;
-    const filter = $state.snapshot(draftFilter);
-    await mutateStorageItem({
-      item: semiSubscriptionsItem,
-      mutator(subscriptions) {
-        const current = subscriptions[channelId];
-        if (!current) {
-          return subscriptions;
-        }
-
-        return {
-          ...subscriptions,
-          [channelId]: {
-            ...current,
-            filter
-          }
-        };
-      }
+    await setSemiSubscriptionFilter({
+      channelId: subscription.channelId,
+      filter: $state.snapshot(draftFilter)
     });
     onClose();
   }}>

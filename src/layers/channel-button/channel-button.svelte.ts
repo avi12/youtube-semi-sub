@@ -3,7 +3,8 @@ import {
   onObservedOfficialSubscriptionChange,
   setObservedOfficialSubscription
 } from "./official-subscription";
-import { onYouTubeNavigate } from "@/lib/youtube/navigation";
+import { createFrameScheduler, SUBTREE_CHILD_LIST } from "@/lib/utils/dom";
+import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
 import { getYouTubeSite } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 import { buildNativeButtonClasses } from "#channel-button/button/native-button-classes";
@@ -24,10 +25,6 @@ import { mount, unmount } from "svelte";
 /** YouTube may re-render the row it sits in; past this many re-mounts on one page, it gives up instead of fighting */
 const MAX_MOUNTS_PER_PAGE = 8;
 const SUBSCRIPTION_CHANGED_EVENT = "yt-subscription-changed";
-const CHILD_LIST_SUBTREE: MutationObserverInit = {
-  childList: true,
-  subtree: true
-};
 const SUBSCRIBE_CONTROL_MUTATIONS: MutationObserverInit = {
   subtree: true,
   attributes: true,
@@ -177,8 +174,8 @@ type MountedButton = NonNullable<ReturnType<typeof mountButton>>;
 function trackPage(kind: PageKind) {
   let mounted: MountedButton | null = null;
   let mountCount = 0;
-  let isCheckScheduled = false;
   let isStopped = false;
+  const scheduleCheck = createFrameScheduler(check);
   const bodyObserver = new MutationObserver(scheduleCheck);
   const stopWatchingObservedChanges = onObservedOfficialSubscriptionChange(() => mounted?.sync());
 
@@ -192,7 +189,6 @@ function trackPage(kind: PageKind) {
   }
 
   function check() {
-    isCheckScheduled = false;
     const isUpToDate = isStopped || !!mounted?.isAttached();
     if (isUpToDate) {
       return;
@@ -214,15 +210,6 @@ function trackPage(kind: PageKind) {
     }
   }
 
-  function scheduleCheck() {
-    if (isCheckScheduled) {
-      return;
-    }
-
-    isCheckScheduled = true;
-    requestAnimationFrame(check);
-  }
-
   // YouTube flips its own button the moment Subscribe is pressed, before the request completes
   function handleSubscriptionChanged(e: Event) {
     const parsed = subscriptionChangedDetailSchema.safeParse(e instanceof CustomEvent ? e.detail : undefined);
@@ -239,7 +226,7 @@ function trackPage(kind: PageKind) {
   }
 
   document.addEventListener(SUBSCRIPTION_CHANGED_EVENT, handleSubscriptionChanged, true);
-  bodyObserver.observe(document.body, CHILD_LIST_SUBTREE);
+  bodyObserver.observe(document.body, SUBTREE_CHILD_LIST);
   check();
   return stop;
 }

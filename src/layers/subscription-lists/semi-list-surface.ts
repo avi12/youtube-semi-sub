@@ -1,8 +1,8 @@
-import { createFrameScheduler, observeSubtree } from "./dom";
 import { listsView } from "./lists-view.svelte";
 import { onPageState } from "@/lib/page/page-state";
 import { elementSchema } from "@/lib/schemas/dom";
-import { onYouTubeNavigate } from "@/lib/youtube/navigation";
+import { createFrameScheduler, observeSubtree } from "@/lib/utils/dom";
+import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
 import { z } from "@/lib/zod";
 import { type Component, mount, unmount } from "svelte";
 

@@ -1,3 +1,4 @@
+import { readYtcfg, YtcfgKey } from "@/lib/youtube/page/globals";
 import { z } from "@/lib/zod";
 
 // MAIN world only: reads the page's `ytcfg` and signs requests the way the page does, so the response
@@ -6,11 +7,6 @@ import { z } from "@/lib/zod";
 export enum InnerTubeEndpoint {
   browse = "/youtubei/v1/browse?prettyPrint=false",
   next = "/youtubei/v1/next?prettyPrint=false"
-}
-
-declare global {
-
-  var ytcfg: { get(key: string): unknown } | undefined;
 }
 
 const APISID_COOKIE_NAMES = ["SAPISID", "__Secure-3PAPISID", "__Secure-1PAPISID"] as const;
@@ -24,10 +20,6 @@ const innerTubeContextSchema = z.looseObject({
 });
 
 const clientNameNumberSchema = z.union([z.number(), z.string()]);
-
-export function isOwnInnerTubeRequest(headers: HeadersInit | undefined) {
-  return new Headers(headers).has(OWN_REQUEST_MARKER_HEADER);
-}
 
 function readApisidCookie() {
   const cookies = new Map(document.cookie.split("; ").map(cookie => {
@@ -65,8 +57,8 @@ async function buildAuthorization() {
   return `SAPISIDHASH ${signature} SAPISID3PHASH ${signature}`;
 }
 
-export function getInnerTubeContext() {
-  const parsed = innerTubeContextSchema.safeParse(globalThis.ytcfg?.get("INNERTUBE_CONTEXT"));
+function getInnerTubeContext() {
+  const parsed = innerTubeContextSchema.safeParse(readYtcfg(YtcfgKey.innerTubeContext));
   return parsed.success ? parsed.data : null;
 }
 
@@ -75,11 +67,11 @@ async function buildHeaders(clientVersion: string) {
     "Content-Type": "application/json",
     [OWN_REQUEST_MARKER_HEADER]: "1",
     "X-Origin": location.origin,
-    "X-Goog-AuthUser": String(globalThis.ytcfg?.get("SESSION_INDEX") ?? "0"),
+    "X-Goog-AuthUser": String(readYtcfg(YtcfgKey.sessionIndex) ?? "0"),
     "X-Youtube-Client-Version": clientVersion
   };
 
-  const clientNameNumber = clientNameNumberSchema.safeParse(globalThis.ytcfg?.get("INNERTUBE_CONTEXT_CLIENT_NAME"));
+  const clientNameNumber = clientNameNumberSchema.safeParse(readYtcfg(YtcfgKey.clientNameNumber));
   if (clientNameNumber.success) {
     headers["X-Youtube-Client-Name"] = String(clientNameNumber.data);
   }
@@ -89,7 +81,7 @@ async function buildHeaders(clientVersion: string) {
     headers.Authorization = authorization;
   }
 
-  const delegatedSessionId = globalThis.ytcfg?.get("DELEGATED_SESSION_ID");
+  const delegatedSessionId = readYtcfg(YtcfgKey.delegatedSessionId);
   if (typeof delegatedSessionId === "string") {
     headers["X-Goog-PageId"] = delegatedSessionId;
   }

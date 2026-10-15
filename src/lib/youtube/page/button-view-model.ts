@@ -35,10 +35,4 @@ const buttonViewModelDataSchema = z.object({
   state: z.enum(ButtonViewModelState),
   isFullWidth: z.boolean()
 });
-type ButtonViewModelData = z.infer<typeof buttonViewModelDataSchema>;
-
-declare global {
-  interface HTMLElementTagNameMap {
-    "yt-button-view-model": HTMLElement & { data: ButtonViewModelData };
-  }
-}
+export type ButtonViewModelData = z.infer<typeof buttonViewModelDataSchema>;

@@ -2,12 +2,13 @@
   import { selectFeedVideos } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
-  import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import { listByTitle, type SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import type { StoredState } from "@/lib/schemas/stored-state";
+  import { removeSemiSubscription, restoreSemiSubscription } from "@/lib/semi-subscription-storage";
   import {
     channelVideosItem,
     isAnimationsEnabledItem,
     isExtensionEnabledItem,
-    mutateStorageItem,
     semiSubscriptionsItem
   } from "@/lib/storage";
   import { prefersReducedMotion } from "@/lib/utils/motion";
@@ -16,7 +17,6 @@
   import ChannelRow from "#popup/ChannelRow.svelte";
   import EmptyState from "#popup/EmptyState.svelte";
   import { REFRESH_ICON } from "#popup/icons";
-  import type { PopupState } from "#popup/popup-state";
   import {
     Button,
     Icon,
@@ -29,7 +29,7 @@
   import { untrack } from "svelte";
 
   interface Props {
-    initialState: PopupState;
+    initialState: StoredState;
   }
 
   const { initialState }: Props = $props();
@@ -69,9 +69,7 @@
     };
   });
 
-  const subscriptionList = $derived(
-    Object.values(subscriptions).toSorted((left, right) => left.title.localeCompare(right.title))
-  );
+  const subscriptionList = $derived(listByTitle(subscriptions));
   const feedVideos = $derived(
     selectFeedVideos({
       subscriptions,
@@ -121,24 +119,12 @@
   async function removeSubscription(subscription: SemiSubscription) {
     const { channelId, title } = subscription;
     editingChannelId = null;
-    await mutateStorageItem({
-      item: semiSubscriptionsItem,
-      mutator(current) {
-        const { [channelId]: _removed, ...rest } = current;
-        return rest;
-      }
-    });
+    await removeSemiSubscription(channelId);
     announcement = `Removed ${title}`;
     snackbar(announcement, {
       Undo() {
         announcement = `Restored ${title}`;
-        void mutateStorageItem({
-          item: semiSubscriptionsItem,
-          mutator: current => ({
-            ...current,
-            [channelId]: subscription
-          })
-        });
+        void restoreSemiSubscription(subscription);
       }
     }, true, UNDO_SNACKBAR_TIMEOUT_MS);
   }

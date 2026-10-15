@@ -13,6 +13,10 @@ export const feedVideoSchema = z.object({
 });
 export type FeedVideo = z.infer<typeof feedVideoSchema>;
 
+export function sortNewestFirst(videos: readonly FeedVideo[]) {
+  return videos.toSorted((left, right) => right.publishedAt - left.publishedAt);
+}
+
 const channelVideosSchema = z.object({
   fetchedAt: z.number(),
   videos: z.array(feedVideoSchema)

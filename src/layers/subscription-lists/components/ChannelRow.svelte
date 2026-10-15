@@ -5,7 +5,7 @@
   import { getManageLabel, opensSemiSubDialog } from "./open-dialog";
   import { followsChannelLink } from "./spa-navigation";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-  import { formatHandle } from "#popup";
+  import { formatHandle } from "@/lib/youtube/channel-link";
   import { getChannelPath } from "#subscription-lists/semi-channels";
 
   const { subscription }: { subscription: SemiSubscription } = $props();

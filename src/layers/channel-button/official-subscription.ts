@@ -1,5 +1,6 @@
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { channelIdSchema } from "@/lib/schemas/channel";
+import { parseJson } from "@/lib/utils/json";
 import { z } from "@/lib/zod";
 
 // MAIN world: what this tab saw the user do with YouTube's own Subscribe button, newest first in line
@@ -81,19 +82,6 @@ function readRequestBody({ input, init }: {
   return Promise.resolve(null);
 }
 
-function parseJson(text: string | null) {
-  if (text === null) {
-    return null;
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(text);
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
 async function reportSubscriptionRequest({ endpointPath, requestBody, response }: {
   endpointPath: string;
   requestBody: Promise<string | null>;
@@ -104,7 +92,12 @@ async function reportSubscriptionRequest({ endpointPath, requestBody, response }
     return;
   }
 
-  const parsed = subscriptionRequestSchema.safeParse(parseJson(await requestBody));
+  const requestText = await requestBody;
+  if (requestText === null) {
+    return;
+  }
+
+  const parsed = subscriptionRequestSchema.safeParse(parseJson(requestText));
   if (!parsed.success) {
     return;
   }

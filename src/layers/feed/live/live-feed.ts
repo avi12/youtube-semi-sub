@@ -2,7 +2,10 @@ import { writeGridContents } from "./feed-flip";
 import { type FeedGrid, findFeedGrid } from "./feed-grid";
 import { isYouTubeAutoFeedPresent, nudgeYouTubeAutoFeed } from "./ytaf";
 import { getPageState, onPageState } from "@/lib/page/page-state";
-import { onYouTubeNavigate } from "@/lib/youtube/navigation";
+import { observeSubtree } from "@/lib/utils/dom";
+import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
+import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
+import { FeedPathname } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 import {
   composeForPageState,
@@ -19,7 +22,6 @@ import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
 // which no response hook saw), after every navigation, and whenever the filtered videos change. Inserted videos
 // that stop passing are taken out again. With YouTube Auto Feed present the grid is its to write
 
-const FEED_PATHNAME = "/feed/subscriptions";
 const LIVE_NATIVES_BUDGET_MS = 4000;
 // www fires yt-navigate-start; m fires state-navigatestart
 const NAVIGATION_START_EVENTS = ["yt-navigate-start", "state-navigatestart"] as const;
@@ -28,7 +30,7 @@ const navigationDetailSchema = z.looseObject({
   url: z.string().optional(),
   href: z.string().optional(),
   endpoint: z.looseObject({
-    browseEndpoint: z.looseObject({ browseId: z.string() }).optional()
+    browseEndpoint: browseEndpointSchema.optional()
   }).optional()
 });
 
@@ -37,7 +39,7 @@ let isReconcileQueued = false;
 let lastYtafNudgeKey = "";
 
 function isOnFeedPage() {
-  return location.pathname === FEED_PATHNAME;
+  return location.pathname === FeedPathname.subscriptions;
 }
 
 function isSameContents({ left, right }: {
@@ -74,14 +76,13 @@ function waitForFeedGrid() {
       return;
     }
 
-    const observer = new MutationObserver(() => {
-      if (check()) {
-        observer.disconnect();
+    const observer = observeSubtree({
+      elements: [document.documentElement],
+      onChange() {
+        if (check()) {
+          observer.disconnect();
+        }
       }
-    });
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true
     });
   });
 }
@@ -209,7 +210,7 @@ function isFeedNavigation(detail: unknown) {
   }
 
   const { url, href, endpoint } = parsed.data;
-  const isFeedUrl = [url, href].some(target => target?.includes(FEED_PATHNAME));
+  const isFeedUrl = [url, href].some(target => target?.includes(FeedPathname.subscriptions));
   return isFeedUrl || endpoint?.browseEndpoint?.browseId === SUBSCRIPTIONS_BROWSE_ID;
 }
 

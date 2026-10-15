@@ -1,7 +1,7 @@
 import { channelIdSchema } from "@/lib/schemas/channel";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
-import { buildChannelEndpoint } from "#subscription-lists/semi-channels";
+import { buildListedChannelEndpoint } from "#subscription-lists/semi-channels";
 
 // The desktop guide (sidebar) and the mini guide's Subscriptions flyout both render from the /youtubei/v1/guide
 // response. Semi-subscribed channels are written into that data as native guide entries, tagged so they can be
@@ -119,7 +119,7 @@ export function buildSemiGuideEntry(subscription: SemiSubscription) {
     };
   return {
     guideEntryRenderer: {
-      navigationEndpoint: buildChannelEndpoint(subscription),
+      navigationEndpoint: buildListedChannelEndpoint(subscription),
       ...picture,
       formattedTitle: {
         simpleText: title

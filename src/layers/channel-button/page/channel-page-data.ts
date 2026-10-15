@@ -1,4 +1,8 @@
 import { CHANNEL_ID_PATTERN, type ChannelInfo, channelInfoSchema } from "@/lib/schemas/channel";
+import { browseEndpointSchema, channelMetadataRendererSchema } from "@/lib/youtube/schemas/browse";
+import { textRunSchema } from "@/lib/youtube/schemas/text";
+import { type Thumbnail, thumbnailListSchema, thumbnailSchema } from "@/lib/youtube/schemas/thumbnail";
+import { YOUTUBE_ORIGIN } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 
 // Pure readers over a page's InnerTube data ({ response, playerResponse }), shared by www and m.youtube.com
@@ -12,20 +16,12 @@ const WATCH_PATH_PATTERN = /^\/(?:watch$|live\/[\w-]{11}$)/;
 const CHANNEL_PATH_PATTERN = /^\/(?:@[^/]+|channel\/UC[\w-]{22}|c\/[^/]+|user\/[^/]+)(?:\/|$)/;
 const CHANNEL_ID_IN_TEXT_PATTERN = new RegExp(CHANNEL_ID_PATTERN.source.slice(1, -1));
 const HANDLE_PATH_PATTERN = /^\/(@[^/]+)/;
-const YOUTUBE_ORIGIN = "https://www.youtube.com";
 const PROTOCOL_RELATIVE_PREFIX = "//";
 const PREFERRED_AVATAR_SIZE = 88;
 const MAX_SEARCH_DEPTH = 40;
 const OWNER_RENDERER_KEYS = ["videoOwnerRenderer", "slimOwnerRenderer"];
 const SUBSCRIBE_CONTROL_KEYS = ["subscribeButtonViewModel", "subscribeButtonRenderer"];
 const SUBSCRIBE_BUTTON_RENDERER_KEYS = ["subscribeButtonRenderer"];
-
-const thumbnailSchema = z.looseObject({
-  url: z.string(),
-  width: z.number().optional()
-});
-const thumbnailsSchema = z.array(thumbnailSchema);
-type Thumbnail = z.infer<typeof thumbnailSchema>;
 
 const pageDataSchema = z.looseObject({
   response: z.unknown().optional(),
@@ -48,29 +44,17 @@ const watchContentsSchema = z.looseObject({
 /** www `videoOwnerRenderer` and m `slimOwnerRenderer` share these fields */
 const ownerRendererSchema = z.looseObject({
   title: z.looseObject({
-    runs: z.tuple([z.looseObject({ text: z.string() })], z.unknown())
+    runs: z.tuple([textRunSchema], z.unknown())
   }),
-  thumbnail: z.looseObject({
-    thumbnails: thumbnailsSchema
-  }).optional(),
+  thumbnail: thumbnailListSchema.optional(),
   navigationEndpoint: z.looseObject({
-    browseEndpoint: z.looseObject({
-      browseId: z.string(),
-      canonicalBaseUrl: z.string().optional()
-    })
+    browseEndpoint: browseEndpointSchema
   })
 });
 
 const channelMetadataSchema = z.looseObject({
   metadata: z.looseObject({
-    channelMetadataRenderer: z.looseObject({
-      externalId: z.string(),
-      title: z.string(),
-      vanityChannelUrl: z.string().optional(),
-      avatar: z.looseObject({
-        thumbnails: thumbnailsSchema
-      }).optional()
-    })
+    channelMetadataRenderer: channelMetadataRendererSchema
   })
 });
 
@@ -87,7 +71,7 @@ const pageHeaderAvatarSchema = z.looseObject({
             avatar: z.looseObject({
               avatarViewModel: z.looseObject({
                 image: z.looseObject({
-                  sources: thumbnailsSchema
+                  sources: z.array(thumbnailSchema)
                 })
               })
             })

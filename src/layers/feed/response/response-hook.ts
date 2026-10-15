@@ -1,5 +1,6 @@
 import { readInitialDataHtml, readSubscriptionsFeed } from "./feed-response";
 import { getPageState } from "@/lib/page/page-state";
+import { INITIAL_DATA_GLOBAL } from "@/lib/youtube/initial-data";
 import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
 import {
   composeForPageState,
@@ -17,7 +18,6 @@ import {
 
 const BROWSE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/youtubei\/v1\/browse(?:[?#]|$)/;
 const FEED_PAGE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/feed\/subscriptions\/?(?:[?#]|$)/;
-const INITIAL_DATA_GLOBAL = "ytInitialData";
 // The longest a feed response is held back for native renderers; slower ones are inserted live afterwards
 const RESPONSE_PATCH_BUDGET_MS = 1500;
 const NO_REMOVALS: ReadonlySet<string> = new Set();

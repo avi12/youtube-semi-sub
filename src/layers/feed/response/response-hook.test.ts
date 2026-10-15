@@ -34,7 +34,7 @@ vi.mock("@/lib/page/page-state", () => ({
   onPageState: () => () => {}
 }));
 
-vi.mock("@/lib/youtube/innertube", () => ({
+vi.mock("@/lib/youtube/page/innertube", () => ({
   InnerTubeEndpoint: {
     browse: "/youtubei/v1/browse?prettyPrint=false"
   },

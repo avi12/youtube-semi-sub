@@ -1,5 +1,5 @@
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-import { buildChannelEndpoint } from "#subscription-lists/semi-channels";
+import { buildListedChannelEndpoint } from "#subscription-lists/semi-channels";
 import { on } from "svelte/events";
 
 const NAVIGATE_EVENT = "yt-navigate";
@@ -23,7 +23,7 @@ export function followsChannelLink(subscription: SemiSubscription) {
           bubbles: true,
           composed: true,
           detail: {
-            endpoint: buildChannelEndpoint(subscription)
+            endpoint: buildListedChannelEndpoint(subscription)
           }
         })
       );

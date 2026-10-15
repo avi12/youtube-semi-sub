@@ -1,13 +1,12 @@
 import MobileChannelsGroup from "./MobileChannelsGroup.svelte";
 import MobileStripItems from "./MobileStripItems.svelte";
+import { FeedPathname } from "@/lib/youtube/site";
 import { SemiListSurface, startSemiListSurface } from "#subscription-lists/semi-list-surface";
 
 // m.youtube.com has no sidebar. Its channel lists are /feed/channels ("All channels": ytm-shelf-renderer >
 // ytm-vertical-list-renderer > ytm-channel-list-item-renderer) and the avatar strip on top of /feed/subscriptions
 // (ytm-channel-list-sub-menu-renderer > ytm-channel-list-sub-menu-avatar-renderer). Both need a signed-in session
 
-const CHANNELS_PATHNAME = "/feed/channels";
-const SUBSCRIPTIONS_PATHNAME = "/feed/subscriptions";
 const APP_SELECTOR = "ytm-app";
 const CHANNEL_LIST_ITEM_SELECTOR = "ytm-browse ytm-channel-list-item-renderer";
 const CHANNEL_LIST_SHELF_SELECTOR = "ytm-shelf-renderer, ytm-item-section-renderer";
@@ -42,14 +41,14 @@ function findStripPlacement() {
 export function startMobileLists() {
   startSemiListSurface({
     surface: SemiListSurface.mobileChannels,
-    pathname: CHANNELS_PATHNAME,
+    pathname: FeedPathname.channels,
     observedSelector: APP_SELECTOR,
     findPlacement: findChannelsPlacement,
     component: MobileChannelsGroup
   });
   startSemiListSurface({
     surface: SemiListSurface.mobileStrip,
-    pathname: SUBSCRIPTIONS_PATHNAME,
+    pathname: FeedPathname.subscriptions,
     observedSelector: APP_SELECTOR,
     findPlacement: findStripPlacement,
     component: MobileStripItems

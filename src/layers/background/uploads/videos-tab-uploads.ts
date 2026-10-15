@@ -1,113 +1,37 @@
 import { fetchText } from "./fetch-text";
 import { buildVideoThumbnailUrl } from "./video-thumbnail";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
+import { parseJson } from "@/lib/utils/json";
+import { findInitialDataJson } from "@/lib/youtube/initial-data";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
+import { channelMetadataRendererSchema, tabbedColumnSchema } from "@/lib/youtube/schemas/browse";
+import {
+  type ClassicRenderer,
+  gridItemSchema,
+  type Lockup,
+  LOCKUP_VIDEO_CONTENT_TYPE,
+  RendererKind
+} from "@/lib/youtube/schemas/renderers";
+import { readText } from "@/lib/youtube/schemas/text";
+import { YOUTUBE_ORIGIN } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 
 // Fallback for when RSS is down: the channel's Videos tab. Its page embeds the InnerTube browse response as
 // `ytInitialData`. A direct InnerTube POST is not an option - the browser stamps the extension's Origin on it and
 // YouTube answers 403 - while a GET carries no Origin
 
-const YOUTUBE_ORIGIN = "https://www.youtube.com";
 const INTERFACE_LANGUAGE_PARAM = "hl";
 // Relative publish times ("3 hours ago") are only parsed in English
 const ENGLISH_INTERFACE_LANGUAGE = "en";
-const INITIAL_DATA_START_MARKER = "var ytInitialData = ";
-const INITIAL_DATA_END_MARKER = ";</script>";
-const LOCKUP_VIDEO_CONTENT_TYPE = "LOCKUP_CONTENT_TYPE_VIDEO";
-
-const textSchema = z.looseObject({
-  simpleText: z.string().optional(),
-  runs: z
-    .array(
-      z.looseObject({
-        text: z.string()
-      })
-    )
-    .optional()
-});
-type InnerTubeText = z.infer<typeof textSchema>;
-
-const videoRendererSchema = z.looseObject({
-  videoId: z.string(),
-  title: textSchema,
-  publishedTimeText: textSchema.optional()
-});
-type VideoRenderer = z.infer<typeof videoRendererSchema>;
-
-const metadataPartSchema = z.looseObject({
-  text: z
-    .looseObject({
-      content: z.string()
-    })
-    .optional(),
-  accessibilityLabel: z.string().optional()
-});
-
-const lockupViewModelSchema = z.looseObject({
-  contentId: z.string(),
-  contentType: z.string().optional(),
-  metadata: z.looseObject({
-    lockupMetadataViewModel: z.looseObject({
-      title: z.looseObject({
-        content: z.string()
-      }),
-      metadata: z
-        .looseObject({
-          contentMetadataViewModel: z
-            .looseObject({
-              metadataRows: z
-                .array(
-                  z.looseObject({
-                    metadataParts: z.array(metadataPartSchema).optional()
-                  })
-                )
-                .optional()
-            })
-            .optional()
-        })
-        .optional()
-    })
-  })
-});
-type LockupViewModel = z.infer<typeof lockupViewModelSchema>;
-
-const gridItemSchema = z.looseObject({
-  richItemRenderer: z.looseObject({
-    content: z.looseObject({
-      lockupViewModel: lockupViewModelSchema.optional(),
-      videoRenderer: videoRendererSchema.optional()
-    })
-  })
-});
-type GridItem = z.infer<typeof gridItemSchema>;
 
 const channelBrowseResponseSchema = z.looseObject({
   contents: z.looseObject({
-    twoColumnBrowseResultsRenderer: z.looseObject({
-      tabs: z.array(
-        z.looseObject({
-          tabRenderer: z
-            .looseObject({
-              content: z
-                .looseObject({
-                  richGridRenderer: z
-                    .looseObject({
-                      contents: z.array(z.unknown())
-                    })
-                    .optional()
-                })
-                .optional()
-            })
-            .optional()
-        })
-      )
-    })
+    twoColumnBrowseResultsRenderer: tabbedColumnSchema
   }),
   metadata: z.looseObject({
-    channelMetadataRenderer: z.looseObject({
-      title: z.string(),
-      externalId: z.string()
+    channelMetadataRenderer: channelMetadataRendererSchema.pick({
+      title: true,
+      externalId: true
     })
   })
 });
@@ -121,31 +45,32 @@ const gridUploadSchema = z.object({
 });
 type GridUpload = z.infer<typeof gridUploadSchema>;
 
-function readText(text: InnerTubeText) {
-  return text.simpleText ?? text.runs?.map(run => run.text).join("") ?? "";
-}
-
-function readLockup(lockup: LockupViewModel) {
+function readLockup(lockup: Lockup) {
   const isVideo = lockup.contentType === undefined || lockup.contentType === LOCKUP_VIDEO_CONTENT_TYPE;
-  if (!isVideo) {
+  const lockupMetadata = lockup.metadata?.lockupMetadataViewModel;
+  const title = lockupMetadata?.title?.content;
+  if (!isVideo || title === undefined) {
     return null;
   }
 
-  const { lockupMetadataViewModel } = lockup.metadata;
-  const rows = lockupMetadataViewModel.metadata?.contentMetadataViewModel?.metadataRows ?? [];
+  const rows = lockupMetadata?.metadata?.contentMetadataViewModel?.metadataRows ?? [];
   const timeTexts = rows
     .flatMap(row => row.metadataParts ?? [])
     .flatMap(part => [part.accessibilityLabel, part.text?.content])
     .filter(text => text !== undefined);
   const upload: GridUpload = {
     videoId: lockup.contentId,
-    title: lockupMetadataViewModel.title.content,
+    title,
     timeTexts
   };
   return upload;
 }
 
-function readVideoRenderer(renderer: VideoRenderer) {
+function readVideoRenderer(renderer: ClassicRenderer) {
+  if (!renderer.title) {
+    return null;
+  }
+
   const upload: GridUpload = {
     videoId: renderer.videoId,
     title: readText(renderer.title),
@@ -154,12 +79,15 @@ function readVideoRenderer(renderer: VideoRenderer) {
   return upload;
 }
 
-function readGridItem(item: GridItem) {
-  const { lockupViewModel, videoRenderer } = item.richItemRenderer.content;
-  if (lockupViewModel) {
-    return readLockup(lockupViewModel);
+function readGridItem(item: unknown) {
+  const parsed = gridItemSchema.safeParse(item);
+  const content = parsed.success ? parsed.data.richItemRenderer?.content : undefined;
+  const lockup = content?.[RendererKind.lockupViewModel];
+  if (lockup) {
+    return readLockup(lockup);
   }
 
+  const videoRenderer = content?.[RendererKind.videoRenderer];
   return videoRenderer ? readVideoRenderer(videoRenderer) : null;
 }
 
@@ -186,23 +114,8 @@ function findGridContents(response: ChannelBrowseResponse) {
 
 /** Pulls the embedded InnerTube response out of a youtube.com page */
 export function extractInitialData(html: string) {
-  const iMarker = html.indexOf(INITIAL_DATA_START_MARKER);
-  if (iMarker === -1) {
-    return null;
-  }
-
-  const iStart = iMarker + INITIAL_DATA_START_MARKER.length;
-  const iEnd = html.indexOf(INITIAL_DATA_END_MARKER, iStart);
-  if (iEnd === -1) {
-    return null;
-  }
-
-  try {
-    const initialData: unknown = JSON.parse(html.slice(iStart, iEnd));
-    return initialData;
-  } catch {
-    return null;
-  }
+  const initialData = findInitialDataJson(html);
+  return initialData && parseJson(initialData.json);
 }
 
 /** Reads the uploads of a channel's Videos tab (newest first); publish times are approximated from relative text */
@@ -223,8 +136,7 @@ export function parseVideosTab({ response, now }: {
   const { title: channelTitle, externalId: channelId } = parsed.data.metadata.channelMetadataRenderer;
   const videos: FeedVideo[] = [];
   for (const item of gridContents) {
-    const parsedItem = gridItemSchema.safeParse(item);
-    const upload = parsedItem.success ? readGridItem(parsedItem.data) : null;
+    const upload = readGridItem(item);
     if (!upload) {
       continue;
     }

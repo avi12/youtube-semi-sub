@@ -2,7 +2,7 @@
 A browser extension that lets the user **semi-subscribe** to a YouTube channel: an unofficial "Semi-subscribe" button next to YouTube's own Subscribe button opens a dialog where the user sets a RegExp title filter. Only that channel's videos whose titles match the filter are inserted - animated - into the user's subscriptions feed (`/feed/subscriptions`). Works on `www.youtube.com` and `m.youtube.com`.
 
 # Architecture
-Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `entrypoints/` (if any) and exposes what other layers use through an `index.ts` barrel, imported as `#<name>`. Inside a layer, import its own files as `#<name>/...` (same directory: `./`); across layers only through the barrel. Code shared by several layers lives in `src/lib` (`@/lib/...`): `schemas/` (the core data shapes), `filter/`, `messaging/`, `page/`, `youtube/` (InnerTube and page APIs), `utils/`, plus `storage.ts` and `zod.ts`. A directory past about 8 files is split into meaningful subfolders.
+Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `entrypoints/` (if any) and exposes what other layers use through an `index.ts` barrel, imported as `#<name>`. Inside a layer, import its own files as `#<name>/...` (same directory: `./`); across layers only through the barrel. Code shared by several layers lives in `src/lib` (`@/lib/...`): `schemas/` (the core data shapes), `filter/`, `messaging/`, `page/`, `youtube/` (`schemas/`: the shared InnerTube pieces; `page/`: the MAIN-world page runtime, with the one `declare global` for YouTube's page globals and custom elements in `globals.ts`; plus URLs, endpoints and relative times), `utils/`, plus `storage.ts`, `semi-subscription-storage.ts` and `zod.ts`. A directory past about 8 files is split into meaningful subfolders.
 - `background` - polls each semi-subscribed channel's uploads (RSS) on an alarm and caches them, unfiltered, in `local:channelVideos`. The only context that talks to the network outside the page. Its entrypoint stays at `src/entrypoints/background.ts`: wxt-module-layers turns any layer `background` entrypoint into its own virtual aggregate background.
 - `youtube` - the content scripts, composing the in-page layers (named in its `layer.config.ts`, so the output names stay `content-scripts/<name>.js`):
   - `bridge.content` - ISOLATED world, `document_start`. The only page-side context with storage access. `state-bridge.ts` computes `PageState` (settings + subscriptions + the filtered feed videos) and pushes it to the MAIN world on every storage change. Also mounts the dialog (`#dialog`).
@@ -60,7 +60,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - Extract an `if`/ternary/guard condition into a descriptive `is`-prefixed boolean
 - Always prefer the `@` path alias over parent-relative (`../`) imports; same-directory `./foo` stays relative
 - No `as` casts (oxlint `consistent-type-assertions: never`) - narrow with zod guards or type predicates
-- Zod first, never TypeScript alone: every data shape is a zod schema with its type derived via `z.infer` - no hand-written object type aliases or data-only interfaces (lint-enforced). Interfaces remain only for behaviour (method signatures such as protocol maps and element APIs), `declare global` augmentation and Svelte `Props`. Validate at every boundary: storage (`defineSchemaItem` in `@/lib/storage` validates every read and write), messages, InnerTube/RSS/DOM data and model output. Reuse zod objects: one schema per shape, and derive variants from it (`.extend`, `.pick`, `.omit`, `.partial`, shared sub-schemas such as InnerTube text/thumbnail/endpoint pieces in `@/lib/youtube`) instead of redefining a shape that already exists
+- Zod first, never TypeScript alone: every data shape is a zod schema with its type derived via `z.infer` - no hand-written object type aliases or data-only interfaces (lint-enforced). Interfaces remain only for behaviour (method signatures such as protocol maps and element APIs), `declare global` augmentation and Svelte `Props`. Validate at every boundary: storage (`defineSchemaItem` in `@/lib/storage` validates every read and write), messages, InnerTube/RSS/DOM data and model output. Reuse zod objects: one schema per shape, and derive variants from it (`.extend`, `.pick`, `.omit`, `.partial`, shared sub-schemas such as InnerTube text/thumbnail/renderer/browse pieces in `@/lib/youtube/schemas`) instead of redefining a shape that already exists
 
 # Naming conventions
 - Variables and functions: `camelCase`, full words (no abbreviations)
@@ -92,7 +92,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 
 # Storage
 - Don't automatically persist to storage - rely on fallback values; only write when the user has explicitly set something (the background's upload cache is the exception: it is a cache)
-- Use the `storage.defineItem` items in `@/lib/storage`; read-modify-write goes through `mutateStorageItem`
+- Use the `storage.defineItem` items in `@/lib/storage`; read-modify-write goes through `mutateStorageItem`, and every semi-subscription write through `@/lib/semi-subscription-storage`
 - Only `local:` or `sync:` - never `session:` (Firefox)
 
 # UI copy

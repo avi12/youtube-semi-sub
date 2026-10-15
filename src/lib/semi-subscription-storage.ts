@@ -3,6 +3,8 @@ import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { mutateStorageItem, semiSubscriptionsItem } from "@/lib/storage";
 
+// Every write to the semi-subscriptions goes through here, so each kind of change is made one way everywhere
+
 export async function readSemiSubscription(channelId: string) {
   const subscriptions = await semiSubscriptionsItem.getValue();
   return subscriptions[channelId] ?? null;
@@ -52,6 +54,51 @@ export function saveSemiSubscription({ channel, filter }: {
           filter,
           now: Date.now()
         })
+      };
+    }
+  });
+}
+
+export function removeSemiSubscription(channelId: string) {
+  return mutateStorageItem({
+    item: semiSubscriptionsItem,
+    mutator(subscriptions) {
+      const { [channelId]: _removed, ...rest } = subscriptions;
+      return rest;
+    }
+  });
+}
+
+/** Puts back a removed semi-subscription exactly as it was (the popup's undo) */
+export function restoreSemiSubscription(subscription: SemiSubscription) {
+  return mutateStorageItem({
+    item: semiSubscriptionsItem,
+    mutator: subscriptions => ({
+      ...subscriptions,
+      [subscription.channelId]: subscription
+    })
+  });
+}
+
+/** Replaces the filter of a channel that is still semi-subscribed; a removed one stays removed */
+export function setSemiSubscriptionFilter({ channelId, filter }: {
+  channelId: string;
+  filter: TitleFilter;
+}) {
+  return mutateStorageItem({
+    item: semiSubscriptionsItem,
+    mutator(subscriptions) {
+      const current = subscriptions[channelId];
+      if (!current) {
+        return subscriptions;
+      }
+
+      return {
+        ...subscriptions,
+        [channelId]: {
+          ...current,
+          filter
+        }
       };
     }
   });

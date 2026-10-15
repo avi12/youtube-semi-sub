@@ -1,4 +1,4 @@
-import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
+import { type FeedVideo, feedVideoSchema, sortNewestFirst } from "@/lib/schemas/feed-video";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { z } from "@/lib/zod";
 import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
@@ -125,7 +125,7 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
     return isTimeKnown ? video.publishedAt >= oldestTime : now - video.publishedAt <= UNKNOWN_TIME_MAX_AGE_MS;
   }
 
-  const insertedVideos = videos.filter(isInsertable).toSorted((left, right) => right.publishedAt - left.publishedAt);
+  const insertedVideos = sortNewestFirst(videos.filter(isInsertable));
   const pending = insertedVideos.map(video => ({
     videoId: video.videoId,
     video

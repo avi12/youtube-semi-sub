@@ -10,6 +10,7 @@ const polymerElementSchema = z.object({
   set: z.custom<PolymerElement["set"]>(value => typeof value === "function")
 });
 
+/** `data` is checked with `in`: Polymer defines it on the prototype, and an unset one reads as undefined */
 export function isPolymerElement(element: Element): element is PolymerElement {
-  return polymerElementSchema.safeParse(element).success;
+  return "data" in element && polymerElementSchema.safeParse(element).success;
 }

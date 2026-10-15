@@ -1,16 +1,16 @@
 <script lang="ts">
   import { ButtonLabel } from "./button-label";
+  import type { NativeButtonClasses } from "./native-button-classes";
+  import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+  import { getPageState, onPageState } from "@/lib/page/page-state";
+  import type { ChannelInfo } from "@/lib/schemas/channel";
   import {
     ButtonViewModelIcon,
     ButtonViewModelSize,
     ButtonViewModelState,
     ButtonViewModelStyle,
     ButtonViewModelType
-  } from "./button-view-model";
-  import type { NativeButtonClasses } from "./native-button-classes";
-  import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
-  import { getPageState, onPageState } from "@/lib/page/page-state";
-  import type { ChannelInfo } from "@/lib/schemas/channel";
+  } from "@/lib/youtube/page/button-view-model";
   import { YouTubeSite } from "@/lib/youtube/site";
   import { BUTTON_ROOT_ATTRIBUTE, type ButtonPlacement } from "#channel-button/page/page-anchor";
 

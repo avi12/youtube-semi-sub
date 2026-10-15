@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { getChannelInitial } from "@/lib/schemas/channel";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 
   const { subscription }: { subscription: SemiSubscription } = $props();
 
-  const initial = $derived(Array.from(subscription.title).at(0) ?? "");
+  const initial = $derived(getChannelInitial(subscription.title));
 </script>
 
 {#if subscription.avatarUrl}

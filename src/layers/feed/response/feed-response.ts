@@ -1,4 +1,6 @@
-import { type BrowseResponse, browseResponseSchema, type BrowseTab } from "#feed/items/feed-schemas";
+import { findInitialDataJson } from "@/lib/youtube/initial-data";
+import type { BrowseTab } from "@/lib/youtube/schemas/browse";
+import { type BrowseResponse, browseResponseSchema } from "#feed/items/feed-schemas";
 
 // Recognizes the first page of the subscriptions feed in a /browse response or ytInitialData - www nests it under
 // twoColumnBrowseResultsRenderer, m under singleColumnBrowseResultsRenderer - and swaps its grid contents
@@ -6,7 +8,6 @@ import { type BrowseResponse, browseResponseSchema, type BrowseTab } from "#feed
 export const SUBSCRIPTIONS_BROWSE_ID = "FEsubscriptions";
 const SUBSCRIPTIONS_GRID_TARGET_ID = `browse-feed${SUBSCRIPTIONS_BROWSE_ID}`;
 const BROWSE_ID_TRACKING_KEY = "browse_id";
-const INITIAL_DATA_PATTERN = /(var ytInitialData = )(\{.+?\});<\/script>/s;
 const ESCAPED_LESS_THAN = "\\u003c";
 
 enum BrowseColumn {
@@ -90,14 +91,13 @@ export function readSubscriptionsFeed(data: unknown) {
 
 /** The ytInitialData object a page's HTML carries (www), and a way to swap it */
 export function readInitialDataHtml(html: string) {
-  const match = INITIAL_DATA_PATTERN.exec(html);
-  const [, declaration = "", json = ""] = match ?? [];
-  if (!match) {
+  const initialData = findInitialDataJson(html);
+  if (!initialData) {
     return null;
   }
 
+  const { json, iJsonStart } = initialData;
   const data: unknown = JSON.parse(json);
-  const iJsonStart = match.index + declaration.length;
   return {
     data,
     withData(newData: unknown) {

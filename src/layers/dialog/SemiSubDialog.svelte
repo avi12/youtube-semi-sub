@@ -1,14 +1,13 @@
 <script lang="ts">
   import { isPageDarkTheme } from "./page-theme";
-  import { readSemiSubscription, saveSemiSubscription } from "./semi-subscription-storage";
   import { ToastMessage } from "./toast-message";
   import { compileTitleFilter, DEFAULT_TITLE_FILTER, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
-  import type { ChannelInfo } from "@/lib/schemas/channel";
+  import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import { readSemiSubscription, removeSemiSubscription, saveSemiSubscription } from "@/lib/semi-subscription-storage";
   import { FilterEditor } from "#filter-editor";
-  import { removeSemiSubscription } from "#youtube";
   import { onMount } from "svelte";
 
   interface Props {
@@ -53,7 +52,7 @@
 
     return ToastMessage.semiSubscribed;
   });
-  const channelInitial = $derived([...channel.title][0] ?? "");
+  const channelInitial = $derived(getChannelInitial(channel.title));
 
   async function loadVideos() {
     isLoadingVideos = true;

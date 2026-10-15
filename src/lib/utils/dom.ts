@@ -1,4 +1,4 @@
-const SUBTREE_CHILD_LIST: MutationObserverInit = {
+export const SUBTREE_CHILD_LIST: MutationObserverInit = {
   childList: true,
   subtree: true
 };
