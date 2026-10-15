@@ -1,51 +1,21 @@
 import { type FeedGrid, flushPolymer, videoIdFromTile } from "./feed-grid";
+import {
+  FeedMotionClass,
+  glide,
+  isInReflowZone,
+  isInViewport,
+  nextFrame,
+  pinAtOffset,
+  whenMotionFinishes
+} from "./feed-motion";
 import { settleBefore } from "#feed/feed-session";
 
 // The animated grid write (FLIP): leaving tiles fade out in place, then the model is written, surviving tiles are
-// pinned to their old positions and released to glide into their new slots while new tiles scale and fade in.
-// Only tiles in or near the viewport move; the motion itself lives in feed.css
+// pinned to their old positions and released to glide into their new slots while new tiles scale and fade in
 
-const REFLOW_MARGIN_BELOW_PX = 1200;
 const THUMBNAIL_DECODE_BUDGET_MS = 1500;
 const TILE_STAMP_MICROTASK_LIMIT = 20;
 const TILE_STAMP_FRAME_LIMIT = 10;
-const MOTION_NAME_PREFIX = "yss-feed-";
-const GLIDE_PROPERTY = "translate";
-
-enum FeedMotionClass {
-  pending = "yss-feed-pending",
-  entering = "yss-feed-entering",
-  leaving = "yss-feed-leaving",
-  gliding = "yss-feed-gliding"
-}
-
-function nextFrame() {
-  return new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
-}
-
-function isInViewport(element: Element) {
-  const { top, bottom } = element.getBoundingClientRect();
-  return bottom > 0 && top < innerHeight;
-}
-
-function isInReflowZone(element: Element) {
-  const { top, bottom } = element.getBoundingClientRect();
-  return bottom > 0 && top < innerHeight + REFLOW_MARGIN_BELOW_PX;
-}
-
-function isFeedMotion(animation: Animation) {
-  if (animation instanceof CSSAnimation) {
-    return animation.animationName.startsWith(MOTION_NAME_PREFIX);
-  }
-
-  return animation instanceof CSSTransition && animation.transitionProperty === GLIDE_PROPERTY;
-}
-
-/** Only this feature's own motion - an unrelated infinite animation on a tile would never finish */
-async function whenMotionFinishes(element: Element) {
-  const motions = element.getAnimations().filter(isFeedMotion);
-  await Promise.allSettled(motions.map(animation => animation.finished));
-}
 
 function decodeImage(url: string) {
   const elImage = new Image();
@@ -138,22 +108,16 @@ function pinSurvivors({ grid, oldRects, insertedIds }: {
 
     elTile.style.translate = "";
     const newRect = elTile.getBoundingClientRect();
-    const deltaX = oldRect.left - newRect.left;
-    const deltaY = oldRect.top - newRect.top;
-    const isMoved = Math.abs(deltaX) >= 1 || Math.abs(deltaY) >= 1;
-    if (isMoved) {
-      elTile.style.translate = `${deltaX}px ${deltaY}px`;
+    const isPinned = pinAtOffset({
+      element: elTile,
+      deltaX: oldRect.left - newRect.left,
+      deltaY: oldRect.top - newRect.top
+    });
+    if (isPinned) {
       elPinned.push(elTile);
     }
   }
   return elPinned;
-}
-
-async function glide(elTile: HTMLElement) {
-  elTile.classList.add(FeedMotionClass.gliding);
-  elTile.style.translate = "";
-  await whenMotionFinishes(elTile);
-  elTile.classList.remove(FeedMotionClass.gliding);
 }
 
 async function enter(elTile: HTMLElement) {
