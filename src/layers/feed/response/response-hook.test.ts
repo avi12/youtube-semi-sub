@@ -109,6 +109,7 @@ beforeEach(() => {
     isExtensionEnabled: true,
     isAnimationsEnabled: true,
     isAiEnabled: false,
+    aiVerdicts: {},
     subscriptions: {},
     feedVideos: [feedVideo({
       index: 50,

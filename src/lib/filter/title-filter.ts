@@ -93,13 +93,16 @@ export function isTitleFilterValid(filter: TitleFilter) {
 /** What an AI filter's judge reads besides the filter: the opt-in (off means paused) and the verdict cache */
 export type AiJudgeContext = Pick<StoredState, "aiVerdicts" | "isAiEnabled">;
 
+/** All a judge reads of a video, so a feed tile can be judged as well as a cached upload */
+type JudgedVideo = Pick<FeedVideo, "videoId" | "title">;
+
 function createRegexJudge(filter: RegexFilter) {
   const regex = compileTitleFilter(filter);
   if (!regex) {
     return null;
   }
 
-  return function judgeByTitle(video: FeedVideo) {
+  return function judgeByTitle(video: JudgedVideo) {
     return regex.test(video.title) ? MatchState.matches : MatchState.doesNotMatch;
   };
 }
@@ -111,7 +114,7 @@ function createAiJudge({ filter, aiVerdicts, isAiEnabled }: AiJudgeContext & { f
   }
 
   const verdicts = aiVerdicts[getAiFilterKey(filter)] ?? {};
-  return function judgeByVerdict(video: FeedVideo) {
+  return function judgeByVerdict(video: JudgedVideo) {
     const verdict = verdicts[video.videoId];
     if (verdict === undefined) {
       return MatchState.pending;

@@ -9,7 +9,8 @@ export const pageStateSchema = storedStateSchema
     isExtensionEnabled: true,
     isAnimationsEnabled: true,
     isAiEnabled: true,
-    subscriptions: true
+    subscriptions: true,
+    aiVerdicts: true
   })
   .extend({
     /** The semi-subscribed videos that pass their channel's filter, newest first */

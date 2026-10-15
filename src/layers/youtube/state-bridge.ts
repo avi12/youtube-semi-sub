@@ -39,6 +39,7 @@ async function readPageState() {
     isAnimationsEnabled: isAnimationsEnabled && !prefersReducedMotion(),
     isAiEnabled,
     subscriptions,
+    aiVerdicts,
     feedVideos: selectFeedVideos({
       subscriptions,
       videosByChannel: videosByChannelFromCache(channelVideos),

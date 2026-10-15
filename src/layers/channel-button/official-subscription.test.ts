@@ -146,6 +146,7 @@ describe("applySubscriptionSnapshot", () => {
       isExtensionEnabled: true,
       isAnimationsEnabled: true,
       isAiEnabled: false,
+      aiVerdicts: {},
       subscriptions: Object.fromEntries(subscriptions.map(subscription => [subscription.channelId, subscription])),
       feedVideos: []
     };

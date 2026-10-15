@@ -37,6 +37,7 @@ function buildState(isExtensionEnabled: boolean) {
     isExtensionEnabled,
     isAnimationsEnabled: true,
     isAiEnabled: false,
+    aiVerdicts: {},
     subscriptions: {
       [ZED.channelId]: ZED,
       [ALPHA.channelId]: ALPHA
