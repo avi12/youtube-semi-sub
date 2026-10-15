@@ -22,6 +22,11 @@ const languageModelOptionsSchema = z.object({
 });
 type LanguageModelOptions = z.infer<typeof languageModelOptionsSchema>;
 
+/** `downloadprogress` reports `loaded` as a 0..1 fraction */
+const downloadProgressEventSchema = z.looseObject({
+  loaded: z.number().min(0).max(1)
+});
+
 // The reply is JSON with English keys, so English is the one output language declared. Input languages are left
 // out on purpose: titles and descriptions come in any language
 const LANGUAGE_MODEL_OPTIONS: LanguageModelOptions = {
@@ -94,4 +99,35 @@ export async function openBuiltInSession(initialPrompts: ChatMessage[]) {
     initialPrompts,
     signal: AbortSignal.timeout(SESSION_TIMEOUT_MS)
   }).catch(() => null);
+}
+
+/**
+ * Downloads the built-in model, reporting 0..1 progress. Call it synchronously from a click: the browser only lets
+ * create() download with a user gesture, and the gesture expires. Resolves to whether the model ended up on disk
+ */
+export async function downloadBuiltInModel({ onProgress, signal }: {
+  onProgress: (fraction: number) => void;
+  signal: AbortSignal;
+}) {
+  const languageModel = getLanguageModel();
+  if (!languageModel) {
+    return false;
+  }
+
+  try {
+    const session = await languageModel.create({
+      ...LANGUAGE_MODEL_OPTIONS,
+      signal,
+      monitor: downloadMonitor => downloadMonitor.addEventListener("downloadprogress", e => {
+        const parsed = downloadProgressEventSchema.safeParse(e);
+        if (parsed.success) {
+          onProgress(parsed.data.loaded);
+        }
+      })
+    });
+    session.destroy();
+    return true;
+  } catch {
+    return false;
+  }
 }

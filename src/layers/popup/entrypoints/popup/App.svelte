@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { selectFeedVideos } from "@/lib/filter/title-filter";
+  import { FilterKind, selectFeedVideos } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
   import { listByTitle, type SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -16,6 +16,8 @@
   import { prefersReducedMotion } from "@/lib/utils/motion";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
+  import { followModelDownload, refreshAiStatus } from "#popup/ai/ai-match-setup.svelte";
+  import AiMatchCard from "#popup/ai/AiMatchCard.svelte";
   import ChannelRow from "#popup/ChannelRow.svelte";
   import EmptyState from "#popup/EmptyState.svelte";
   import { REFRESH_ICON } from "#popup/icons";
@@ -79,7 +81,13 @@
     };
   });
 
+  $effect(() => {
+    void refreshAiStatus();
+    return followModelDownload();
+  });
+
   const subscriptionList = $derived(listByTitle(subscriptions));
+  const aiFilterCount = $derived(subscriptionList.filter(({ filter }) => filter.kind === FilterKind.aiMatch).length);
   const feedVideos = $derived(
     selectFeedVideos({
       subscriptions,
@@ -233,6 +241,8 @@
       </ListItem>
     </ul>
   </section>
+
+  <AiMatchCard {aiFilterCount} {isAiEnabled} />
 
   <output class="visually-hidden">{announcement}</output>
   <Snackbar />

@@ -1,6 +1,8 @@
 // Gemma 4 E2B, the smaller web build for LiteRT-LM (WebGPU/wasm). Downloaded once on opt-in, deleted on opt-out
 const LITERT_MODEL_FILE = "gemma-4-E2B-it-web.litertlm";
 export const LITERT_MODEL_URL = `https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/${LITERT_MODEL_FILE}`;
+/** For the opt-in explanation */
+export const LITERT_MODEL_SIZE_LABEL = "1.9 GB";
 
 // Our own Cache bucket rather than the runtime's opaque cache: a delete is one caches.delete, and a cancelled download
 // never leaves a partial entry behind. Named by the model file, so swapping models starts a new bucket
