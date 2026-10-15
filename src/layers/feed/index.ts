@@ -1,4 +1,5 @@
 import { startLiveFeed } from "#feed/live/live-feed";
+import { startOpenMenuTracking } from "#feed/live/open-menu";
 import { startSemiUnsubscribeMenu } from "#feed/live/semi-unsubscribe-click";
 import { installResponseHooks } from "#feed/response/response-hook";
 
@@ -11,4 +12,5 @@ export function installFeedResponseHook() {
 export function startFeed() {
   startLiveFeed();
   startSemiUnsubscribeMenu();
+  startOpenMenuTracking();
 }

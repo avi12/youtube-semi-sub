@@ -1,5 +1,5 @@
-// The feed's motion for the animated grid write (feed-flip.ts). Only tiles in or near the viewport move; the keyframes
-// and the glide transition live in feed.css
+// The feed's motion, shared by the animated grid write (feed-flip.ts) and the open tile menu that rides along with it
+// (open-menu.ts). Only tiles in or near the viewport move; the keyframes and the glide transition live in feed.css
 
 const REFLOW_MARGIN_BELOW_PX = 1200;
 const MIN_GLIDE_PX = 1;
@@ -63,6 +63,10 @@ export function pinAtOffset({ element, deltaX, deltaY }: {
   }
 
   return isMoved;
+}
+
+export function isInGlide(element: HTMLElement) {
+  return element.style.translate !== "" || element.classList.contains(FeedMotionClass.gliding);
 }
 
 export async function glide(element: HTMLElement) {

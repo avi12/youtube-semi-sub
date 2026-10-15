@@ -18,3 +18,5 @@ const ironDropdownSchema = z.object({
 export function isIronDropdown(target: unknown): target is IronDropdownElement {
   return target instanceof HTMLElement && "positionTarget" in target && ironDropdownSchema.safeParse(target).success;
 }
+
+export const ironDropdownElementSchema = z.custom<IronDropdownElement>(isIronDropdown);

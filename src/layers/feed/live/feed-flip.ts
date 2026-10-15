@@ -8,10 +8,12 @@ import {
   pinAtOffset,
   whenMotionFinishes
 } from "./feed-motion";
+import { alignOpenMenuToItsVideo, pinOpenMenuToItsVideo, releaseOpenMenu } from "./open-menu";
 import { settleBefore } from "#feed/feed-session";
 
 // The animated grid write (FLIP): leaving tiles fade out in place, then the model is written, surviving tiles are
-// pinned to their old positions and released to glide into their new slots while new tiles scale and fade in
+// pinned to their old positions and released to glide into their new slots while new tiles scale and fade in. An open
+// tile menu rides along with its video
 
 const THUMBNAIL_DECODE_BUDGET_MS = 1500;
 const TILE_STAMP_MICROTASK_LIMIT = 20;
@@ -163,6 +165,7 @@ export async function writeGridContents({
     const isWritable = isCurrent();
     if (isWritable) {
       grid.writeContents(contents);
+      alignOpenMenuToItsVideo();
     }
 
     return isWritable;
@@ -193,7 +196,8 @@ export async function writeGridContents({
     oldRects,
     insertedIds
   });
+  pinOpenMenuToItsVideo();
   await nextFrame();
-  await Promise.all([...elPinned.map(glide), ...elEntering.map(enter)]);
+  await Promise.all([...elPinned.map(glide), ...elEntering.map(enter), releaseOpenMenu()]);
   return true;
 }
