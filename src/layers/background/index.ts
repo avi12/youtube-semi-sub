@@ -39,10 +39,11 @@ async function ensureRefreshAlarm() {
 async function handleInstalled() {
   // Re-created rather than ensured, so an update applies a changed period
   await createRefreshAlarm();
-  await pruneChannelCaches();
+  // Refetched before pruning: an update may have dropped the cache, and AI verdicts are kept only for cached videos
   await refreshAllChannels({
     isForced: false
   });
+  await pruneChannelCaches();
 }
 
 /** An AI filter was edited away or removed, so the verdicts judged under it may have no user left */

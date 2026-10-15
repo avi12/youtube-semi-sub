@@ -1,7 +1,8 @@
 import { startBackground } from "./index";
-import { FilterKind } from "@/lib/filter/title-filter";
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
+import { type AiFilter, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-import { channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
+import { aiVerdictsItem, channelCheckedAtItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
 import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
 import { browser } from "#imports";
 import {
@@ -55,5 +56,44 @@ describe("startBackground", () => {
     await vi.waitFor(async () => {
       expect(await channelVideosItem.getValue()).toEqual({});
     });
+  });
+
+  it("refetches a dropped cache on update before pruning, so its AI verdicts survive", async () => {
+    const filter: AiFilter = {
+      kind: FilterKind.aiMatch,
+      description: "Only reviews"
+    };
+    const verdicts = {
+      [getAiFilterKey(filter)]: {
+        QVv3mQzlrN0: true
+      }
+    };
+    await semiSubscriptionsItem.setValue({
+      [CHANNEL_ID]: {
+        ...SUBSCRIPTION,
+        filter
+      }
+    });
+    await vi.waitFor(async () => {
+      expect((await channelVideosItem.getValue())[CHANNEL_ID]?.videos).toHaveLength(4);
+    });
+    // What an update's cache migration leaves behind
+    await Promise.all([
+      channelVideosItem.setValue({}),
+      channelCheckedAtItem.setValue({}),
+      aiVerdictsItem.setValue(verdicts)
+    ]);
+
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: "update",
+      previousVersion: "0.1.0"
+    });
+    await vi.waitFor(async () => {
+      expect((await channelCheckedAtItem.getValue())[CHANNEL_ID]).toBeDefined();
+    });
+    await vi.waitFor(async () => {
+      expect((await channelVideosItem.getValue())[CHANNEL_ID]?.videos).toHaveLength(4);
+    });
+    expect(await aiVerdictsItem.getValue()).toEqual(verdicts);
   });
 });
