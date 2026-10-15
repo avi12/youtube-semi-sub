@@ -1,0 +1,102 @@
+# Purpose
+A browser extension that lets the user **semi-subscribe** to a YouTube channel: an unofficial "Semi-subscribe" button next to YouTube's own Subscribe button opens a dialog where the user sets a RegExp title filter. Only that channel's videos whose titles match the filter are inserted - animated - into the user's subscriptions feed (`/feed/subscriptions`). Works on `www.youtube.com` and `m.youtube.com`.
+
+# Architecture
+- `src/entrypoints/background.ts` - polls each semi-subscribed channel's uploads (RSS) on an alarm and caches them, unfiltered, in `local:channelVideos`. The only context that talks to the network outside the page.
+- `src/entrypoints/bridge.content/` - ISOLATED world, `document_start`. The only page-side context with storage access. `features/bridge/state-bridge.ts` computes `PageState` (settings + subscriptions + the filtered feed videos) and pushes it to the MAIN world on every storage change. Also mounts the semi-subscribe dialog (`features/dialog/`).
+- `src/entrypoints/main-world.content.ts` - MAIN world, `document_start`. Everything that needs YouTube's own JS objects: the feed response hook and live feed insertion (`features/feed/`), the Semi-subscribe button and official-subscription detection (`features/channel-button/`). Reads state only through `@/lib/page/page-state`.
+- `src/entrypoints/page-styles.content/` - page-level CSS (button and feed animations).
+- `src/entrypoints/popup/` - manage semi-subscriptions and settings.
+- Message channels:
+  - background <-> extension pages/ISOLATED: `@/lib/messaging/extension-messaging` (`defineExtensionMessaging`)
+  - ISOLATED <-> MAIN: `@/lib/messaging/page-messaging` (`defineCustomEventMessaging`, namespace `youtube-semi-sub`)
+- Filtering lives in exactly one place: `selectFeedVideos` in `@/lib/title-filter`. Storage holds unfiltered uploads, so a filter edit applies instantly without a refetch.
+
+# Constraints
+- The Semi-subscribe button only appears for channels the user is **not** subscribed to. Pressing YouTube's own Subscribe on a semi-subscribed channel removes the semi-subscription (the full subscription supersedes it).
+- Mutate YouTube's Polymer components through their model (`el.set("data.contents", ...)`, `.data = ...`), never through `innerHTML`.
+- InnerTube shapes are modelled as zod schemas (optional fields, `looseObject` passthrough) and read only through those guards - never index into raw shapes.
+- Section structure of the feed is read-only: only add videos within a section, never reorder or move section markers.
+- **Pairing with YouTube Auto Feed** (`avi12/youtube-auto-feed`, "ytaf"): ytaf rewrites the feed grid from YouTube's own `FEsubscriptions` `/browse` response every 5 s and removes anything not in it. So semi-sub videos are injected into the *response* (hooked below every `fetch` wrapper), which makes ytaf keep and animate them itself. When ytaf is present (`globalThis.__ytafFeedMessenger`), never write the grid directly - nudge it to refetch with `BroadcastChannel("ytaf")` `{ type: "subscription-change" }`.
+
+# Stack
+- pnpm
+- WXT extension framework
+- Svelte 5 (popup and dialog)
+- TypeScript (100% type safety, let TypeScript infer return types - never write them explicitly; type predicates are the exception)
+- zod for every loose payload (storage, messages, InnerTube, RSS); import `z` from `@/lib/zod` (jitless CSP wrapper - YouTube's Trusted Types block zod's eval probe)
+- `@webext-core/messaging` for message passing, `wxt/storage` (`storage.defineItem` in `@/lib/storage`) for storage
+- Chromium (Chrome, Edge, Opera) MV3 + Firefox MV3, single shared code path; branch only when an API genuinely diverges
+
+# Code style
+- Use the `browser` namespace
+- Use early returns for readability and maintainability
+- Use functional programming
+- Use async/await whenever possible
+- Use DRY with separation of concerns, prioritizing readability
+- Minimize indentations
+- Use `for-of` instead of `.forEach`, and a plain `for` loop instead of `.reduce()`
+- Use modern browser and CSS features
+- Prefer semantic HTML elements (`button`, `nav`, `ul`/`li`, `section`, `header`, `dialog`, `output`, etc.) over `div`/`span` with a `role`; only add ARIA when no native element carries the semantics or state
+- Avoid `window.` prefixes unless it increases readability
+- Avoid `setTimeout` unless absolutely necessary
+- Avoid comments unless absolutely necessary - prefer descriptive names
+- Don't use em dashes - use regular hyphens
+- If a callback arrow function has a typed param, don't annotate the type explicitly
+- Functions with 2+ params take a single destructured object param (`f({ a, b }: {...})`). Exempt: key/value accessors and framework-positional signatures (HOF callbacks, event handlers, `browser.*` listeners)
+- Avoid nested try/catch - flatten with early returns or extracted functions
+- Validate loose data with zod, not hand-rolled checks: a module-level schema + `safeParse`. Validity only: `schema.safeParse(x).success` inline or into an `is`-prefixed boolean. `.data`/`.error` consumed: store the result as `parsed` and guard with `parsed.success`
+- Inline one-off variables when it stays readable - but keep a named variable for a magic number/string or an opaque expression
+- Extract an `if`/ternary/guard condition into a descriptive `is`-prefixed boolean
+- Always prefer the `@` path alias over parent-relative (`../`) imports; same-directory `./foo` stays relative
+- No `as` casts (oxlint `consistent-type-assertions: never`) - narrow with zod guards or type predicates
+
+# Naming conventions
+- Variables and functions: `camelCase`, full words (no abbreviations)
+- Module-level constants: `SCREAMING_SNAKE_CASE`
+- Exception: event handler first parameter is always `e`
+
+## Variable prefixes
+- Element: `el` prefix (e.g. `elButton`)
+- Index: `i` prefix (e.g. `iItem`), or bare `i` when iterating in a for loop/higher-order function
+- Boolean: `is` prefix (e.g. `isLoading`), phrased positively (e.g. `isEnabled`, not `isDisabled`)
+
+# Hardcoded values
+- Strings: use enums; if no enum fits, use a descriptive `SCREAMING_SNAKE_CASE` constant
+- Numbers: use a descriptive `SCREAMING_SNAKE_CASE` constant
+
+# Svelte
+- Single-use functions: inline them
+- Event handlers used in exactly one place: inline them as an arrow function in the template
+- Never put a ternary inside `$derived` - use `$derived.by` with if/else
+- `@attach` arrow functions in templates: extract to named functions in the script block
+- Flow-gating buttons use both `disabled={!condition}` AND a guard in the handler
+
+# CSS
+- Use native CSS nesting
+- Always respect `prefers-reduced-motion` - never ship an ungated transition/animation. In JS read `prefersReducedMotion()` from `@/lib/motion`
+- Never the `transform` shorthand - use the individual `translate`/`rotate`/`scale` properties
+- Never hand-write vendor prefixes
+- On YouTube, style with YouTube's own tokens (`--yt-sys-color-baseline--*`, `--yt-spec-*`) with fallbacks, so injected UI follows its light/dark theme
+
+# Storage
+- Don't automatically persist to storage - rely on fallback values; only write when the user has explicitly set something (the background's upload cache is the exception: it is a cache)
+- Use the `storage.defineItem` items in `@/lib/storage`; read-modify-write goes through `mutateStorageItem`
+- Only `local:` or `sync:` - never `session:` (Firefox)
+
+# UI copy
+- No full stops at end of messages
+- Informal tone
+
+# Linting
+After each modification, run:
+- `pnpm lint` (oxlint `--fix` pass, `eslint --fix`, then oxlint as the gate) - oxlint owns logic and type-aware rules, ESLint owns style
+- `pnpm stylelint`
+- `pnpm svelte:check`
+- `pnpm compile`
+- `pnpm test` (vitest, tests sit next to code as `*.test.ts`)
+- `pnpm fallow` - dead-code audit; remove what a change left unused (never `fallow fix`)
+
+# Dev
+- `pnpm dev` (Chromium) / `pnpm dev:firefox`
+- Firefox first when verifying cross-browser behaviour - it is the strictest environment
