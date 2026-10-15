@@ -16,6 +16,8 @@ import {
   prefetchFeedNatives,
   recordFeedChange,
   settleResumedChannels,
+  takeHideSettingsChange,
+  trackHideSettings,
   trackSubscriptionTransitions
 } from "#feed/feed-session";
 import {
@@ -28,9 +30,10 @@ import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
 
 // Keeps an open subscriptions feed in step with the semi-sub videos: on a hard load (rendered from ytInitialData,
 // which no response hook saw), after every navigation, and whenever the filtered videos change. Inserted videos
-// that stop passing are taken out again. A channel the user subscribes to is left to YouTube; once they unsubscribe,
-// its videos the filter rejects leave the feed. While YouTube Auto Feed runs (installed and switched on) the grid
-// is its to write
+// that stop passing are taken out again. A channel the user subscribes to is left to YouTube, minus what its hide
+// filter hides - those leave the band and the Shorts shelf, animated like the rest; a hidden video let back in returns
+// on the next feed load. Once the user unsubscribes, the channel's videos the follow filter rejects leave the feed.
+// While YouTube Auto Feed runs (installed and switched on) the grid is its to write
 
 const LIVE_NATIVES_BUDGET_MS = 4000;
 // www fires yt-navigate-start; m fires state-navigatestart
@@ -170,15 +173,17 @@ async function reconcile() {
     })
   });
   // ytaf's next poll lacks a resumed channel (the user unsubscribed), so ytaf animates its videos out itself and keeps
-  // the ones the response hook adds back - each resume asks it to poll right away
+  // the ones the response hook adds back - each resume asks it to poll right away. So does a change to what is
+  // hidden: the poll's response drops and lists the newly hidden videos, and holds the ones let back in
   if (isYouTubeAutoFeedActive()) {
     const isResumed = hasResumedChannels();
+    const isHideSettingsChanged = takeHideSettingsChange();
     settleResumedChannels({
       contents,
       state
     });
 
-    if (isResumed) {
+    if (isResumed || isHideSettingsChanged) {
       nudgeYouTubeAutoFeed();
       return;
     }
@@ -294,6 +299,7 @@ function handleNavigationStart(e: Event) {
 export function startLiveFeed() {
   // Before the reconcile listener, so a subscribe or unsubscribe is known by the time it plans
   onPageState(trackSubscriptionTransitions);
+  onPageState(trackHideSettings);
   onPageState(requestReconcile);
   // Switched off, ytaf leaves the grid alone - from then on it is written here, and the other way round
   watchYouTubeAutoFeedSwitch(requestReconcile);

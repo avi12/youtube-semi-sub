@@ -34,12 +34,17 @@ const AI_FILTER: AiFilter = {
 
 let session: FeedSession;
 
-function pageState({ isSubscribed, feedVideos, filter = KEEP_FILTER, isAiEnabled = false, aiVerdicts = {} }: Pick<
-  PageState,
-  "feedVideos"
-> & Partial<Pick<PageState, "isAiEnabled" | "aiVerdicts">> & {
+function pageState({
+  isSubscribed,
+  feedVideos,
+  filter = KEEP_FILTER,
+  hideFilter = DEFAULT_TITLE_FILTER,
+  isAiEnabled = false,
+  aiVerdicts = {}
+}: Pick<PageState, "feedVideos"> & Partial<Pick<PageState, "isAiEnabled" | "aiVerdicts">> & {
   isSubscribed: boolean;
   filter?: TitleFilter;
+  hideFilter?: TitleFilter;
 }) {
   const state: PageState = {
     isExtensionEnabled: true,
@@ -51,7 +56,7 @@ function pageState({ isSubscribed, feedVideos, filter = KEEP_FILTER, isAiEnabled
         channelId: CHANNEL_ID,
         title: "Semi Channel",
         followFilter: filter,
-        hideFilter: DEFAULT_TITLE_FILTER,
+        hideFilter,
         createdAt: 1,
         isSubscribed
       }
@@ -419,5 +424,69 @@ describe("findHiddenVideoIds", () => {
         })
       })
     ).toEqual(new Set());
+  });
+});
+
+describe("hiding in the live feed", () => {
+  const HIDE_FILTER: TitleFilter = {
+    kind: FilterKind.regex,
+    pattern: "^hide",
+    flags: "i"
+  };
+
+  it("takes a hidden video out of the feed", () => {
+    const state = pageState({
+      isSubscribed: true,
+      feedVideos: [],
+      hideFilter: HIDE_FILTER
+    });
+    expect(
+      session.findRemovedVideoIds({
+        contents: [
+          semiChannelItem({
+            index: 1,
+            title: "Hide me"
+          }),
+          semiChannelItem({ index: 2 })
+        ],
+        state
+      })
+    ).toEqual(new Set([videoId(1)]));
+  });
+
+  it("reports an edited hide filter or a switched mode once, and nothing for a first state or other changes", () => {
+    const subscribed = pageState({
+      isSubscribed: true,
+      feedVideos: []
+    });
+    session.trackHideSettings(subscribed);
+    expect(session.takeHideSettingsChange()).toBe(false);
+
+    session.trackHideSettings({
+      ...subscribed,
+      aiVerdicts: {
+        [getAiFilterKey(AI_FILTER)]: {}
+      }
+    });
+    expect(session.takeHideSettingsChange()).toBe(false);
+
+    session.trackHideSettings(
+      pageState({
+        isSubscribed: true,
+        feedVideos: [],
+        hideFilter: HIDE_FILTER
+      })
+    );
+    expect(session.takeHideSettingsChange()).toBe(true);
+    expect(session.takeHideSettingsChange()).toBe(false);
+
+    session.trackHideSettings(
+      pageState({
+        isSubscribed: false,
+        feedVideos: [],
+        hideFilter: HIDE_FILTER
+      })
+    );
+    expect(session.takeHideSettingsChange()).toBe(true);
   });
 });

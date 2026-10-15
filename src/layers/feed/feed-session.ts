@@ -26,6 +26,9 @@ const resumedChannelIds = new Set<string>();
 /** Per subscribed channel, the Shorts this session had inserted when subscribing handed them over to YouTube */
 const handedOverShortIdsByChannel = new Map<string, Set<string>>();
 let previousState: PageState | null = null;
+let previousHideSettingsKey: string | null = null;
+/** What hides videos changed since the feed last caught up with it */
+let isHideSettingsChanged = false;
 
 function desiredFeedVideos(state: PageState) {
   if (!state.isExtensionEnabled) {
@@ -86,6 +89,29 @@ export function trackSubscriptionTransitions(state: PageState) {
   }
 }
 
+/** Everything that decides what is hidden, besides the uploads and verdicts: the switch, each mode, each hide filter */
+function readHideSettingsKey({ isExtensionEnabled, subscriptions }: PageState) {
+  const channelSettings = Object.entries(subscriptions)
+    .toSorted(([left], [right]) => left.localeCompare(right))
+    .map(([channelId, { isSubscribed, hideFilter }]) => [channelId, isSubscribed, hideFilter]);
+  return JSON.stringify([isExtensionEnabled, channelSettings]);
+}
+
+/** Follows every page state for a hide filter edited, a mode switched or the extension switched */
+export function trackHideSettings(state: PageState) {
+  const key = readHideSettingsKey(state);
+  const isChanged = previousHideSettingsKey !== null && key !== previousHideSettingsKey;
+  previousHideSettingsKey = key;
+  isHideSettingsChanged ||= isChanged;
+}
+
+/** Whether what hides videos changed since the last call - a YouTube Auto Feed has to refetch to show it */
+export function takeHideSettingsChange() {
+  const isChanged = isHideSettingsChanged;
+  isHideSettingsChanged = false;
+  return isChanged;
+}
+
 export function hasResumedChannels() {
   return resumedChannelIds.size > 0;
 }
@@ -123,42 +149,6 @@ function judgeResumedChannelVideos({ contents, state }: {
       matchState
     }];
   });
-}
-
-/**
- * Feed videos to take out: inserted ones that no longer pass (filter edited, channel dropped, extension switched off),
- * and a resumed channel's videos its filter rejects
- */
-export function findRemovedVideoIds({ contents, state }: Parameters<typeof judgeResumedChannelVideos>[0]) {
-  const desiredIds = new Set(desiredFeedVideos(state).map(video => video.videoId));
-  const removedIds = new Set([...insertedVideoIds].filter(videoId => !desiredIds.has(videoId)));
-  for (const { videoId, matchState } of judgeResumedChannelVideos({
-    contents,
-    state
-  })) {
-    // With the extension off nothing semi-subscribed passes
-    const isRejected = matchState === MatchState.doesNotMatch || !state.isExtensionEnabled;
-    if (isRejected && !desiredIds.has(videoId)) {
-      removedIds.add(videoId);
-    }
-  }
-  return removedIds;
-}
-
-/**
- * Once a resumed channel's rejected videos are out, the ones that passed are this session's to manage like the ones
- * it inserted - so a later filter edit takes them out too
- */
-export function settleResumedChannels({ contents, state }: Parameters<typeof judgeResumedChannelVideos>[0]) {
-  for (const { videoId, matchState } of judgeResumedChannelVideos({
-    contents,
-    state
-  })) {
-    if (matchState === MatchState.matches) {
-      insertedVideoIds.add(videoId);
-    }
-  }
-  resumedChannelIds.clear();
 }
 
 /**
@@ -217,6 +207,48 @@ export function findHiddenVideoIds({ contents, state }: {
     }
   }
   return hiddenIds;
+}
+
+/**
+ * Feed videos to take out: inserted ones that no longer pass (filter edited, channel dropped, extension switched off),
+ * a resumed channel's videos its filter rejects, and the videos a subscribed channel's hide filter hides
+ */
+export function findRemovedVideoIds({ contents, state }: Parameters<typeof judgeResumedChannelVideos>[0]) {
+  const desiredIds = new Set(desiredFeedVideos(state).map(video => video.videoId));
+  const removedIds = new Set([...insertedVideoIds].filter(videoId => !desiredIds.has(videoId)));
+  for (const videoId of findHiddenVideoIds({
+    contents,
+    state
+  })) {
+    removedIds.add(videoId);
+  }
+  for (const { videoId, matchState } of judgeResumedChannelVideos({
+    contents,
+    state
+  })) {
+    // With the extension off nothing semi-subscribed passes
+    const isRejected = matchState === MatchState.doesNotMatch || !state.isExtensionEnabled;
+    if (isRejected && !desiredIds.has(videoId)) {
+      removedIds.add(videoId);
+    }
+  }
+  return removedIds;
+}
+
+/**
+ * Once a resumed channel's rejected videos are out, the ones that passed are this session's to manage like the ones
+ * it inserted - so a later filter edit takes them out too
+ */
+export function settleResumedChannels({ contents, state }: Parameters<typeof judgeResumedChannelVideos>[0]) {
+  for (const { videoId, matchState } of judgeResumedChannelVideos({
+    contents,
+    state
+  })) {
+    if (matchState === MatchState.matches) {
+      insertedVideoIds.add(videoId);
+    }
+  }
+  resumedChannelIds.clear();
 }
 
 function pageLocale() {
