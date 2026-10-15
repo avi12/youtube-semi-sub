@@ -1,6 +1,8 @@
 import { buildShortsItem } from "./shorts-item-builder";
 import { ShelfRendererKind, type ShortsLockup, shortsLockupSchema } from "@/lib/youtube/schemas/renderers";
+import { z } from "@/lib/zod";
 import { isSemiSubscribedItem, SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
+import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
 import { feedVideo, NOW, shortsLockup, videoId } from "#feed/fixtures/feed-fixtures";
 import { shortsLockupFromItem } from "#feed/items/feed-items";
 import { describe, expect, it } from "vitest";
@@ -11,6 +13,37 @@ const SHORT = feedVideo({
   isShort: true
 });
 const TEMPLATE = shortsLockupSchema.parse(shortsLockup({ index: 90 }));
+
+/** The titles in a built Short's menu, read the way YouTube opens it */
+function menuTitles(item: unknown) {
+  const menuSchema = z.looseObject({
+    menuOnTap: z.looseObject({
+      innertubeCommand: z.looseObject({
+        showSheetCommand: z.looseObject({
+          panelLoadingStrategy: z.looseObject({
+            inlineContent: z.looseObject({
+              sheetViewModel: z.looseObject({
+                content: z.looseObject({
+                  listViewModel: z.looseObject({
+                    listItems: z.array(
+                      z.looseObject({
+                        listItemViewModel: z.looseObject({ title: z.looseObject({ content: z.string() }) })
+                      })
+                    )
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    })
+  });
+  const parsed = menuSchema.parse(shortsLockupFromItem(item));
+  const { listItems } = parsed.menuOnTap.innertubeCommand.showSheetCommand.panelLoadingStrategy.inlineContent
+    .sheetViewModel.content.listViewModel;
+  return listItems.map(listItem => listItem.listItemViewModel.title.content);
+}
 
 function build({ native = null, shelfKind = ShelfRendererKind.rich }: {
   native?: ShortsLockup | null;
@@ -28,8 +61,7 @@ function build({ native = null, shelfKind = ShelfRendererKind.rich }: {
 
 describe("buildShortsItem", () => {
   it("makes a Short from the cached upload in the shape of the shelf's own", () => {
-    const item = build({});
-    expect(shortsLockupFromItem(item)).toEqual({
+    expect(shortsLockupFromItem(build({}))).toEqual({
       entityId: `subscriptions-shorts-shelf-item-${videoId(50)}`,
       accessibilityText: SHORT.title,
       onTap: {
@@ -62,12 +94,13 @@ describe("buildShortsItem", () => {
           }
         }
       },
-      titleTruncationStyle: TEMPLATE.titleTruncationStyle
+      titleTruncationStyle: TEMPLATE.titleTruncationStyle,
+      menuOnTap: expect.anything()
     });
   });
 
-  it("never carries over the template's per-video menu", () => {
-    expect(shortsLockupFromItem(build({}))).not.toHaveProperty("menuOnTap");
+  it("gives a made Short a menu of Semi-unsubscribe alone, never the template's per-video one", () => {
+    expect(menuTitles(build({}))).toEqual([SEMI_UNSUBSCRIBE_LABEL]);
   });
 
   it("uses the channel's own Short as it is, views and menu included", () => {
@@ -89,8 +122,9 @@ describe("buildShortsItem", () => {
           content: "29M views"
         }
       },
-      menuOnTap: native.menuOnTap
+      menuOnTapA11yLabel: "More actions"
     });
+    expect(menuTitles(build({ native }))).toEqual(["Hide", SEMI_UNSUBSCRIBE_LABEL]);
     expect(lockup).not.toBe(native);
   });
 

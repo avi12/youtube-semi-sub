@@ -1,7 +1,6 @@
 import { SEMI_UNSUBSCRIBE_LABEL, withSemiUnsubscribeItem } from "./semi-unsubscribe-menu";
 import { RendererKind } from "@/lib/youtube/schemas/renderers";
-import { CHANNEL_ID, desktopChannelTabLockup, videoId } from "#feed/fixtures/feed-fixtures";
-import type { VideoRenderer } from "#feed/items/feed-schemas";
+import { CHANNEL_ID, desktopChannelTabLockup, shortsLockup, videoId } from "#feed/fixtures/feed-fixtures";
 import { describe, expect, it } from "vitest";
 
 const OWN_LIST_ITEM = {
@@ -79,7 +78,7 @@ function lockupWithMenu(menuButton: unknown) {
 
 function addItem({ renderer, kind = RendererKind.lockupViewModel }: {
   renderer: object;
-  kind?: VideoRenderer["kind"];
+  kind?: Parameters<typeof withSemiUnsubscribeItem>[0]["kind"];
 }) {
   return withSemiUnsubscribeItem({
     kind,
@@ -214,6 +213,64 @@ describe("withSemiUnsubscribeItem", () => {
       menu: {
         menuRenderer: {
           items: [ownServiceItem]
+        }
+      }
+    });
+  });
+
+  it("appends the item after YouTube's own in a Short's menu", () => {
+    const original = shortsLockup({ index: 50 });
+    const built = addItem({
+      renderer: original,
+      kind: RendererKind.shortsLockupViewModel
+    });
+    const hideItem = original.menuOnTap.innertubeCommand.showSheetCommand.panelLoadingStrategy.inlineContent
+      .sheetViewModel.content.listViewModel.listItems[0];
+    expect(built).toMatchObject({
+      overlayMetadata: original.overlayMetadata,
+      menuOnTap: {
+        innertubeCommand: {
+          showSheetCommand: {
+            panelLoadingStrategy: {
+              inlineContent: {
+                sheetViewModel: {
+                  content: {
+                    listViewModel: {
+                      listItems: [hideItem, OWN_LIST_ITEM]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+
+  it("gives a Short without a menu one holding only the item", () => {
+    const { menuOnTap, ...withoutMenu } = shortsLockup({ index: 50 });
+    const built = addItem({
+      renderer: withoutMenu,
+      kind: RendererKind.shortsLockupViewModel
+    });
+    expect(menuOnTap).toBeDefined();
+    expect(built).toMatchObject({
+      menuOnTap: {
+        innertubeCommand: {
+          showSheetCommand: {
+            panelLoadingStrategy: {
+              inlineContent: {
+                sheetViewModel: {
+                  content: {
+                    listViewModel: {
+                      listItems: [OWN_LIST_ITEM]
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     });

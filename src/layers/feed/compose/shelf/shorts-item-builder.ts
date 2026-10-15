@@ -4,6 +4,7 @@ import { formatRelativeTime } from "@/lib/youtube/relative-time";
 import { RendererKind, ShelfRendererKind, type ShortsLockup } from "@/lib/youtube/schemas/renderers";
 import { buildShortsThumbnailUrl } from "@/lib/youtube/video-thumbnail";
 import { buildSemiSubscribedBareItem, buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
+import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
 
 // Builds a Shorts-shelf tile for a semi-subscribed Short. The channel's own Shorts-tab tile ("native") supplies views,
 // thumbnails and menu when known. Otherwise the tile is made from the cached upload in the shape of the shelf's own
@@ -93,7 +94,13 @@ export function buildShortsItem({ video, native, template, shelfKind, now, local
       }
     }
     : fabricated;
-  const content = { [RendererKind.shortsLockupViewModel]: lockup };
+  const content = {
+    [RendererKind.shortsLockupViewModel]: withSemiUnsubscribeItem({
+      kind: RendererKind.shortsLockupViewModel,
+      renderer: lockup,
+      channelId: video.channelId
+    })
+  };
   const isRichShelf = shelfKind === ShelfRendererKind.rich;
   // Detached from the cached native, which later responses reuse
   return structuredClone(isRichShelf ? buildSemiSubscribedRichItem(content) : buildSemiSubscribedBareItem(content));

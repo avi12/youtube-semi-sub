@@ -1,15 +1,15 @@
+import { videoIdFromTile } from "./feed-grid";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
 import { IRON_DROPDOWN_SELECTOR, isIronDropdown } from "@/lib/youtube/page/iron-dropdown";
-import { WATCH_VIDEO_PARAM } from "@/lib/youtube/site";
 import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
 
 // Handles the "Semi-unsubscribe" item the built tiles carry in their menus. Its command is not one YouTube knows, so
 // the tap is taken in the capture phase before YouTube resolves it. A menu is detached from its tile, so the tile a
 // menu was opened from is remembered when it is tapped
 
-const TILE_SELECTOR = "ytd-rich-item-renderer, ytm-rich-item-renderer";
-const WATCH_LINK_SELECTOR = "a[href*='/watch?']";
+// m's Shorts shelf lists bare lockups, with no rich item around them
+const TILE_SELECTOR = "ytd-rich-item-renderer, ytm-rich-item-renderer, ytm-shorts-lockup-view-model";
 const MENU_ITEM_SELECTOR = [
   "yt-list-item-view-model",
   "ytd-menu-service-item-renderer",
@@ -20,9 +20,8 @@ const ESCAPE_KEY = "Escape";
 
 let lastTileChannelId: string | null = null;
 
-function channelIdOfTile(elTile: Element) {
-  const href = elTile.querySelector(WATCH_LINK_SELECTOR)?.getAttribute("href");
-  const videoId = href ? new URL(href, location.origin).searchParams.get(WATCH_VIDEO_PARAM) : null;
+function channelIdOfTile(elTile: HTMLElement) {
+  const videoId = videoIdFromTile(elTile);
   const video = getPageState()?.feedVideos.find(feedVideo => feedVideo.videoId === videoId);
   return video?.channelId ?? null;
 }
@@ -47,7 +46,7 @@ function handleClick(e: MouseEvent) {
     return;
   }
 
-  const elTile = e.target.closest(TILE_SELECTOR);
+  const elTile = e.target.closest<HTMLElement>(TILE_SELECTOR);
   if (elTile) {
     lastTileChannelId = channelIdOfTile(elTile);
     return;

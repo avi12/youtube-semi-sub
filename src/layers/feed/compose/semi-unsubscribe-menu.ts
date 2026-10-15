@@ -2,8 +2,8 @@ import { type Lockup, lockupSchema, RendererKind } from "@/lib/youtube/schemas/r
 import { z } from "@/lib/zod";
 import type { VideoRenderer } from "#feed/items/feed-schemas";
 
-// Adds a "Semi-unsubscribe" item to a built tile's own three-dot menu, in the shape its renderer uses: a lockup's
-// sheet list (`listItemViewModel`) or a classic renderer's `menuRenderer`. YouTube's own items stay as they are
+// Adds a "Semi-unsubscribe" item to a built tile's own three-dot menu, in the shape its renderer uses: a lockup's or a
+// Short's sheet list (`listItemViewModel`) or a classic renderer's `menuRenderer`. YouTube's own items stay as they are
 
 export const SEMI_UNSUBSCRIBE_LABEL = "Semi-unsubscribe";
 const SEMI_UNSUBSCRIBE_ICON = "PERSON_MINUS";
@@ -69,12 +69,17 @@ const showSheetCommandSchema = z.looseObject({
   })
 });
 
+const inlineSheetCommandSchema = z.looseObject({ showSheetCommand: showSheetCommandSchema });
+
 const lockupMenuButtonSchema = z.looseObject({
   buttonViewModel: z.looseObject({
-    onTap: z.looseObject({
-      innertubeCommand: z.looseObject({ showSheetCommand: showSheetCommandSchema })
-    })
+    onTap: z.looseObject({ innertubeCommand: inlineSheetCommandSchema })
   })
+});
+
+/** A Short's menu is the same inline sheet, opened by the lockup itself */
+const shortsMenuSchema = z.looseObject({
+  menuOnTap: z.looseObject({ innertubeCommand: inlineSheetCommandSchema })
 });
 
 /** A menu button whose sheet loads from the server: its look is kept, its sheet is replaced by an inline one */
@@ -95,6 +100,38 @@ function sheetCommand(listItems: unknown[]) {
             content: {
               listViewModel: {
                 listItems
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+}
+
+/** The inline sheet command with the item appended after YouTube's own */
+function withSheetItem({ command, ownItem }: {
+  command: z.infer<typeof inlineSheetCommandSchema>;
+  ownItem: unknown;
+}) {
+  const { showSheetCommand } = command;
+  const { sheetViewModel } = showSheetCommand.panelLoadingStrategy.inlineContent;
+  const { listViewModel } = sheetViewModel.content;
+  return {
+    ...command,
+    showSheetCommand: {
+      ...showSheetCommand,
+      panelLoadingStrategy: {
+        ...showSheetCommand.panelLoadingStrategy,
+        inlineContent: {
+          ...showSheetCommand.panelLoadingStrategy.inlineContent,
+          sheetViewModel: {
+            ...sheetViewModel,
+            content: {
+              ...sheetViewModel.content,
+              listViewModel: {
+                ...listViewModel,
+                listItems: [...listViewModel.listItems ?? [], ownItem]
               }
             }
           }
@@ -125,38 +162,38 @@ function lockupMenuButton({ menuButton, channelId }: {
   }
 
   const { buttonViewModel } = parsed.data;
-  const { showSheetCommand } = buttonViewModel.onTap.innertubeCommand;
-  const { sheetViewModel } = showSheetCommand.panelLoadingStrategy.inlineContent;
-  const { listViewModel } = sheetViewModel.content;
   return {
     ...parsed.data,
     buttonViewModel: {
       ...buttonViewModel,
       onTap: {
         ...buttonViewModel.onTap,
-        innertubeCommand: {
-          ...buttonViewModel.onTap.innertubeCommand,
-          showSheetCommand: {
-            ...showSheetCommand,
-            panelLoadingStrategy: {
-              ...showSheetCommand.panelLoadingStrategy,
-              inlineContent: {
-                ...showSheetCommand.panelLoadingStrategy.inlineContent,
-                sheetViewModel: {
-                  ...sheetViewModel,
-                  content: {
-                    ...sheetViewModel.content,
-                    listViewModel: {
-                      ...listViewModel,
-                      listItems: [...listViewModel.listItems ?? [], ownItem]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        innertubeCommand: withSheetItem({
+          command: buttonViewModel.onTap.innertubeCommand,
+          ownItem
+        })
       }
+    }
+  };
+}
+
+/** A Short's menu with the item added - a menu of that item alone when the Short opens none inline */
+function withShortsItem({ renderer, channelId }: {
+  renderer: object;
+  channelId: string;
+}) {
+  const parsed = shortsMenuSchema.safeParse(renderer);
+  const ownItem = semiUnsubscribeListItem(channelId);
+  return {
+    ...renderer,
+    menuOnTap: {
+      ...parsed.success && parsed.data.menuOnTap,
+      innertubeCommand: parsed.success
+        ? withSheetItem({
+          command: parsed.data.menuOnTap.innertubeCommand,
+          ownItem
+        })
+        : sheetCommand([ownItem])
     }
   };
 }
@@ -202,10 +239,17 @@ function withClassicItem({ renderer, channelId }: {
 
 /** The built renderer with a "Semi-unsubscribe" item appended to its menu (a menu is created when it has none) */
 export function withSemiUnsubscribeItem({ kind, renderer, channelId }: {
-  kind: VideoRenderer["kind"];
+  kind: VideoRenderer["kind"] | RendererKind.shortsLockupViewModel;
   renderer: object;
   channelId: string;
 }) {
+  if (kind === RendererKind.shortsLockupViewModel) {
+    return withShortsItem({
+      renderer,
+      channelId
+    });
+  }
+
   const parsed = lockupSchema.safeParse(renderer);
   const isLockup = kind === RendererKind.lockupViewModel && parsed.success;
   if (isLockup) {
