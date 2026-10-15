@@ -5,7 +5,9 @@ import {
   CHANNEL_ID,
   desktopFeedItem,
   feedVideo,
+  mobileShortsShelf,
   richItem,
+  shortsShelf,
   videoId
 } from "#feed/fixtures/feed-fixtures";
 import {
@@ -310,5 +312,112 @@ describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", (
         state: editedFilter
       })
     ).toEqual(new Set([SHORT.videoId]));
+  });
+});
+
+describe("findHiddenVideoIds", () => {
+  const HIDE_FILTER: TitleFilter = {
+    kind: FilterKind.regex,
+    pattern: "^hide",
+    flags: "i"
+  };
+
+  function hidingState(overrides: Partial<Pick<PageState, "hiddenVideoIds" | "isExtensionEnabled">> = {}) {
+    const state = pageState({
+      isSubscribed: true,
+      feedVideos: []
+    });
+    const hiding: PageState = {
+      ...state,
+      ...overrides,
+      subscriptions: {
+        [CHANNEL_ID]: {
+          channelId: CHANNEL_ID,
+          title: "Subscribed Channel",
+          followFilter: KEEP_FILTER,
+          hideFilter: HIDE_FILTER,
+          createdAt: 1,
+          isSubscribed: true
+        }
+      }
+    };
+    return hiding;
+  }
+
+  it("hides a subscribed channel's tile by its title, and leaves other channels' tiles alone", () => {
+    expect(
+      session.findHiddenVideoIds({
+        contents: [
+          semiChannelItem({
+            index: 1,
+            title: "Hide me"
+          }),
+          semiChannelItem({
+            index: 2,
+            title: "Keep me"
+          }),
+          desktopFeedItem({
+            index: 3,
+            published: PUBLISHED,
+            title: "Hide me too, but I'm another channel's"
+          })
+        ],
+        state: hidingState()
+      })
+    ).toEqual(new Set([videoId(1)]));
+  });
+
+  it("hides a shared video only when the channel's cached uploads know it as its own", () => {
+    const collaboration = richItem({
+      ...semiChannelItem({
+        index: 4,
+        title: "Hide this collab"
+      }).richItemRenderer.content,
+      collaborator: {
+        browseEndpoint: {
+          browseId: OTHER_CHANNEL_ID
+        }
+      }
+    });
+    expect(
+      session.findHiddenVideoIds({
+        contents: [collaboration],
+        state: hidingState()
+      })
+    ).toEqual(new Set());
+    expect(
+      session.findHiddenVideoIds({
+        contents: [collaboration],
+        state: hidingState({ hiddenVideoIds: [videoId(4)] })
+      })
+    ).toEqual(new Set([videoId(4)]));
+  });
+
+  it("hides a Short in either site's Shorts shelf by the cached uploads, as it names no channel", () => {
+    const state = hidingState({ hiddenVideoIds: [videoId(91), videoId(93)] });
+    expect(
+      session.findHiddenVideoIds({
+        contents: [shortsShelf([90, 91]), mobileShortsShelf([92, 93])],
+        state
+      })
+    ).toEqual(new Set([videoId(91), videoId(93)]));
+  });
+
+  it("hides nothing while the extension is off", () => {
+    expect(
+      session.findHiddenVideoIds({
+        contents: [
+          semiChannelItem({
+            index: 1,
+            title: "Hide me"
+          }),
+          shortsShelf([91])
+        ],
+        state: hidingState({
+          hiddenVideoIds: [videoId(91)],
+          isExtensionEnabled: false
+        })
+      })
+    ).toEqual(new Set());
   });
 });

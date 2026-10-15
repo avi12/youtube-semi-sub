@@ -33,7 +33,9 @@ enum YtafMessageType {
 /** What ytaf promises from each contract version on */
 enum YtafContractVersion {
   /** It keeps tagged items YouTube's own feed lacks - Shorts in its shelf too - for as long as a response has them */
-  honorsSemiSubTags = 1
+  honorsSemiSubTags = 1,
+  /** It also drops the videos a response lists as hidden (`yssHiddenVideoIds`) at once, and never adds one */
+  dropsHiddenVideos = 2
 }
 
 /** Absent before ytaf took on the contract, `true` for its first version, a number since */
@@ -82,6 +84,11 @@ function readYouTubeAutoFeedContractVersion() {
 export function isShortsInjectionAllowed() {
   return !isYouTubeAutoFeedActive()
     || readYouTubeAutoFeedContractVersion() >= YtafContractVersion.honorsSemiSubTags;
+}
+
+/** Whether ytaf, when installed, reads the hidden videos a feed response lists - its contract version 2 on */
+export function isHiddenVideoListHonored() {
+  return readYouTubeAutoFeedContractVersion() >= YtafContractVersion.dropsHiddenVideos;
 }
 
 export function nudgeYouTubeAutoFeed() {

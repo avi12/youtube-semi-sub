@@ -3,13 +3,17 @@ import type { BrowseTab } from "@/lib/youtube/schemas/browse";
 import { type BrowseResponse, browseResponseSchema, continuationResponseSchema } from "#feed/items/feed-schemas";
 
 // Recognizes the first page of the subscriptions feed in a /browse response or ytInitialData - www nests it under
-// twoColumnBrowseResultsRenderer, m under singleColumnBrowseResultsRenderer - and swaps its grid contents. A later
-// page, a continuation of that grid, is recognized and swapped the same way
+// twoColumnBrowseResultsRenderer, m under singleColumnBrowseResultsRenderer - and swaps its grid contents, listing
+// beside them the videos a hide filter took out. A later page, a continuation of that grid, is recognized and swapped
+// the same way
 
 export const SUBSCRIPTIONS_BROWSE_ID = "FEsubscriptions";
 const SUBSCRIPTIONS_GRID_TARGET_ID = `browse-feed${SUBSCRIPTIONS_BROWSE_ID}`;
 const BROWSE_ID_TRACKING_KEY = "browse_id";
 const ESCAPED_LESS_THAN = "\\u003c";
+
+/** Beside the grid's contents, the ids a hide filter took out of them - for YouTube Auto Feed to drop as well */
+const HIDDEN_VIDEO_IDS_KEY = "yssHiddenVideoIds";
 
 enum BrowseColumn {
   twoColumn = "twoColumnBrowseResultsRenderer",
@@ -60,9 +64,16 @@ export function readSubscriptionsFeed(data: unknown) {
 
   return {
     contents: grid.contents,
-    /** A copy of the response with the grid contents replaced; the original is left untouched */
-    withContents(contents: unknown[]) {
+    /**
+     * A copy of the response with the grid contents replaced, and the hidden ids listed beside them unless null; the
+     * original is left untouched
+     */
+    withContents({ contents, hiddenVideoIds }: {
+      contents: unknown[];
+      hiddenVideoIds: string[] | null;
+    }) {
       const tab = column.tabs[iTab];
+      const hiddenVideoIdsEntry = hiddenVideoIds ? { [HIDDEN_VIDEO_IDS_KEY]: hiddenVideoIds } : {};
       const patchedTab = {
         ...tab,
         tabRenderer: {
@@ -71,7 +82,8 @@ export function readSubscriptionsFeed(data: unknown) {
             ...tabRenderer.content,
             richGridRenderer: {
               ...grid,
-              contents
+              contents,
+              ...hiddenVideoIdsEntry
             }
           }
         }

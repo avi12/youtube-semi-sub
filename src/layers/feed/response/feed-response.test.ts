@@ -54,7 +54,10 @@ describe("readSubscriptionsFeed", () => {
 
   it("swaps the grid contents in a copy, keeping everything else", () => {
     const response = desktopFeedResponse(DESKTOP_CONTENTS);
-    const patched = readSubscriptionsFeed(response)?.withContents(["new"]);
+    const patched = readSubscriptionsFeed(response)?.withContents({
+      contents: ["new"],
+      hiddenVideoIds: null
+    });
     expect(readSubscriptionsFeed(patched)?.contents).toEqual(["new"]);
     expect(patched).toMatchObject({
       header: response.header,
@@ -62,6 +65,19 @@ describe("readSubscriptionsFeed", () => {
     });
     expect(response.contents.twoColumnBrowseResultsRenderer.tabs[0]?.tabRenderer.content.richGridRenderer.contents)
       .toBe(DESKTOP_CONTENTS);
+    expect(JSON.stringify(patched)).not.toContain("yssHiddenVideoIds");
+  });
+
+  it("lists the hidden ids beside the grid contents when given them", () => {
+    const patched = readSubscriptionsFeed(desktopFeedResponse(DESKTOP_CONTENTS))?.withContents({
+      contents: [],
+      hiddenVideoIds: ["aaaaaaaaaaa"]
+    });
+    expect(patched?.contents.twoColumnBrowseResultsRenderer?.tabs[0]?.tabRenderer?.content?.richGridRenderer)
+      .toMatchObject({
+        contents: [],
+        yssHiddenVideoIds: ["aaaaaaaaaaa"]
+      });
   });
 });
 

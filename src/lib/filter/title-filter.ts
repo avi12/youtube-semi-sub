@@ -153,7 +153,7 @@ function judgeNoMatch() {
 }
 
 /** `createVideoJudge` for a mode's filter: an empty hide filter matches no video */
-function createModeJudge({ filter, mode, ...context }: Parameters<typeof createVideoJudge>[0] & {
+export function createModeJudge({ filter, mode, ...context }: Parameters<typeof createVideoJudge>[0] & {
   mode: SubscriptionMode;
 }) {
   if (isHidingNothing({

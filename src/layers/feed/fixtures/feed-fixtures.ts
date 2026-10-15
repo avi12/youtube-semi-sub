@@ -7,7 +7,7 @@ export const NOW = Date.UTC(2026, 9, 15, 12);
 const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
 
 export const CHANNEL_ID = "UCsemisubscribedchannel1";
-const OTHER_CHANNEL_ID = "UCalreadysubscribedchan2";
+export const OTHER_CHANNEL_ID = "UCalreadysubscribedchan2";
 
 export function videoId(index: number) {
   return `video${String(index).padStart(6, "0")}`;

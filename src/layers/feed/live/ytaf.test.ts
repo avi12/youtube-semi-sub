@@ -140,3 +140,17 @@ describe("isShortsInjectionAllowed", () => {
     expect(ytaf.isShortsInjectionAllowed()).toBe(isAllowed);
   });
 });
+
+describe("isHiddenVideoListHonored", () => {
+  it.each([
+    [undefined, false],
+    [true, false],
+    [1, false],
+    ["2", false],
+    [2, true],
+    [3, true]
+  ])("reads contract version flag %j as reading the hidden-video list: %j", (flag, isHonored) => {
+    vi.stubGlobal("__ytafHonorsSemiSubTags", flag);
+    expect(ytaf.isHiddenVideoListHonored()).toBe(isHonored);
+  });
+});

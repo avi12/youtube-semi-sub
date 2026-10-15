@@ -5,11 +5,13 @@ import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
 import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
 import {
   composeForPageState,
+  findHiddenVideoIds,
   loadNativesFor,
   planForPageState,
   recordFeedChange,
   waitForPageState
 } from "#feed/feed-session";
+import { isHiddenVideoListHonored } from "#feed/live/ytaf";
 
 // Semi-sub videos are injected where every reader of the subscriptions feed gets its data: the Response body
 // (YouTube's own /browse fetch, YouTube Auto Feed's clone of it and its own polls) and, on m.youtube.com, the
@@ -18,7 +20,10 @@ import {
 // untouched, and any failure falls back to the original data.
 // The first page takes videos into its band and Shorts into its Shorts shelf. m puts its Shorts shelf on a later
 // page, past the first page and outside the grid it writes live, so on m a later page's Shorts shelf is filled here
-// too - with the Shorts no earlier page of the same load shelved. www's later pages are left to the live write
+// too - with the Shorts no earlier page of the same load shelved. www's later pages are left to the live write.
+// Every page loses the videos a subscribed channel's hide filter hides, from its band and its Shorts shelf. The first
+// page also lists them beside its grid for a YouTube Auto Feed that reads the list, which would otherwise keep showing
+// what it already shows
 
 const BROWSE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/youtubei\/v1\/browse(?:[?#]|$)/;
 const FEED_PAGE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/feed\/subscriptions\/?(?:[?#]|$)/;
@@ -29,23 +34,32 @@ const NO_REMOVALS: ReadonlySet<string> = new Set();
 /** The Shorts the current feed load put in a shelf already */
 const shelvedShortIds = new Set<string>();
 
+/** The first page's copy: other contents, and the hidden ids beside them */
+type FirstPageCopy = Parameters<NonNullable<ReturnType<typeof readSubscriptionsFeed>>["withContents"]>[0];
+
+/** A feed page and a copy of it with other contents; only the first page lists the hidden ids */
 function readFeedPage(data: unknown) {
   const firstPage = readSubscriptionsFeed(data);
   if (firstPage) {
     return {
-      ...firstPage,
-      isLaterPage: false
+      contents: firstPage.contents,
+      isLaterPage: false,
+      withContents: firstPage.withContents
     };
   }
 
-  const laterPage = getYouTubeSite() === YouTubeSite.mobile ? readSubscriptionsContinuation(data) : null;
+  const laterPage = readSubscriptionsContinuation(data);
   return laterPage && {
-    ...laterPage,
-    isLaterPage: true
+    contents: laterPage.contents,
+    isLaterPage: true,
+    withContents: ({ contents }: FirstPageCopy) => laterPage.withContents(contents)
   };
 }
 
-/** What a page is filled from: a later page only takes the Shorts no earlier page shelved */
+/**
+ * What a page is filled from: a later page only takes the Shorts no earlier page shelved - and on www nothing, its
+ * later pages only lose what is hidden
+ */
 function stateForPage({ state, isLaterPage }: {
   state: PageState;
   isLaterPage: boolean;
@@ -54,9 +68,12 @@ function stateForPage({ state, isLaterPage }: {
     return state;
   }
 
+  const isShelfFilledOnLaterPages = getYouTubeSite() === YouTubeSite.mobile;
   const pageState: PageState = {
     ...state,
-    feedVideos: state.feedVideos.filter(video => video.isShort && !shelvedShortIds.has(video.videoId))
+    feedVideos: isShelfFilledOnLaterPages
+      ? state.feedVideos.filter(video => video.isShort && !shelvedShortIds.has(video.videoId))
+      : []
   };
   return pageState;
 }
@@ -85,24 +102,35 @@ function patchFeedDataNow(data: unknown) {
     return null;
   }
 
+  const hiddenIds = findHiddenVideoIds({
+    contents: page.contents,
+    state
+  });
   const composed = composeForPageState({
     contents: page.contents,
     state: stateForPage({
       state,
       isLaterPage: page.isLaterPage
     }),
-    removedVideoIds: NO_REMOVALS
+    removedVideoIds: hiddenIds
   });
-  if (!composed) {
+  const isHiddenListWritten = hiddenIds.size > 0 && !page.isLaterPage && isHiddenVideoListHonored();
+  if (!composed && !isHiddenListWritten) {
     return null;
   }
 
-  recordFeedChange(composed);
-  recordShelvedShorts({
-    insertedIds: composed.insertedIds,
-    state
+  if (composed) {
+    recordFeedChange(composed);
+    recordShelvedShorts({
+      insertedIds: composed.insertedIds,
+      state
+    });
+  }
+
+  return page.withContents({
+    contents: composed?.contents ?? [...page.contents],
+    hiddenVideoIds: isHiddenListWritten ? [...hiddenIds] : null
   });
-  return page.withContents(composed.contents);
 }
 
 async function patchFeedData(data: unknown) {

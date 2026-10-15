@@ -1,4 +1,6 @@
 import { readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
 import { isSemiSubscribedItem } from "#feed/compose/semi-subscribed-tag";
@@ -16,6 +18,7 @@ import {
   mobileFeedResponse,
   mobileShortsShelf,
   NOW,
+  OTHER_CHANNEL_ID,
   richItem,
   shortsLockup,
   shortsShelf,
@@ -27,6 +30,7 @@ import {
   videoIdFromGridItem,
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
+import { browseResponseSchema } from "#feed/items/feed-schemas";
 import {
   afterAll,
   afterEach,
@@ -122,6 +126,13 @@ function responseAt({ url, body }: {
   const response = new Response(body);
   Object.defineProperty(response, "url", { value: url });
   return response;
+}
+
+function desktopFeedResponseGrid(data: unknown) {
+  const parsed = browseResponseSchema.safeParse(data);
+  return parsed.success
+    ? parsed.data.contents.twoColumnBrowseResultsRenderer?.tabs[0]?.tabRenderer?.content?.richGridRenderer
+    : undefined;
 }
 
 function feedIds(data: unknown) {
@@ -380,5 +391,136 @@ describe("the feed response hook", () => {
       body: JSON.stringify(laterPageWithShortsShelf())
     }).json();
     expect(data).toEqual(laterPageWithShortsShelf());
+  });
+});
+
+describe("the feed response hook, for a subscribed channel with a hide filter", () => {
+  const TITLE_HIDE_FILTER: TitleFilter = {
+    kind: FilterKind.regex,
+    pattern: "video 2$",
+    flags: "i"
+  };
+  const AI_HIDE_FILTER: AiFilter = {
+    kind: FilterKind.aiMatch,
+    description: "Livestreams"
+  };
+
+  function hideWith({ hideFilter, hiddenVideoIds = [], ...aiState }: Partial<
+    Pick<PageState, "hiddenVideoIds" | "aiVerdicts" | "isAiEnabled">
+  > & {
+    hideFilter: TitleFilter;
+  }) {
+    pageState.current = pageState.current && {
+      ...pageState.current,
+      ...aiState,
+      hiddenVideoIds,
+      subscriptions: {
+        [OTHER_CHANNEL_ID]: {
+          channelId: OTHER_CHANNEL_ID,
+          title: "Subscribed Channel",
+          followFilter: DEFAULT_TITLE_FILTER,
+          hideFilter,
+          createdAt: 0,
+          isSubscribed: true
+        }
+      }
+    };
+  }
+
+  async function readFeed() {
+    return await responseAt({
+      url: BROWSE_URL,
+      body: JSON.stringify(feedResponseBody())
+    }).json();
+  }
+
+  function hiddenIdList(data: unknown) {
+    const grid = desktopFeedResponseGrid(data);
+    return grid && "yssHiddenVideoIds" in grid ? grid.yssHiddenVideoIds : undefined;
+  }
+
+  it("takes a video its title matches out of the Latest band, still inserting semi-sub videos", async () => {
+    hideWith({ hideFilter: TITLE_HIDE_FILTER });
+    expect(feedIds(await readFeed())).toEqual([videoId(1), videoId(50), null]);
+  });
+
+  it("takes a hidden Short out of the Shorts shelf by the channel's cached uploads, as Shorts name no channel", async () => {
+    hideWith({
+      hideFilter: TITLE_HIDE_FILTER,
+      hiddenVideoIds: [videoId(90)]
+    });
+    const data = await readFeedWithShelf();
+    expect(shelfItems(data).map(videoIdFromShelfItem)).toEqual([videoId(60)]);
+    expect(feedIds(data)).not.toContain(videoId(2));
+  });
+
+  it("keeps a video still waiting for its AI verdict, and hides it once the verdict says it matches", async () => {
+    hideWith({
+      hideFilter: AI_HIDE_FILTER,
+      isAiEnabled: true
+    });
+    expect(feedIds(await readFeed())).toContain(videoId(2));
+
+    hideWith({
+      hideFilter: AI_HIDE_FILTER,
+      isAiEnabled: true,
+      aiVerdicts: {
+        [getAiFilterKey(AI_HIDE_FILTER)]: {
+          [videoId(2)]: true
+        }
+      }
+    });
+    expect(feedIds(await readFeed())).not.toContain(videoId(2));
+  });
+
+  it("hides nothing with an empty hide filter", async () => {
+    hideWith({ hideFilter: DEFAULT_TITLE_FILTER });
+    expect(feedIds(await readFeed())).toEqual([videoId(1), videoId(50), videoId(2), null]);
+  });
+
+  it.each([
+    [undefined, false],
+    [true, false],
+    [1, false],
+    [2, true],
+    [3, true]
+  ])("lists the hidden ids beside the grid for a YouTube Auto Feed on contract version %j: %j", async (version, isListed) => {
+    vi.stubGlobal(YTAF_CONTRACT_VERSION_GLOBAL, version);
+    hideWith({
+      hideFilter: TITLE_HIDE_FILTER,
+      hiddenVideoIds: [videoId(90)]
+    });
+    const data = await readFeedWithShelf();
+    expect(hiddenIdList(data)).toEqual(isListed ? [videoId(90), videoId(2)] : undefined);
+  });
+
+  it("lists nothing while nothing is hidden", async () => {
+    vi.stubGlobal(YTAF_CONTRACT_VERSION_GLOBAL, 2);
+    hideWith({ hideFilter: DEFAULT_TITLE_FILTER });
+    expect(hiddenIdList(await readFeed())).toBeUndefined();
+  });
+
+  it("takes hidden videos out of www's later pages too, adding nothing there", async () => {
+    hideWith({ hideFilter: TITLE_HIDE_FILTER });
+    const data = await responseAt({
+      url: BROWSE_URL,
+      body: JSON.stringify(
+        feedContinuationResponse([
+          desktopFeedItem({
+            index: 2,
+            published: "1 day ago"
+          }),
+          shortsShelf([90]),
+          desktopFeedItem({
+            index: 3,
+            published: "2 days ago"
+          }),
+          continuationItem()
+        ])
+      )
+    }).json();
+    const contents = readSubscriptionsContinuation(data)?.contents ?? [];
+    expect(contents.map(videoIdFromGridItem)).toEqual([videoId(3), null, null]);
+    expect(contents.flatMap(shelfItemsFromGridItem).map(videoIdFromShelfItem)).toEqual([videoId(90)]);
   });
 });
