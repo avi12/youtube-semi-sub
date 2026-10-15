@@ -83,7 +83,8 @@ function extractBand({ contents, runs }: {
 /**
  * Plans the band with `videos` inserted at time-correct positions and `removedVideoIds` taken out.
  * A video goes before the first band item older than it; one older than the whole loaded page is left for
- * later pages. When no item's time can be read (non-English UI), videos from the last 24 hours lead the band
+ * later pages. When no item's time can be read (non-English UI), videos from the last 24 hours lead the band.
+ * Shorts never join the band - they belong in the Shorts shelf
  */
 export function planFeedBand({ contents, videos, now, removedVideoIds }: {
   contents: readonly unknown[];
@@ -118,7 +119,7 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
 
   const presentIds = collectContentVideoIds(contents);
   function isInsertable(video: FeedVideo) {
-    if (presentIds.has(video.videoId)) {
+    if (video.isShort || presentIds.has(video.videoId)) {
       return false;
     }
 

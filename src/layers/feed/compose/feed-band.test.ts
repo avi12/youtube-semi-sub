@@ -71,6 +71,18 @@ describe("findInlineRuns", () => {
 });
 
 describe("planFeedBand", () => {
+  it("never puts a Short in the band", () => {
+    const { insertedVideos, isChanged } = plan({
+      videos: [feedVideo({
+        index: 50,
+        hours: 2,
+        isShort: true
+      })]
+    });
+    expect(insertedVideos).toEqual([]);
+    expect(isChanged).toBe(false);
+  });
+
   it("inserts a video before the first item older than it", () => {
     const { slots, insertedVideos, isChanged } = plan({
       videos: [feedVideo({
