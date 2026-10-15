@@ -1,4 +1,5 @@
 import { YOUTUBE_MATCHES } from "./src/lib/youtube/site";
+import { functionsMixins } from "vite-plugin-functions-mixins";
 import { defineConfig } from "wxt";
 
 export default defineConfig({
@@ -42,6 +43,8 @@ export default defineConfig({
     sourcesTemplate: "{{name}}-{{version}}-{{browser}}-source.zip"
   },
   vite: () => ({
+    // m3-svelte's styles use CSS @function/@mixin, which this plugin compiles away
+    plugins: [functionsMixins({ deps: ["m3-svelte"] })],
     build: {
       sourcemap: false
     }
