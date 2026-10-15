@@ -10,7 +10,7 @@ Works on `www.youtube.com` and `m.youtube.com`, in Chromium browsers (Chrome, Ed
   - **RegExp** - matched against each video's title, e.g. `/tutorial|deep dive/i`
   - **AI match** - describe what you want in plain words ("only phone reviews, not unboxings"), and a model on your device judges each video's title and description
 - **Live preview** - while you edit a filter, you see which recent videos will land in your feed and which won't
-- **Animated feed insertion** - matching videos slide into `/feed/subscriptions` in their place by upload time
+- **Animated feed insertion** - matching videos slide into `/feed/subscriptions` in their place by upload time, and matching Shorts join the feed's Shorts shelf when it has one
 - **Manage from anywhere** - the Semi-subscribe button, the Subscriptions section of the YouTube sidebar, `/feed/channels`, or the extension's popup
 
 ## AI match
@@ -25,7 +25,7 @@ Either way, judging happens on your device: video titles and descriptions are ne
 LiteRT-LM needs WebGPU and WebAssembly JSPI, which Firefox ships from version 153.
 
 ## Works with YouTube Auto Feed
-If you also use [YouTube Auto Feed](https://github.com/avi12/youtube-auto-feed), the two cooperate: semi-subscribed videos are added to the feed data Auto Feed reads, so it keeps them and animates them like any other new video.
+If you also use [YouTube Auto Feed](https://github.com/avi12/youtube-auto-feed), the two cooperate: semi-subscribed videos are added to the feed data Auto Feed reads, so it keeps them and animates them like any other new video. Semi-subscribed Shorts join its Shorts shelf too, once your Auto Feed version supports it.
 
 ## Privacy
 - The extension fetches each semi-subscribed channel's public RSS feed from `youtube.com` every 15 minutes
