@@ -1,10 +1,17 @@
 <script lang="ts">
   import ChannelEditor from "./ChannelEditor.svelte";
   import { EDIT_ICON, OPEN_IN_NEW_ICON } from "./icons";
-  import { type AiJudgeContext, createVideoJudge, FilterKind, MatchState } from "@/lib/filter/title-filter";
+  import {
+    type AiJudgeContext,
+    createModeJudge,
+    FilterKind,
+    isHidingNothing,
+    MatchState
+  } from "@/lib/filter/title-filter";
   import { getChannelInitial } from "@/lib/schemas/channel";
   import type { ChannelVideos } from "@/lib/schemas/feed-video";
-  import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import { SUBSCRIPTION_MODE_NAME, SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatHandle, getChannelUrl } from "@/lib/youtube/channel-link";
   import { Button, Icon } from "m3-svelte";
@@ -28,19 +35,43 @@
     onRemove
   }: Props = $props();
 
-  const SUBSCRIBED_SUMMARY = "Paused - you're subscribed";
+  const HIDES_NOTHING_SUMMARY = "Hides nothing yet";
+  const MATCH_WORDING = {
+    [SubscriptionMode.follow]: {
+      matched: "matching",
+      emptyPattern: "Any title"
+    },
+    [SubscriptionMode.hide]: {
+      matched: "hidden",
+      emptyPattern: "Nothing hidden"
+    }
+  } as const;
 
   const id = $props.id();
   const editorId = `${id}-editor`;
   let elEditToggle = $state<HTMLInputElement>();
 
-  const filter = $derived(subscription.followFilter);
+  const mode = $derived(getSubscriptionMode(subscription));
+  const filter = $derived(
+    getModeFilter({
+      subscription,
+      mode
+    })
+  );
+  const wording = $derived(MATCH_WORDING[mode]);
+  const isHidingNone = $derived(
+    isHidingNothing({
+      filter,
+      mode
+    })
+  );
   const videos = $derived(channelVideos?.videos ?? []);
   const videosOldestFirst = $derived(videos.toSorted((left, right) => left.publishedAt - right.publishedAt));
-  /** The same judge `selectFeedVideos` applies to the feed - null while the filter can't run (AI match is off) */
+  /** The same judge the feed is filtered by in this mode - null while the filter can't run (AI match is off) */
   const judge = $derived(
-    createVideoJudge({
+    createModeJudge({
       filter,
+      mode,
       aiVerdicts,
       isAiEnabled
     })
@@ -54,8 +85,8 @@
   const pendingCount = $derived(matchStates.filter(matchState => matchState === MatchState.pending).length);
   const initial = $derived(getChannelInitial(subscription.title));
   const matchSummary = $derived.by(() => {
-    if (subscription.isSubscribed) {
-      return SUBSCRIBED_SUMMARY;
+    if (isHidingNone) {
+      return HIDES_NOTHING_SUMMARY;
     }
 
     if (isPaused) {
@@ -71,7 +102,7 @@
       one: "video",
       other: "videos"
     });
-    const summary = `${matchCount} matching ${noun}`;
+    const summary = `${matchCount} ${wording.matched} ${noun}`;
     if (pendingCount === 0) {
       return summary;
     }
@@ -102,6 +133,7 @@
 
     <div class="channel__identity">
       <h3 class="channel__title"><bdi>{subscription.title}</bdi></h3>
+      <p class="channel__mode">{SUBSCRIPTION_MODE_NAME[mode]}</p>
       <a
         class="channel__link"
         href={getChannelUrl(subscription)}
@@ -138,6 +170,7 @@
     <ChannelEditor
       id={editorId}
       isCached={channelVideos !== undefined}
+      {mode}
       onClose={closeEditor}
       {onRemove}
       {subscription}
@@ -155,7 +188,7 @@
             {@const { pattern, flags } = filter}
             <span class="filter-literal__pattern">{pattern}</span><span class="filter-literal__flags">{flags}</span>
           {:else}
-            <span class="filter-literal__any">Any title</span>
+            <span class="filter-literal__any">{wording.emptyPattern}</span>
           {/if}
         </code>
       {/if}
@@ -232,6 +265,17 @@
     color: var(--m3c-on-surface);
     font-weight: 500;
     font-size: 16px;
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .channel__mode {
+    overflow: hidden;
+    margin: 0;
+    color: var(--m3c-primary);
+    font-weight: 500;
+    font-size: 12px;
     line-height: 1.4;
     text-overflow: ellipsis;
     white-space: nowrap;

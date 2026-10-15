@@ -1,8 +1,13 @@
 <script lang="ts">
-  import { FilterKind, selectFeedVideos } from "@/lib/filter/title-filter";
+  import { FilterKind, selectFeedVideos, selectHiddenVideoIds } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
-  import { listByTitle, type SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import {
+    getActiveFilter,
+    isUploadsWatched,
+    listByTitle,
+    type SemiSubscription
+  } from "@/lib/schemas/semi-subscription";
   import type { StoredState } from "@/lib/schemas/stored-state";
   import { removeSemiSubscription, restoreSemiSubscription } from "@/lib/semi-subscription-storage";
   import {
@@ -88,16 +93,16 @@
 
   const subscriptionList = $derived(listByTitle(subscriptions));
   const aiFilterCount = $derived(
-    subscriptionList.filter(({ followFilter }) => followFilter.kind === FilterKind.aiMatch).length
+    subscriptionList.filter(subscription => getActiveFilter(subscription).kind === FilterKind.aiMatch).length
   );
-  const feedVideos = $derived(
-    selectFeedVideos({
-      subscriptions,
-      videosByChannel: videosByChannelFromCache(channelVideos),
-      aiVerdicts,
-      isAiEnabled
-    })
-  );
+  const filterInput = $derived({
+    subscriptions,
+    videosByChannel: videosByChannelFromCache(channelVideos),
+    aiVerdicts,
+    isAiEnabled
+  });
+  const feedVideos = $derived(selectFeedVideos(filterInput));
+  const hiddenVideoCount = $derived(selectHiddenVideoIds(filterInput).length);
   const feedSummary = $derived.by(() => {
     const channelNoun = pluralize({
       count: subscriptionList.length,
@@ -109,11 +114,16 @@
       one: "video",
       other: "videos"
     });
-    return `${feedVideos.length} ${videoNoun} from ${subscriptionList.length} ${channelNoun} in your feed`;
+    const summary = `${feedVideos.length} ${videoNoun} from ${subscriptionList.length} ${channelNoun} in your feed`;
+    if (hiddenVideoCount === 0) {
+      return summary;
+    }
+
+    return `${summary}, ${hiddenVideoCount} hidden`;
   });
   const oldestCheckAt = $derived.by(() => {
     let oldest = Infinity;
-    for (const { channelId } of subscriptionList) {
+    for (const { channelId } of subscriptionList.filter(isUploadsWatched)) {
       oldest = Math.min(oldest, channelVideos[channelId]?.fetchedAt ?? Infinity);
     }
     return oldest;
@@ -192,7 +202,7 @@
   </header>
 
   {#if !isExtensionEnabled}
-    <p class="paused">Paused - nothing gets added to your feed until you turn it back on</p>
+    <p class="paused">Paused - nothing gets added to or hidden from your feed until you turn it back on</p>
   {/if}
 
   {#if subscriptionList.length === 0}

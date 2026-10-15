@@ -7,7 +7,7 @@
   import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
-  import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
+  import { SUBSCRIPTION_MODE_NAME, SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { readSemiSubscription, removeSemiSubscription, saveSemiSubscription } from "@/lib/semi-subscription-storage";
   import { isAiEnabledItem } from "@/lib/storage";
   import { FilterEditor } from "#filter-editor";
@@ -25,14 +25,12 @@
 
   const MODE_TEXT = {
     [SubscriptionMode.follow]: {
-      title: "Follow without subscribing",
       description: "You're not subscribed, so only the videos your filter lets through are added to your feed",
       createLabel: "Semi-subscribe",
       createdMessage: ToastMessage.semiSubscribed,
       savedMessage: ToastMessage.filterSaved
     },
     [SubscriptionMode.hide]: {
-      title: "Subscribe with a filter",
       description: "You're subscribed, so the videos your filter matches are hidden from your feed",
       createLabel: "Save",
       createdMessage: ToastMessage.hideFilterSaved,
@@ -155,7 +153,7 @@
       }
     }}>
     <header class="dialog__header">
-      <h2 id={titleId} class="dialog__title">{modeText.title}</h2>
+      <h2 id={titleId} class="dialog__title">{SUBSCRIPTION_MODE_NAME[mode]}</h2>
       <button
         class="icon-button"
         aria-label="Close"

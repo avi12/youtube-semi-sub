@@ -3,8 +3,8 @@
   import { isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
-  import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-  import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
+  import { getModeFilter, type SemiSubscription } from "@/lib/schemas/semi-subscription";
+  import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { setSemiSubscriptionFilter } from "@/lib/semi-subscription-storage";
   import { FilterEditor } from "#filter-editor";
   import AiSetupAction from "#popup/ai/AiSetupAction.svelte";
@@ -14,15 +14,24 @@
   interface Props {
     id: string;
     subscription: SemiSubscription;
+    /** The mode whose filter this edits - the one that applies when the editor opens */
+    mode: SubscriptionMode;
     videos: FeedVideo[];
     isCached: boolean;
     onClose: () => void;
     onRemove: () => void;
   }
 
-  const { id, subscription, videos, isCached, onClose, onRemove }: Props = $props();
+  const { id, subscription, mode, videos, isCached, onClose, onRemove }: Props = $props();
 
-  let draftFilter = $state<TitleFilter>(untrack(() => ({ ...subscription.followFilter })));
+  let draftFilter = $state<TitleFilter>(
+    untrack(() => ({
+      ...getModeFilter({
+        subscription,
+        mode
+      })
+    }))
+  );
   let isFetching = $state(false);
   const isDraftValid = $derived(isTitleFilterValid(draftFilter));
 
@@ -55,14 +64,14 @@
 
     await setSemiSubscriptionFilter({
       channelId: subscription.channelId,
-      mode: SubscriptionMode.follow,
+      mode,
       filter: $state.snapshot(draftFilter)
     });
     onClose();
   }}>
   <FilterEditor
     isLoading={isFetching && videos.length === 0}
-    mode={SubscriptionMode.follow}
+    {mode}
     {videos}
     bind:filter={draftFilter}>
     {#snippet aiSetup({ isAiEnabled })}
