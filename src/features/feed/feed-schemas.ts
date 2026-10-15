@@ -41,6 +41,7 @@ const metadataPartSchema = z.looseObject({
 });
 
 const metadataRowSchema = z.looseObject({ metadataParts: z.array(metadataPartSchema).optional() });
+export type MetadataRow = z.infer<typeof metadataRowSchema>;
 
 const thumbnailBadgeSchema = z.looseObject({
   thumbnailBadgeViewModel: z.looseObject({

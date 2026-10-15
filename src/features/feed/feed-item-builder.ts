@@ -1,5 +1,5 @@
 import { labelFromFormatted, rendererFromGridItem, textFromFormatted, type VideoRenderer } from "./feed-items";
-import { type Lockup, RendererKind } from "./feed-schemas";
+import { type Lockup, type MetadataRow, RendererKind } from "./feed-schemas";
 import type { ChannelInfo } from "@/lib/channel";
 import type { FeedVideo } from "@/lib/feed-video";
 import { formatRelativeTime } from "@/lib/youtube/relative-time";
@@ -194,39 +194,65 @@ function avatarImage({ channel, avatarUrl, avatarImageSize }: {
   };
 }
 
-/** Adds the channel name and avatar in the template's layout: a row of its own (www) or leading the first row (m) */
-function graftChannel({ lockup, template, channel }: {
-  lockup: Lockup;
-  template: Lockup;
+/** The channel name in the template's layout: a row of its own (www) or leading the first row (m) */
+function withChannelRow({ rows, templateRows, channel }: {
+  rows: MetadataRow[] | undefined;
+  templateRows: MetadataRow[] | undefined;
   channel: ChannelInfo;
 }) {
-  const templateMetadata = template.metadata?.lockupMetadataViewModel;
-  const templateContentMetadata = templateMetadata?.metadata?.contentMetadataViewModel;
-  const isChannelOnOwnRow = (templateContentMetadata?.metadataRows?.[0]?.metadataParts?.length ?? 0) <= 1;
-  const lockupMetadata = lockup.metadata?.lockupMetadataViewModel;
-  const contentMetadata = lockupMetadata?.metadata?.contentMetadataViewModel;
-  const [firstRow, ...otherRows] = contentMetadata?.metadataRows ?? [];
+  const isChannelOnOwnRow = (templateRows?.[0]?.metadataParts?.length ?? 0) <= 1;
+  const [firstRow, ...otherRows] = rows ?? [];
   const channelPart = {
     text: {
       content: channel.title
     }
   };
-  const metadataRows = isChannelOnOwnRow
-    ? [{ metadataParts: [channelPart] }, ...firstRow ? [firstRow] : [], ...otherRows]
-    : [{
-      ...firstRow,
-      metadataParts: [channelPart, ...firstRow?.metadataParts ?? []]
-    }, ...otherRows];
+  if (isChannelOnOwnRow) {
+    return [{ metadataParts: [channelPart] }, ...firstRow ? [firstRow] : [], ...otherRows];
+  }
 
-  const templateAvatar = templateMetadata?.image?.decoratedAvatarViewModel;
+  return [{
+    ...firstRow,
+    metadataParts: [channelPart, ...firstRow?.metadataParts ?? []]
+  }, ...otherRows];
+}
+
+/** The channel's avatar, only where the template shows one */
+function templateAvatarImage({ template, channel }: {
+  template: Lockup;
+  channel: ChannelInfo;
+}) {
+  const templateAvatar = template.metadata?.lockupMetadataViewModel?.image?.decoratedAvatarViewModel;
   const avatarUrl = templateAvatar ? channel.avatarUrl : undefined;
-  const image = avatarUrl
-    ? avatarImage({
-      channel,
-      avatarUrl,
-      avatarImageSize: templateAvatar?.avatar?.avatarViewModel?.avatarImageSize ?? DEFAULT_AVATAR_SIZE
-    })
-    : undefined;
+  if (!avatarUrl) {
+    return undefined;
+  }
+
+  return avatarImage({
+    channel,
+    avatarUrl,
+    avatarImageSize: templateAvatar?.avatar?.avatarViewModel?.avatarImageSize ?? DEFAULT_AVATAR_SIZE
+  });
+}
+
+/** Adds the channel name and avatar in the template's layout */
+function graftChannel({ lockup, template, channel }: {
+  lockup: Lockup;
+  template: Lockup;
+  channel: ChannelInfo;
+}) {
+  const templateContentMetadata = template.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel;
+  const lockupMetadata = lockup.metadata?.lockupMetadataViewModel;
+  const contentMetadata = lockupMetadata?.metadata?.contentMetadataViewModel;
+  const metadataRows = withChannelRow({
+    rows: contentMetadata?.metadataRows,
+    templateRows: templateContentMetadata?.metadataRows,
+    channel
+  });
+  const image = templateAvatarImage({
+    template,
+    channel
+  });
   const delimiter = templateContentMetadata?.delimiter ?? contentMetadata?.delimiter;
   return {
     ...lockup,

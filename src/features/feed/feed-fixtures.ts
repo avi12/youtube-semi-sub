@@ -89,10 +89,10 @@ export function richItem(content: Record<string, unknown>) {
   };
 }
 
-/** A www subscriptions-feed tile: channel row, then views and published time */
-export function desktopFeedItem({ index, published }: {
+/** A subscriptions-feed tile of a subscribed channel; www and m only lay out its metadata rows differently */
+function subscribedFeedItem({ index, contentMetadataViewModel }: {
   index: number;
-  published: string;
+  contentMetadataViewModel: Record<string, unknown>;
 }) {
   return richItem({
     lockupViewModel: {
@@ -108,36 +108,47 @@ export function desktopFeedItem({ index, published }: {
           },
           image: avatarImage("Subscribed Channel"),
           metadata: {
-            contentMetadataViewModel: {
-              metadataRows: [
-                {
-                  metadataParts: [{
-                    text: {
-                      content: "Subscribed Channel"
-                    }
-                  }]
-                },
-                {
-                  metadataParts: [
-                    {
-                      text: {
-                        content: "13M"
-                      },
-                      accessibilityLabel: "13 million views"
-                    },
-                    {
-                      text: {
-                        content: published
-                      }
-                    }
-                  ]
-                }
-              ],
-              delimiter: " "
-            }
+            contentMetadataViewModel
           }
         }
       }
+    }
+  });
+}
+
+/** A www subscriptions-feed tile: channel row, then views and published time */
+export function desktopFeedItem({ index, published }: {
+  index: number;
+  published: string;
+}) {
+  return subscribedFeedItem({
+    index,
+    contentMetadataViewModel: {
+      metadataRows: [
+        {
+          metadataParts: [{
+            text: {
+              content: "Subscribed Channel"
+            }
+          }]
+        },
+        {
+          metadataParts: [
+            {
+              text: {
+                content: "13M"
+              },
+              accessibilityLabel: "13 million views"
+            },
+            {
+              text: {
+                content: published
+              }
+            }
+          ]
+        }
+      ],
+      delimiter: " "
     }
   });
 }
@@ -147,46 +158,30 @@ export function mobileFeedItem({ index, published }: {
   index: number;
   published: string;
 }) {
-  return richItem({
-    lockupViewModel: {
-      contentId: videoId(index),
-      contentType: "LOCKUP_CONTENT_TYPE_VIDEO",
-      contentImage: {
-        thumbnailViewModel: thumbnailViewModel(videoId(index))
-      },
-      metadata: {
-        lockupMetadataViewModel: {
-          title: {
-            content: `Subscribed video ${index}`
-          },
-          image: avatarImage("Subscribed Channel"),
-          metadata: {
-            contentMetadataViewModel: {
-              metadataRows: [{
-                metadataParts: [
-                  {
-                    text: {
-                      content: "Subscribed Channel"
-                    }
-                  },
-                  {
-                    text: {
-                      content: "4.5M views"
-                    }
-                  },
-                  {
-                    text: {
-                      content: published
-                    },
-                    accessibilityLabel: published
-                  }
-                ]
-              }],
-              delimiter: " • "
+  return subscribedFeedItem({
+    index,
+    contentMetadataViewModel: {
+      metadataRows: [{
+        metadataParts: [
+          {
+            text: {
+              content: "Subscribed Channel"
             }
+          },
+          {
+            text: {
+              content: "4.5M views"
+            }
+          },
+          {
+            text: {
+              content: published
+            },
+            accessibilityLabel: published
           }
-        }
-      }
+        ]
+      }],
+      delimiter: " • "
     }
   });
 }
