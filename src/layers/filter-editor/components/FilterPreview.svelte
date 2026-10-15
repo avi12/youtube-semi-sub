@@ -74,12 +74,17 @@
         {/each}
       </bdi>
     </span>
-    <time class="video__time" datetime={new Date(row.video.publishedAt).toISOString()}>
-      {formatRelativeTime({
-        time: row.video.publishedAt,
-        now: NOW
-      })}
-    </time>
+    <span class="video__meta">
+      {#if row.video.isShort}
+        <span class="video__short">Short</span>
+      {/if}
+      <time class="video__time" datetime={new Date(row.video.publishedAt).toISOString()}>
+        {formatRelativeTime({
+          time: row.video.publishedAt,
+          now: NOW
+        })}
+      </time>
+    </span>
   </span>
 {/snippet}
 
@@ -238,6 +243,23 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
+  }
+
+  .video__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 6px;
+    align-items: center;
+  }
+
+  .video__short {
+    padding-inline: 6px;
+    border-radius: 4px;
+    background: color-mix(in sRGB, var(--editor-accent) 16%, transparent);
+    color: var(--editor-fg);
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 18px;
   }
 
   .video__time {
