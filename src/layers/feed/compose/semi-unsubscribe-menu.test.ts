@@ -1,6 +1,7 @@
 import { SEMI_UNSUBSCRIBE_LABEL, withSemiUnsubscribeItem } from "./semi-unsubscribe-menu";
 import { RendererKind } from "@/lib/youtube/schemas/renderers";
 import { CHANNEL_ID, desktopChannelTabLockup, videoId } from "#feed/fixtures/feed-fixtures";
+import type { VideoRenderer } from "#feed/items/feed-schemas";
 import { describe, expect, it } from "vitest";
 
 const OWN_LIST_ITEM = {
@@ -78,7 +79,7 @@ function lockupWithMenu(menuButton: unknown) {
 
 function addItem({ renderer, kind = RendererKind.lockupViewModel }: {
   renderer: object;
-  kind?: RendererKind;
+  kind?: VideoRenderer["kind"];
 }) {
   return withSemiUnsubscribeItem({
     kind,

@@ -12,7 +12,13 @@ import {
   shortsShelf,
   videoId
 } from "#feed/fixtures/feed-fixtures";
-import { rendererFromContent, rendererFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
+import {
+  rendererFromContent,
+  rendererFromGridItem,
+  shelfItemsFromGridItem,
+  videoIdFromGridItem,
+  videoIdFromShelfItem
+} from "#feed/items/feed-items";
 import { describe, expect, it } from "vitest";
 
 const SUBSCRIPTIONS: SemiSubscriptions = {
@@ -63,6 +69,7 @@ function compose({ videos, removedVideoIds = new Set(), contents = feedContents(
     findNative: video => video.videoId === videoId(50)
       ? rendererFromContent({ lockupViewModel: desktopChannelTabLockup(50) })
       : null,
+    findNativeShort: () => null,
     findAvatarUrl: () => "https://yt3.googleusercontent.com/semi=s900"
   });
 }
@@ -166,6 +173,48 @@ describe("composeFeedContents", () => {
         videos: [feedVideo({
           index: 50,
           hours: 3
+        })]
+      })
+    ).toBeNull();
+  });
+
+  it("puts Shorts in the Shorts shelf only, leaving the band and the shelf's place as they are", () => {
+    const composed = compose({
+      videos: [
+        feedVideo({
+          index: 50,
+          hours: 3
+        }),
+        feedVideo({
+          index: 60,
+          hours: 2,
+          isShort: true
+        })
+      ]
+    });
+    const contents = composed?.contents ?? [];
+    expect(composed?.insertedIds).toEqual([videoId(50), videoId(60)]);
+    expect(ids(contents)).toEqual([videoId(1), videoId(50), "marker", videoId(2), videoId(3), "marker"]);
+    expect(shelfItemsFromGridItem(contents[2]).map(videoIdFromShelfItem)).toEqual([videoId(60), videoId(90)]);
+  });
+
+  it("takes a Short out of the shelf", () => {
+    const composed = compose({
+      videos: [],
+      removedVideoIds: new Set([videoId(90)])
+    });
+    expect(composed?.removedIds).toEqual([videoId(90)]);
+    expect(shelfItemsFromGridItem(composed?.contents[2])).toEqual([]);
+  });
+
+  it("leaves Shorts out of a feed without a Shorts shelf", () => {
+    expect(
+      compose({
+        contents: feedContents().filter(item => shelfItemsFromGridItem(item).length === 0),
+        videos: [feedVideo({
+          index: 60,
+          hours: 2,
+          isShort: true
         })]
       })
     ).toBeNull();

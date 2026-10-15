@@ -1,19 +1,36 @@
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/page/innertube";
+import { shortsLockupSchema } from "@/lib/youtube/schemas/renderers";
 import { z } from "@/lib/zod";
-import { rendererFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
+import { rendererFromGridItem, shortsLockupFromItem, videoIdFromShelfItem } from "#feed/items/feed-items";
 import { browseResponseSchema, type VideoRenderer, videoRendererSchema } from "#feed/items/feed-schemas";
 
-// A channel's Videos tab, fetched with the page's own client so its renderers match what this client renders
-// (lockupViewModel on www, compactVideoRenderer on m). Cached per page session
+// A channel's Videos tab - or Shorts tab, for a Short - fetched with the page's own client so its renderers match what
+// this client renders (lockupViewModel on www, compactVideoRenderer on m, shortsLockupViewModel for Shorts). Cached per
+// page session
 
-const VIDEOS_TAB_PARAMS = "EgZ2aWRlb3PyBgQKAjoA";
+enum ChannelTab {
+  videos = "videos",
+  shorts = "shorts"
+}
+
+const TAB_PARAMS: Record<ChannelTab, string> = {
+  [ChannelTab.videos]: "EgZ2aWRlb3PyBgQKAjoA",
+  [ChannelTab.shorts]: "EgZzaG9ydHPyBgUKA5oBAA=="
+};
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const FAILED_FETCH_RETRY_MS = 30 * 1000;
 
+const tabRequestSchema = z.object({
+  channelId: z.string(),
+  tab: z.enum(ChannelTab)
+});
+type TabRequest = z.infer<typeof tabRequestSchema>;
+
 const channelNativesSchema = z.object({
   avatarUrl: z.string().nullable(),
-  renderersByVideoId: z.map(z.string(), videoRendererSchema)
+  renderersByVideoId: z.map(z.string(), videoRendererSchema),
+  shortsByVideoId: z.map(z.string(), shortsLockupSchema)
 });
 type ChannelNatives = z.infer<typeof channelNativesSchema>;
 
@@ -24,7 +41,15 @@ const cacheEntrySchema = z.object({
 });
 type CacheEntry = z.infer<typeof cacheEntrySchema>;
 
-const cacheByChannelId = new Map<string, CacheEntry>();
+const cacheByTab = new Map<string, CacheEntry>();
+
+function cacheKey({ channelId, tab }: TabRequest) {
+  return `${tab}:${channelId}`;
+}
+
+function tabOf(video: Pick<FeedVideo, "isShort">) {
+  return video.isShort ? ChannelTab.shorts : ChannelTab.videos;
+}
 
 function parseChannelNatives(response: unknown) {
   const parsed = browseResponseSchema.safeParse(response);
@@ -34,30 +59,34 @@ function parseChannelNatives(response: unknown) {
 
   const { contents, metadata } = parsed.data;
   const tabs = contents.twoColumnBrowseResultsRenderer?.tabs ?? contents.singleColumnBrowseResultsRenderer?.tabs ?? [];
-  const renderersByVideoId = new Map<string, VideoRenderer>();
+  const natives: ChannelNatives = {
+    avatarUrl: metadata?.channelMetadataRenderer?.avatar?.thumbnails?.at(-1)?.url ?? null,
+    renderersByVideoId: new Map<string, VideoRenderer>(),
+    shortsByVideoId: new Map()
+  };
   for (const tab of tabs) {
     for (const item of tab.tabRenderer?.content?.richGridRenderer?.contents ?? []) {
-      const videoId = videoIdFromGridItem(item);
+      const videoId = videoIdFromShelfItem(item);
       const renderer = rendererFromGridItem(item);
+      const shortsLockup = shortsLockupFromItem(item);
       if (videoId && renderer) {
-        renderersByVideoId.set(videoId, renderer);
+        natives.renderersByVideoId.set(videoId, renderer);
+      }
+
+      if (videoId && shortsLockup) {
+        natives.shortsByVideoId.set(videoId, shortsLockup);
       }
     }
   }
-
-  const natives: ChannelNatives = {
-    avatarUrl: metadata?.channelMetadataRenderer?.avatar?.thumbnails?.at(-1)?.url ?? null,
-    renderersByVideoId
-  };
   return natives;
 }
 
-async function fetchChannelNatives(channelId: string) {
+async function fetchChannelNatives({ channelId, tab }: TabRequest) {
   const response = await postInnerTube({
     endpoint: InnerTubeEndpoint.browse,
     payload: {
       browseId: channelId,
-      params: VIDEOS_TAB_PARAMS
+      params: TAB_PARAMS[tab]
     }
   });
   return parseChannelNatives(response);
@@ -69,8 +98,9 @@ function isEntryFresh(entry: CacheEntry) {
   return Date.now() - entry.fetchedAt < maxAge;
 }
 
-export function loadChannelNatives(channelId: string) {
-  const cached = cacheByChannelId.get(channelId);
+function loadTab(request: TabRequest) {
+  const key = cacheKey(request);
+  const cached = cacheByTab.get(key);
   if (cached && isEntryFresh(cached)) {
     return cached.natives;
   }
@@ -81,24 +111,51 @@ export function loadChannelNatives(channelId: string) {
     natives: Promise.resolve(null),
     result: cached?.result
   };
-  entry.natives = fetchChannelNatives(channelId).catch(() => null).then(natives => {
+  entry.natives = fetchChannelNatives(request).catch(() => null).then(natives => {
     entry.result = natives ?? cached?.result ?? null;
     return entry.result;
   });
-  cacheByChannelId.set(channelId, entry);
+  cacheByTab.set(key, entry);
   return entry.natives;
 }
 
-/** What is already loaded - never waits */
-function findLoadedNatives(channelId: string) {
-  const entry = cacheByChannelId.get(channelId);
-  return entry?.result ?? null;
+/** Loads the tab each video's native renderer comes from - one request per channel and tab */
+export function loadChannelNatives(videos: readonly Pick<FeedVideo, "channelId" | "isShort">[]) {
+  const requestsByKey = new Map<string, TabRequest>();
+  for (const video of videos) {
+    const request: TabRequest = {
+      channelId: video.channelId,
+      tab: tabOf(video)
+    };
+    requestsByKey.set(cacheKey(request), request);
+  }
+  return Promise.all([...requestsByKey.values()].map(loadTab));
 }
 
-export function findNativeRenderer({ channelId, videoId }: Pick<FeedVideo, "channelId" | "videoId">) {
-  return findLoadedNatives(channelId)?.renderersByVideoId.get(videoId) ?? null;
+/** What is already loaded - never waits */
+function findLoadedNatives(request: TabRequest) {
+  return cacheByTab.get(cacheKey(request))?.result ?? null;
+}
+
+function findLoadedNativesOf(video: Pick<FeedVideo, "channelId" | "isShort">) {
+  return findLoadedNatives({
+    channelId: video.channelId,
+    tab: tabOf(video)
+  });
+}
+
+export function findNativeRenderer(video: Pick<FeedVideo, "channelId" | "videoId" | "isShort">) {
+  return findLoadedNativesOf(video)?.renderersByVideoId.get(video.videoId) ?? null;
+}
+
+export function findNativeShort(video: Pick<FeedVideo, "channelId" | "videoId" | "isShort">) {
+  return findLoadedNativesOf(video)?.shortsByVideoId.get(video.videoId) ?? null;
 }
 
 export function findLoadedAvatarUrl(channelId: string) {
-  return findLoadedNatives(channelId)?.avatarUrl ?? null;
+  const loaded = Object.values(ChannelTab).map(tab => findLoadedNatives({
+    channelId,
+    tab
+  }));
+  return loaded.find(natives => natives?.avatarUrl)?.avatarUrl ?? null;
 }

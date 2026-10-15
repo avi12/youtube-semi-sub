@@ -1,8 +1,10 @@
 import { readSubscriptionsFeed } from "./feed-response";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
+import { isSemiSubscribedItem } from "#feed/compose/semi-subscribed-tag";
 import {
   CHANNEL_ID,
+  channelShortsTabResponse,
   channelVideosTabResponse,
   continuationItem,
   desktopChannelTabLockup,
@@ -11,11 +13,19 @@ import {
   feedVideo,
   NOW,
   richItem,
+  shortsLockup,
+  shortsShelf,
   videoId
 } from "#feed/fixtures/feed-fixtures";
-import { videoIdFromGridItem } from "#feed/items/feed-items";
+import {
+  shelfItemsFromGridItem,
+  shortsLockupFromItem,
+  videoIdFromGridItem,
+  videoIdFromShelfItem
+} from "#feed/items/feed-items";
 import {
   afterAll,
+  afterEach,
   beforeAll,
   beforeEach,
   describe,
@@ -35,22 +45,33 @@ vi.mock("@/lib/page/page-state", () => ({
   onPageState: () => () => {}
 }));
 
+const SHORTS_TAB_PARAMS = "EgZzaG9ydHPyBgUKA5oBAA==";
+
 vi.mock("@/lib/youtube/page/innertube", () => ({
   InnerTubeEndpoint: {
     browse: "/youtubei/v1/browse?prettyPrint=false"
   },
-  postInnerTube: () => Promise.resolve(
-    channelVideosTabResponse([
-      richItem({ lockupViewModel: desktopChannelTabLockup(50) })
-    ])
+  postInnerTube: ({ payload }: {
+    payload: { params?: string };
+  }) => Promise.resolve(
+    payload.params === SHORTS_TAB_PARAMS
+      ? channelShortsTabResponse([
+        richItem({
+          shortsLockupViewModel: shortsLockup({
+            index: 60,
+            views: "29M views",
+            entityPrefix: "shorts-shelf-item-"
+          })
+        })
+      ])
+      : channelVideosTabResponse([
+        richItem({ lockupViewModel: desktopChannelTabLockup(50) })
+      ])
   )
 }));
 
-vi.mock("@/lib/youtube/site", () => ({
-  YouTubeSite: {
-    desktop: "desktop",
-    mobile: "mobile"
-  },
+vi.mock("@/lib/youtube/site", async importOriginal => ({
+  ...await importOriginal<typeof import("@/lib/youtube/site")>(),
   getYouTubeSite: () => "desktop"
 }));
 
@@ -63,6 +84,24 @@ function feedResponseBody() {
       index: 1,
       published: "1 hour ago"
     }),
+    desktopFeedItem({
+      index: 2,
+      published: "5 hours ago"
+    }),
+    continuationItem()
+  ]);
+}
+
+const YTAF_PRESENCE_GLOBAL = "__ytafFeedMessenger";
+const YTAF_CONTRACT_VERSION_GLOBAL = "__ytafHonorsSemiSubTags";
+
+function feedWithShortsShelf() {
+  return desktopFeedResponse([
+    desktopFeedItem({
+      index: 1,
+      published: "1 hour ago"
+    }),
+    shortsShelf([90]),
     desktopFeedItem({
       index: 2,
       published: "5 hours ago"
@@ -85,15 +124,22 @@ function feedIds(data: unknown) {
   return contents.map(videoIdFromGridItem);
 }
 
+function shelfItems(data: unknown) {
+  const contents = readSubscriptionsFeed(data)?.contents ?? [];
+  return contents.flatMap(shelfItemsFromGridItem);
+}
+
+async function readFeedWithShelf() {
+  return await responseAt({
+    url: BROWSE_URL,
+    body: JSON.stringify(feedWithShortsShelf())
+  }).json();
+}
+
 beforeAll(async () => {
   // Only Date: the hook's deadlines still run on real timers
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
-  vi.stubGlobal("document", {
-    documentElement: {
-      lang: "en"
-    }
-  });
   const { installResponseHooks } = await import("./response-hook");
   installResponseHooks();
 });
@@ -106,18 +152,35 @@ afterAll(() => {
 });
 
 beforeEach(() => {
+  vi.stubGlobal("document", {
+    documentElement: {
+      lang: "en"
+    }
+  });
   pageState.current = {
     isExtensionEnabled: true,
     isAnimationsEnabled: true,
     isAiEnabled: false,
     aiVerdicts: {},
     subscriptions: {},
-    feedVideos: [feedVideo({
-      index: 50,
-      hours: 3,
-      channelId: CHANNEL_ID
-    })]
+    feedVideos: [
+      feedVideo({
+        index: 50,
+        hours: 3,
+        channelId: CHANNEL_ID
+      }),
+      feedVideo({
+        index: 60,
+        hours: 2,
+        channelId: CHANNEL_ID,
+        isShort: true
+      })
+    ]
   };
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("the feed response hook", () => {
@@ -208,5 +271,41 @@ describe("the feed response hook", () => {
     Response.prototype.json = ownJson;
     expect(chainedJson).toHaveBeenCalledOnce();
     expect(feedIds(data)).toContain(videoId(50));
+  });
+
+  it("puts the Short in the feed's Shorts shelf, tagged, and never in the band", async () => {
+    const data = await readFeedWithShelf();
+    const items = shelfItems(data);
+    expect(items.map(videoIdFromShelfItem)).toEqual([videoId(60), videoId(90)]);
+    expect(items.map(isSemiSubscribedItem)).toEqual([true, false]);
+    expect(feedIds(data)).not.toContain(videoId(60));
+  });
+
+  it("builds the Short from the channel's Shorts tab, with its views", async () => {
+    const [short] = shelfItems(await readFeedWithShelf());
+    expect(shortsLockupFromItem(short)?.overlayMetadata?.secondaryText?.content).toBe("29M views");
+  });
+
+  it("leaves the Short out of a feed without a Shorts shelf", async () => {
+    const data = await responseAt({
+      url: BROWSE_URL,
+      body: JSON.stringify(feedResponseBody())
+    }).json();
+    expect(JSON.stringify(data)).not.toContain(videoId(60));
+    expect(feedIds(data)).toContain(videoId(50));
+  });
+
+  it("keeps Shorts out while a YouTube Auto Feed too old for them runs, still injecting videos", async () => {
+    vi.stubGlobal(YTAF_PRESENCE_GLOBAL, {});
+    const data = await readFeedWithShelf();
+    expect(shelfItems(data).map(videoIdFromShelfItem)).toEqual([videoId(90)]);
+    expect(feedIds(data)).toContain(videoId(50));
+  });
+
+  it.each([true, 1, 2])("injects Shorts while a YouTube Auto Feed on contract version %j runs", async version => {
+    vi.stubGlobal(YTAF_PRESENCE_GLOBAL, {});
+    vi.stubGlobal(YTAF_CONTRACT_VERSION_GLOBAL, version);
+    const data = await readFeedWithShelf();
+    expect(shelfItems(data).map(videoIdFromShelfItem)).toEqual([videoId(60), videoId(90)]);
   });
 });

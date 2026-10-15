@@ -298,6 +298,90 @@ export function contextRendererItem({ index, published }: {
   });
 }
 
+/** A Short as the subscriptions feed's Shorts shelf and a channel's Shorts tab show it (www and m alike) */
+export function shortsLockup({ index, views = "28K views", entityPrefix = "subscriptions-shorts-shelf-item-" }: {
+  index: number;
+  views?: string;
+  entityPrefix?: string;
+}) {
+  return {
+    entityId: `${entityPrefix}${videoId(index)}`,
+    accessibilityText: `Short ${index}, 28 thousand views - play Short`,
+    onTap: {
+      innertubeCommand: {
+        commandMetadata: {
+          webCommandMetadata: {
+            url: `/shorts/${videoId(index)}`,
+            webPageType: "WEB_PAGE_TYPE_SHORTS",
+            rootVe: 37414
+          }
+        },
+        reelWatchEndpoint: {
+          videoId: videoId(index),
+          params: "CAUwAroBGFVDSDRCTkkwLUZPSzJkTVhvRnRWaVdIdw%3D%3D"
+        }
+      }
+    },
+    menuOnTap: {
+      innertubeCommand: {
+        showSheetCommand: {
+          panelLoadingStrategy: {
+            inlineContent: {
+              sheetViewModel: {
+                content: {
+                  listViewModel: {
+                    listItems: [{
+                      listItemViewModel: {
+                        title: {
+                          content: "Hide"
+                        },
+                        rendererContext: {
+                          commandContext: {
+                            onTap: {
+                              innertubeCommand: {
+                                feedbackEndpoint: {
+                                  feedbackToken: `hide-${videoId(index)}`,
+                                  contentId: videoId(index)
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    menuOnTapA11yLabel: "More actions",
+    overlayMetadata: {
+      primaryText: {
+        content: `Short ${index}`
+      },
+      secondaryText: {
+        content: views
+      }
+    },
+    thumbnailViewModel: {
+      thumbnailViewModel: {
+        image: {
+          sources: [{
+            url: `https://i.ytimg.com/vi/${videoId(index)}/sardefault.jpg?sqp=signed`,
+            width: 405,
+            height: 720
+          }]
+        }
+      }
+    },
+    titleTruncationStyle: "SHORTS_LOCKUP_TITLE_TRUNCATION_STYLE_UNKNOWN"
+  };
+}
+
+/** www's Shorts shelf: a rich shelf of grid items */
 export function shortsShelf(indexes: number[]) {
   return {
     richSectionRenderer: {
@@ -307,15 +391,51 @@ export function shortsShelf(indexes: number[]) {
             runs: [{ text: "Shorts" }]
           },
           contents: indexes.map(index => richItem({
-            shortsLockupViewModel: {
-              onTap: {
-                innertubeCommand: {
-                  reelWatchEndpoint: {
-                    videoId: videoId(index)
-                  }
-                }
-              }
-            }
+            shortsLockupViewModel: shortsLockup({ index })
+          })),
+          isExpanded: false,
+          icon: {
+            iconType: "YOUTUBE_SHORTS_BRAND_24"
+          }
+        }
+      }
+    }
+  };
+}
+
+/** m's Shorts shelf: a reel shelf of bare lockups */
+export function mobileShortsShelf(indexes: number[]) {
+  return {
+    richSectionRenderer: {
+      content: {
+        reelShelfRenderer: {
+          title: {
+            runs: [{ text: "Shorts" }]
+          },
+          items: indexes.map(index => ({
+            shortsLockupViewModel: shortsLockup({ index })
+          })),
+          icon: {
+            iconType: "YOUTUBE_SHORTS_BRAND_24"
+          }
+        }
+      }
+    }
+  };
+}
+
+/** www's "Most relevant" shelf: regular videos, no Shorts */
+export function mostRelevantShelf(indexes: number[]) {
+  return {
+    richSectionRenderer: {
+      content: {
+        richShelfRenderer: {
+          title: {
+            runs: [{ text: "Most relevant" }]
+          },
+          contents: indexes.map(index => desktopFeedItem({
+            index,
+            published: "1 hour ago"
           }))
         }
       }
@@ -391,7 +511,10 @@ export function mobileFeedResponse(contents: unknown[]) {
   };
 }
 
-export function channelVideosTabResponse(contents: unknown[]) {
+function channelTabResponse({ title, contents }: {
+  title: string;
+  contents: unknown[];
+}) {
   return {
     responseContext: trackingParams(CHANNEL_ID),
     contents: {
@@ -404,7 +527,7 @@ export function channelVideosTabResponse(contents: unknown[]) {
           },
           {
             tabRenderer: {
-              title: "Videos",
+              title,
               selected: true,
               content: {
                 richGridRenderer: {
@@ -424,4 +547,18 @@ export function channelVideosTabResponse(contents: unknown[]) {
       }
     }
   };
+}
+
+export function channelVideosTabResponse(contents: unknown[]) {
+  return channelTabResponse({
+    title: "Videos",
+    contents
+  });
+}
+
+export function channelShortsTabResponse(contents: unknown[]) {
+  return channelTabResponse({
+    title: "Shorts",
+    contents
+  });
 }

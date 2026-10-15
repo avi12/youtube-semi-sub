@@ -112,3 +112,31 @@ describe("isYouTubeAutoFeedActive", () => {
     expect(callback).not.toHaveBeenCalled();
   });
 });
+
+describe("isShortsInjectionAllowed", () => {
+  it("allows Shorts without ytaf, and with ytaf switched off", () => {
+    vi.unstubAllGlobals();
+    expect(ytaf.isShortsInjectionAllowed()).toBe(true);
+
+    vi.stubGlobal("addEventListener", page.addEventListener.bind(page));
+    vi.stubGlobal("__ytafFeedMessenger", {});
+    ytaf.watchYouTubeAutoFeedSwitch(() => {});
+    pushSettings(false);
+    expect(ytaf.isShortsInjectionAllowed()).toBe(true);
+  });
+
+  it.each([
+    [undefined, false],
+    [false, false],
+    [0, false],
+    ["2", false],
+    [-1, false],
+    [1.5, false],
+    [true, true],
+    [1, true],
+    [2, true]
+  ])("reads contract version flag %j of a running ytaf as allowing Shorts: %j", (flag, isAllowed) => {
+    vi.stubGlobal("__ytafHonorsSemiSubTags", flag);
+    expect(ytaf.isShortsInjectionAllowed()).toBe(isAllowed);
+  });
+});

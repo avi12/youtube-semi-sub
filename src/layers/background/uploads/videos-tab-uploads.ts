@@ -1,5 +1,4 @@
 import { fetchText } from "./fetch-text";
-import { buildVideoThumbnailUrl } from "./video-thumbnail";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { parseJson } from "@/lib/utils/json";
 import { findInitialDataJson } from "@/lib/youtube/initial-data";
@@ -14,6 +13,7 @@ import {
 } from "@/lib/youtube/schemas/renderers";
 import { readText } from "@/lib/youtube/schemas/text";
 import { YOUTUBE_ORIGIN } from "@/lib/youtube/site";
+import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
 import { z } from "@/lib/zod";
 
 // Fallback for when RSS is down: the channel's Videos tab. Its page embeds the InnerTube browse response as

@@ -8,6 +8,8 @@ import { z } from "@/lib/zod";
 // a messenger of our own in its namespace would answer its requests too, ahead of its bridge
 
 const YTAF_PRESENCE_GLOBAL = "__ytafFeedMessenger";
+/** The version of the contract ytaf keeps with this extension, which it sets at document_start in the MAIN world */
+const YTAF_CONTRACT_VERSION_GLOBAL = "__ytafHonorsSemiSubTags";
 const YTAF_CHANNEL_NAME = "ytaf";
 const YTAF_SETTINGS_NAMESPACE = "ytaf-settings";
 
@@ -27,6 +29,17 @@ enum YtafSettingsMessage {
 enum YtafMessageType {
   subscriptionChange = "subscription-change"
 }
+
+/** What ytaf promises from each contract version on */
+enum YtafContractVersion {
+  /** It keeps tagged items YouTube's own feed lacks - Shorts in its shelf too - for as long as a response has them */
+  honorsSemiSubTags = 1
+}
+
+/** Absent before ytaf took on the contract, `true` for its first version, a number since */
+const contractVersionSchema = z
+  .union([z.literal(true).transform(() => YtafContractVersion.honorsSemiSubTags), z.number().int().nonnegative()])
+  .catch(0);
 
 const ytafSettingsSchema = z.looseObject({
   isExtensionEnabled: z.boolean()
@@ -56,6 +69,19 @@ let isYtafEnabled = true;
 /** Read lazily: the two extensions' content scripts load in no guaranteed order */
 export function isYouTubeAutoFeedActive() {
   return YTAF_PRESENCE_GLOBAL in globalThis && isYtafEnabled;
+}
+
+function readYouTubeAutoFeedContractVersion() {
+  return contractVersionSchema.parse(Object.getOwnPropertyDescriptor(globalThis, YTAF_CONTRACT_VERSION_GLOBAL)?.value);
+}
+
+/**
+ * Shorts are injected unless a running ytaf is too old to keep them: it never adopts new shelf items and prunes the
+ * Shorts of channels outside the user's subscriptions, so they would only flash in and out
+ */
+export function isShortsInjectionAllowed() {
+  return !isYouTubeAutoFeedActive()
+    || readYouTubeAutoFeedContractVersion() >= YtafContractVersion.honorsSemiSubTags;
 }
 
 export function nudgeYouTubeAutoFeed() {

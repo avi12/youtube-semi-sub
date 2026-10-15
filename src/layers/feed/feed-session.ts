@@ -1,11 +1,11 @@
-import { findLoadedAvatarUrl, findNativeRenderer, loadChannelNatives } from "./channel-natives";
+import { findLoadedAvatarUrl, findNativeRenderer, findNativeShort, loadChannelNatives } from "./channel-natives";
 import { createVideoJudge, MatchState } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
-import { planFeedBand } from "#feed/compose/band/feed-band";
-import { composeFeedContents } from "#feed/compose/feed-compose";
+import { composeFeedContents, planFeed } from "#feed/compose/feed-compose";
 import { channelIdFromGridItem, titleFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
+import { isShortsInjectionAllowed } from "#feed/live/ytaf";
 
 // Page-session glue between the pure feed composition and the live page: the extension state, the natives cache,
 // and the ids this page session inserted (the only feed videos it may later take out - besides what a resumed
@@ -19,7 +19,11 @@ const resumedChannelIds = new Set<string>();
 let previousState: PageState | null = null;
 
 function desiredFeedVideos(state: PageState) {
-  return state.isExtensionEnabled ? state.feedVideos : [];
+  if (!state.isExtensionEnabled) {
+    return [];
+  }
+
+  return isShortsInjectionAllowed() ? state.feedVideos : state.feedVideos.filter(video => !video.isShort);
 }
 
 export function recordFeedChange({ insertedIds, removedIds }: Pick<
@@ -148,7 +152,7 @@ export function planForPageState({ contents, state, removedVideoIds }: {
   state: PageState;
   removedVideoIds: ReadonlySet<string>;
 }) {
-  return planFeedBand({
+  return planFeed({
     contents,
     videos: desiredFeedVideos(state),
     now: Date.now(),
@@ -165,6 +169,7 @@ export function composeForPageState({ contents, state, removedVideoIds }: Parame
     now: Date.now(),
     locale: pageLocale(),
     findNative: findNativeRenderer,
+    findNativeShort,
     findAvatarUrl: findLoadedAvatarUrl
   });
 }
@@ -206,9 +211,8 @@ export function loadNativesFor({ videos, deadline }: {
   videos: readonly FeedVideo[];
   deadline: number;
 }) {
-  const channelIds = new Set(videos.map(video => video.channelId));
   return settleBefore({
-    promise: Promise.all([...channelIds].map(loadChannelNatives)),
+    promise: loadChannelNatives(videos),
     deadline
   });
 }
@@ -220,8 +224,5 @@ export function prefetchFeedNatives() {
     return;
   }
 
-  const channelIds = new Set(desiredFeedVideos(state).slice(0, PREFETCH_VIDEO_LIMIT).map(video => video.channelId));
-  for (const channelId of channelIds) {
-    loadChannelNatives(channelId).catch(() => {});
-  }
+  loadChannelNatives(desiredFeedVideos(state).slice(0, PREFETCH_VIDEO_LIMIT)).catch(() => {});
 }

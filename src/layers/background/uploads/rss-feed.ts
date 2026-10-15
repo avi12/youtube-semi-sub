@@ -1,7 +1,7 @@
 import { fetchText } from "./fetch-text";
-import { buildVideoThumbnailUrl } from "./video-thumbnail";
 import { type FeedVideo, feedVideoSchema, VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
 import { isShortsUrl } from "@/lib/youtube/site";
+import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
 import { z } from "@/lib/zod";
 import { XMLParser } from "fast-xml-parser";
 

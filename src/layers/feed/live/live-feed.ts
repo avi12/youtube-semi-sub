@@ -18,7 +18,12 @@ import {
   settleResumedChannels,
   trackHaltTransitions
 } from "#feed/feed-session";
-import { thumbnailUrlFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
+import {
+  readShelf,
+  shelfItemsFromGridItem,
+  thumbnailUrlFromGridItem,
+  videoIdFromShelfItem
+} from "#feed/items/feed-items";
 import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
 
 // Keeps an open subscriptions feed in step with the semi-sub videos: on a hard load (rendered from ytInitialData,
@@ -105,6 +110,36 @@ function cloneMovedItems({ previous, next }: {
   });
 }
 
+/** `cloneMovedItems` for the grid, and for the items inside a shelf the write replaced */
+function cloneMovedGridItems({ previous, next }: Parameters<typeof cloneMovedItems>[0]) {
+  const previousItems = new Set(previous);
+  return cloneMovedItems({
+    previous,
+    next
+  }).map((item, i) => {
+    const shelf = previousItems.has(item) ? null : readShelf(item);
+    return shelf
+      ? shelf.withItems(
+        cloneMovedItems({
+          previous: shelfItemsFromGridItem(previous[i]),
+          next: shelf.items
+        })
+      )
+      : item;
+  });
+}
+
+/** The thumbnails of the items just inserted, in the grid or its Shorts shelf */
+function collectInsertedThumbnailUrls({ contents, insertedIds }: {
+  contents: readonly unknown[];
+  insertedIds: ReadonlySet<string>;
+}) {
+  return contents
+    .flatMap(item => [item, ...shelfItemsFromGridItem(item)])
+    .filter(item => insertedIds.has(videoIdFromShelfItem(item) ?? ""))
+    .flatMap(item => thumbnailUrlFromGridItem(item) ?? []);
+}
+
 function nudgeYouTubeAutoFeedOnce(key: string) {
   if (key === lastYtafNudgeKey) {
     return;
@@ -188,18 +223,18 @@ async function reconcile() {
   }
 
   const insertedIds = new Set(composed.insertedIds);
-  const thumbnailUrls = composed.contents
-    .filter(item => insertedIds.has(videoIdFromGridItem(item) ?? ""))
-    .flatMap(item => thumbnailUrlFromGridItem(item) ?? []);
   const isWritten = await writeGridContents({
     grid,
-    contents: cloneMovedItems({
+    contents: cloneMovedGridItems({
       previous: currentContents,
       next: composed.contents
     }),
     insertedIds,
     removedIds: new Set(composed.removedIds),
-    thumbnailUrls,
+    thumbnailUrls: collectInsertedThumbnailUrls({
+      contents: composed.contents,
+      insertedIds
+    }),
     isAnimated: currentState.isAnimationsEnabled,
     isCurrent: () => isOnFeedPage() && isSameContents({
       left: grid.readContents(),

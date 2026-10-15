@@ -1,6 +1,7 @@
-import { type FeedVideo, feedVideoSchema, sortNewestFirst } from "@/lib/schemas/feed-video";
+import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { z } from "@/lib/zod";
+import type { FeedItemSlot, FeedSlot } from "#feed/compose/feed-slot";
 import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 
 // The feed's root contents mix section markers (shelves) with root-level video items. The root videos form the
@@ -14,24 +15,6 @@ const inlineRunSchema = z.object({
   end: z.number()
 });
 type InlineRun = z.infer<typeof inlineRunSchema>;
-
-const bandSlotBaseSchema = z.object({
-  videoId: z.string()
-});
-
-/** A video item the feed already holds */
-const bandItemSchema = bandSlotBaseSchema.extend({
-  item: z.unknown()
-});
-type BandItem = z.infer<typeof bandItemSchema>;
-
-/** A semi-subscribed video to build an item for */
-const bandVideoSchema = bandSlotBaseSchema.extend({
-  video: feedVideoSchema
-});
-
-const bandSlotSchema = z.union([bandItemSchema, bandVideoSchema]);
-type BandSlot = z.infer<typeof bandSlotSchema>;
 
 export function findInlineRuns(contents: readonly unknown[]) {
   const runs: InlineRun[] = [];
@@ -65,7 +48,7 @@ function extractBand({ contents, runs }: {
   contents: readonly unknown[];
   runs: InlineRun[];
 }) {
-  const band: BandItem[] = [];
+  const band: FeedItemSlot[] = [];
   for (const run of runs) {
     for (const item of contents.slice(run.start, run.end)) {
       const videoId = videoIdFromGridItem(item);
@@ -81,10 +64,26 @@ function extractBand({ contents, runs }: {
 }
 
 /**
+ * Whether an upload is recent enough for the loaded page: no older than its oldest band item - an older one is left
+ * for later pages - or, when no item's time can be read (non-English UI), from the last 24 hours
+ */
+function createLoadedSpanCheck({ times, now }: {
+  times: ReturnType<typeof parseFirstRelativeTime>[];
+  now: number;
+}) {
+  const knownTimes = times.filter(time => time !== null);
+  const isTimeKnown = knownTimes.length > 0;
+  const oldestTime = Math.min(...knownTimes.map(time => time.earliestTime));
+  return function isWithinLoadedSpan(video: FeedVideo) {
+    return isTimeKnown ? video.publishedAt >= oldestTime : now - video.publishedAt <= UNKNOWN_TIME_MAX_AGE_MS;
+  };
+}
+
+/**
  * Plans the band with `videos` inserted at time-correct positions and `removedVideoIds` taken out.
- * A video goes before the first band item older than it; one older than the whole loaded page is left for
- * later pages. When no item's time can be read (non-English UI), videos from the last 24 hours lead the band.
- * Shorts never join the band - they belong in the Shorts shelf
+ * A video goes before the first band item older than it, within the loaded span (`createLoadedSpanCheck`); when no
+ * item's time can be read, the inserted videos lead the band. Shorts never join the band - they belong in the
+ * Shorts shelf, which is held to the same span
  */
 export function planFeedBand({ contents, videos, now, removedVideoIds }: {
   contents: readonly unknown[];
@@ -99,31 +98,29 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
   });
   const band = fullBand.filter(slot => !removedVideoIds.has(slot.videoId));
   const removedIds = fullBand.filter(slot => removedVideoIds.has(slot.videoId)).map(slot => slot.videoId);
+  const times = band.map(slot => parseFirstRelativeTime({
+    texts: publishedTextsFromGridItem(slot.item),
+    now
+  }));
+  const isWithinLoadedSpan = createLoadedSpanCheck({
+    times,
+    now
+  });
   if (runs.length === 0) {
     return {
       runs,
       slots: band,
       insertedVideos: [],
       removedIds,
-      isChanged: false
+      isChanged: false,
+      isWithinLoadedSpan
     };
   }
 
-  const times = band.map(slot => parseFirstRelativeTime({
-    texts: publishedTextsFromGridItem(slot.item),
-    now
-  }));
-  const knownTimes = times.filter(time => time !== null);
-  const isTimeKnown = knownTimes.length > 0;
-  const oldestTime = Math.min(...knownTimes.map(time => time.earliestTime));
-
+  const isTimeKnown = times.some(time => time !== null);
   const presentIds = collectContentVideoIds(contents);
   function isInsertable(video: FeedVideo) {
-    if (video.isShort || presentIds.has(video.videoId)) {
-      return false;
-    }
-
-    return isTimeKnown ? video.publishedAt >= oldestTime : now - video.publishedAt <= UNKNOWN_TIME_MAX_AGE_MS;
+    return !video.isShort && !presentIds.has(video.videoId) && isWithinLoadedSpan(video);
   }
 
   const insertedVideos = sortNewestFirst(videos.filter(isInsertable));
@@ -131,7 +128,7 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
     videoId: video.videoId,
     video
   }));
-  const slots: BandSlot[] = isTimeKnown ? [] : pending.splice(0);
+  const slots: FeedSlot[] = isTimeKnown ? [] : pending.splice(0);
   for (const [i, slot] of band.entries()) {
     const time = times[i];
     while (time && pending[0] && pending[0].video.publishedAt > time.approxTime) {
@@ -146,7 +143,8 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
     slots,
     insertedVideos,
     removedIds,
-    isChanged: insertedVideos.length > 0 || removedIds.length > 0
+    isChanged: insertedVideos.length > 0 || removedIds.length > 0,
+    isWithinLoadedSpan
   };
 }
 

@@ -6,7 +6,9 @@ import {
   CLASSIC_RENDERER_KINDS,
   gridItemSchema,
   RendererKind,
-  richItemContentSchema
+  richItemContentSchema,
+  sectionItemSchema,
+  ShelfRendererKind
 } from "@/lib/youtube/schemas/renderers";
 import { type FormattedText, readText } from "@/lib/youtube/schemas/text";
 import { z } from "@/lib/zod";
@@ -63,7 +65,7 @@ export function videoIdFromContent(content: unknown) {
 
   const parsed = richItemContentSchema.safeParse(content);
   return parsed.success
-    ? videoIdOrNull(parsed.data.shortsLockupViewModel?.onTap.innertubeCommand.reelWatchEndpoint.videoId)
+    ? videoIdOrNull(parsed.data[RendererKind.shortsLockupViewModel]?.onTap.innertubeCommand.reelWatchEndpoint.videoId)
     : null;
 }
 
@@ -106,18 +108,74 @@ export function videoIdFromGridItem(item: unknown) {
   return content ? videoIdFromContent(content) : null;
 }
 
+/** A shelf's item is a grid item (www), or on m's Shorts shelf the bare renderer a grid item would wrap */
+function shelfItemContent(item: unknown) {
+  return richItemContent(item) ?? item;
+}
+
+export function videoIdFromShelfItem(item: unknown) {
+  return videoIdFromContent(shelfItemContent(item));
+}
+
+/** The Short a shelf item - or a channel's Shorts-tab grid item - shows, or null for any other item */
+export function shortsLockupFromItem(item: unknown) {
+  const parsed = richItemContentSchema.safeParse(shelfItemContent(item));
+  return parsed.success ? parsed.data[RendererKind.shortsLockupViewModel] ?? null : null;
+}
+
+/** A root item's shelf - www's rich shelf or m's Shorts shelf - and a copy of it with other items; null for none */
+export function readShelf(item: unknown) {
+  const parsed = sectionItemSchema.safeParse(item);
+  const section = parsed.success ? parsed.data.richSectionRenderer : undefined;
+  const content = section?.content;
+  const richShelf = content?.[ShelfRendererKind.rich];
+  const reelShelf = content?.[ShelfRendererKind.reel];
+  const items = richShelf?.contents ?? reelShelf?.items;
+  if (!parsed.success || !section || !content || !items) {
+    return null;
+  }
+
+  const isRich = !!richShelf?.contents;
+  return {
+    kind: isRich ? ShelfRendererKind.rich : ShelfRendererKind.reel,
+    items,
+    withItems(nextItems: unknown[]) {
+      const shelfRenderer = isRich
+        ? {
+          [ShelfRendererKind.rich]: {
+            ...richShelf,
+            contents: nextItems
+          }
+        }
+        : {
+          [ShelfRendererKind.reel]: {
+            ...reelShelf,
+            items: nextItems
+          }
+        };
+      return {
+        ...parsed.data,
+        richSectionRenderer: {
+          ...section,
+          content: {
+            ...content,
+            ...shelfRenderer
+          }
+        }
+      };
+    }
+  };
+}
+
+export function shelfItemsFromGridItem(item: unknown) {
+  return readShelf(item)?.items ?? [];
+}
+
 /** Every video id in the contents, shelves included */
 export function collectContentVideoIds(contents: readonly unknown[]) {
   const videoIds = new Set<string>();
   for (const item of contents) {
-    const parsed = gridItemSchema.safeParse(item);
-    if (!parsed.success) {
-      continue;
-    }
-
-    const shelfContents = parsed.data.richSectionRenderer?.content?.richShelfRenderer?.contents ?? [];
-    for (const nestedItem of [item, ...shelfContents]) {
-      const videoId = videoIdFromGridItem(nestedItem);
+    for (const videoId of [videoIdFromGridItem(item), ...shelfItemsFromGridItem(item).map(videoIdFromShelfItem)]) {
       if (videoId) {
         videoIds.add(videoId);
       }
@@ -165,7 +223,7 @@ export function titleFromGridItem(item: unknown) {
 export function thumbnailUrlFromGridItem(item: unknown) {
   const video = rendererFromGridItem(item);
   if (!video) {
-    return null;
+    return shortsLockupFromItem(item)?.thumbnailViewModel?.thumbnailViewModel?.image?.sources?.[0]?.url ?? null;
   }
 
   const sources = video.kind === RendererKind.lockupViewModel
