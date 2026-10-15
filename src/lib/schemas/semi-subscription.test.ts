@@ -1,5 +1,9 @@
 import { FilterKind } from "@/lib/filter/title-filter";
-import { migrateSemiSubscriptionsToV2, semiSubscriptionsSchema } from "@/lib/schemas/semi-subscription";
+import {
+  migrateSemiSubscriptionsToV2,
+  migrateSemiSubscriptionsToV3,
+  semiSubscriptionsSchema
+} from "@/lib/schemas/semi-subscription";
 import { describe, expect, it } from "vitest";
 
 const REGEX_CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
@@ -25,14 +29,15 @@ describe("migrateSemiSubscriptionsToV2", () => {
       }
     });
 
-    expect(semiSubscriptionsSchema.parse(migrated)).toEqual({
+    expect(semiSubscriptionsSchema.parse(migrateSemiSubscriptionsToV3(migrated))).toEqual({
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
         filter: {
           kind: FilterKind.regex,
           pattern: "review",
           flags: "i"
-        }
+        },
+        isHalted: false
       }
     });
   });
@@ -59,20 +64,53 @@ describe("migrateSemiSubscriptionsToV2", () => {
       [AI_CHANNEL_ID]: aiSubscription
     });
 
-    expect(semiSubscriptionsSchema.parse(migrated)).toEqual({
+    expect(semiSubscriptionsSchema.parse(migrateSemiSubscriptionsToV3(migrated))).toEqual({
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
         filter: {
           kind: FilterKind.regex,
           pattern: "iphone",
           flags: ""
-        }
+        },
+        isHalted: false
       },
-      [AI_CHANNEL_ID]: aiSubscription
+      [AI_CHANNEL_ID]: {
+        ...aiSubscription,
+        isHalted: false
+      }
     });
   });
 
   it("leaves a value it can't read untouched", () => {
     expect(migrateSemiSubscriptionsToV2("not a record")).toBe("not a record");
+  });
+});
+
+describe("migrateSemiSubscriptionsToV3", () => {
+  it("adds an unhalted state to every v2 semi-subscription", () => {
+    const filter = {
+      kind: FilterKind.regex,
+      pattern: "review",
+      flags: "i"
+    };
+
+    expect(
+      migrateSemiSubscriptionsToV3({
+        [REGEX_CHANNEL_ID]: {
+          ...CHANNEL,
+          filter
+        }
+      })
+    ).toEqual({
+      [REGEX_CHANNEL_ID]: {
+        ...CHANNEL,
+        filter,
+        isHalted: false
+      }
+    });
+  });
+
+  it("leaves a value it can't read untouched", () => {
+    expect(migrateSemiSubscriptionsToV3("not a record")).toBe("not a record");
   });
 });

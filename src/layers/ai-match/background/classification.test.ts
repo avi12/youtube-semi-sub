@@ -46,7 +46,8 @@ const SUBSCRIPTIONS: SemiSubscriptions = {
     channelId: CHANNEL_ID,
     title: "Channel",
     filter: REVIEWS,
-    createdAt: 0
+    createdAt: 0,
+    isHalted: false
   },
   [REGEX_CHANNEL_ID]: {
     channelId: REGEX_CHANNEL_ID,
@@ -56,7 +57,8 @@ const SUBSCRIPTIONS: SemiSubscriptions = {
       pattern: "",
       flags: "i"
     },
-    createdAt: 0
+    createdAt: 0,
+    isHalted: false
   }
 };
 

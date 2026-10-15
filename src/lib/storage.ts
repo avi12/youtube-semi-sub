@@ -1,11 +1,11 @@
 import { channelIdSchema } from "@/lib/schemas/channel";
-import { migrateSemiSubscriptionsToV2 } from "@/lib/schemas/semi-subscription";
+import { migrateSemiSubscriptionsToV2, migrateSemiSubscriptionsToV3 } from "@/lib/schemas/semi-subscription";
 import { type StoredState, storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
 import { storage } from "#imports";
 import type { StorageItemKey, WxtStorageItemOptions } from "wxt/utils/storage";
 
-const SEMI_SUBSCRIPTIONS_VERSION = 2;
+const SEMI_SUBSCRIPTIONS_VERSION = 3;
 const CHANNEL_VIDEOS_VERSION = 1;
 
 /**
@@ -50,7 +50,8 @@ export const semiSubscriptionsItem = defineSchemaItem({
   fallback: {},
   version: SEMI_SUBSCRIPTIONS_VERSION,
   migrations: {
-    2: migrateSemiSubscriptionsToV2
+    2: migrateSemiSubscriptionsToV2,
+    3: migrateSemiSubscriptionsToV3
   }
 });
 

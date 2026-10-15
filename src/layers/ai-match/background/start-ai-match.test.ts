@@ -51,7 +51,8 @@ async function semiSubscribeWithAiFilter() {
       channelId: CHANNEL_ID,
       title: "Channel",
       filter: AI_FILTER,
-      createdAt: 0
+      createdAt: 0,
+      isHalted: false
     }
   });
   await channelVideosItem.setValue({

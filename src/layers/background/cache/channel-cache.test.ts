@@ -49,7 +49,8 @@ function createSubscriptions(channelIds: string[]) {
         pattern: "",
         flags: "i"
       },
-      createdAt: 0
+      createdAt: 0,
+      isHalted: false
     };
   }
   return subscriptions;
@@ -227,7 +228,8 @@ describe("pruneChannelCaches", () => {
         channelId: CHANNEL_ID,
         title: "Channel",
         filter: aiFilter,
-        createdAt: 0
+        createdAt: 0,
+        isHalted: false
       }
     });
     await refreshChannels({

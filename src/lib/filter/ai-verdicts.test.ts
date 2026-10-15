@@ -31,7 +31,8 @@ function createSubscriptions(filtersByChannel: Record<string, TitleFilter>) {
         channelId,
         title: "Channel",
         filter,
-        createdAt: 0
+        createdAt: 0,
+        isHalted: false
       };
     }
   }

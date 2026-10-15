@@ -22,7 +22,8 @@ const HANDLE_CHANNEL: SemiSubscription = {
     pattern: "challenge",
     flags: "i"
   },
-  createdAt: 1
+  createdAt: 1,
+  isHalted: false
 };
 const HANDLELESS_CHANNEL: SemiSubscription = {
   channelId: "UCBR8-60-B28hp2BmDPdntcQ",
@@ -32,7 +33,8 @@ const HANDLELESS_CHANNEL: SemiSubscription = {
     pattern: "",
     flags: "i"
   },
-  createdAt: 2
+  createdAt: 2,
+  isHalted: false
 };
 const ENTRIES = [buildSemiGuideEntry(HANDLE_CHANNEL), buildSemiGuideEntry(HANDLELESS_CHANNEL)];
 const SUBSCRIPTIONS_KEY = "guideSubscriptionsSectionRenderer";

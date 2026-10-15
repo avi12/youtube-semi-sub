@@ -1,6 +1,6 @@
 import type { TitleFilter } from "@/lib/filter/title-filter";
 import type { ChannelInfo } from "@/lib/schemas/channel";
-import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+import type { SemiSubscription, SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { mutateStorageItem, semiSubscriptionsItem } from "@/lib/storage";
 
 // Every write to the semi-subscriptions goes through here, so each kind of change is made one way everywhere
@@ -11,8 +11,8 @@ export async function readSemiSubscription(channelId: string) {
 }
 
 /**
- * The stored entry after a save: `createdAt` survives an edit, and a channel opened from a page that lacks its avatar
- * or handle keeps the ones stored before
+ * The stored entry after a save: `createdAt` and a halt survive an edit, and a channel opened from a page that lacks
+ * its avatar or handle keeps the ones stored before
  */
 export function mergeSemiSubscription({ previous, channel, filter, now }: {
   previous: SemiSubscription | undefined;
@@ -24,7 +24,8 @@ export function mergeSemiSubscription({ previous, channel, filter, now }: {
     channelId: channel.channelId,
     title: channel.title || previous?.title || "",
     filter,
-    createdAt: previous?.createdAt ?? now
+    createdAt: previous?.createdAt ?? now,
+    isHalted: previous?.isHalted ?? false
   };
   const handle = channel.handle ?? previous?.handle;
   if (handle) {
@@ -98,5 +99,38 @@ export function setSemiSubscriptionFilter({ channelId, filter }: Pick<SemiSubscr
         }
       };
     }
+  });
+}
+
+/**
+ * Halts a semi-subscription while the user is officially subscribed to its channel, and resumes it once they
+ * unsubscribe. The filter is kept either way; a channel that isn't semi-subscribed is left alone
+ */
+export function haltSemiSubscription({ subscriptions, channelId, isHalted }: Pick<SemiSubscription, "channelId" | "isHalted"> & {
+  subscriptions: SemiSubscriptions;
+}) {
+  const current = subscriptions[channelId];
+  const isUnchanged = !current || current.isHalted === isHalted;
+  if (isUnchanged) {
+    return subscriptions;
+  }
+
+  return {
+    ...subscriptions,
+    [channelId]: {
+      ...current,
+      isHalted
+    }
+  };
+}
+
+export function setSemiSubscriptionHalted({ channelId, isHalted }: Pick<SemiSubscription, "channelId" | "isHalted">) {
+  return mutateStorageItem({
+    item: semiSubscriptionsItem,
+    mutator: subscriptions => haltSemiSubscription({
+      subscriptions,
+      channelId,
+      isHalted
+    })
   });
 }

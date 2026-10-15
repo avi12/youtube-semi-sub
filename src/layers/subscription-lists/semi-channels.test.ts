@@ -17,7 +17,8 @@ function buildSubscription({ channelId, title }: {
       pattern: "news",
       flags: "i"
     },
-    createdAt: 0
+    createdAt: 0,
+    isHalted: false
   };
   return subscription;
 }

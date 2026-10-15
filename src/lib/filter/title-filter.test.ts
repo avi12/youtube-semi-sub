@@ -40,7 +40,8 @@ function createSubscriptions(filter: TitleFilter) {
       channelId: CHANNEL_ID,
       title: "Channel",
       filter,
-      createdAt: 0
+      createdAt: 0,
+      isHalted: false
     }
   };
   return subscriptions;
@@ -175,6 +176,29 @@ describe("selectFeedVideos", () => {
       ...noAi
     });
     expect(selected).toHaveLength(videos.length);
+  });
+
+  it("adds nothing from a channel halted by an official subscription", () => {
+    const selected = selectFeedVideos({
+      subscriptions: {
+        [CHANNEL_ID]: {
+          channelId: CHANNEL_ID,
+          title: "Channel",
+          filter: {
+            kind: FilterKind.regex,
+            pattern: "",
+            flags: ""
+          },
+          createdAt: 0,
+          isHalted: true
+        }
+      },
+      videosByChannel: {
+        [CHANNEL_ID]: videos
+      },
+      ...noAi
+    });
+    expect(selected).toEqual([]);
   });
 
   it("ignores channels without a semi-subscription", () => {

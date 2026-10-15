@@ -24,7 +24,8 @@ const SUBSCRIPTION: SemiSubscription = {
     pattern: "",
     flags: "i"
   },
-  createdAt: 0
+  createdAt: 0,
+  isHalted: false
 };
 
 describe("startBackground", () => {
