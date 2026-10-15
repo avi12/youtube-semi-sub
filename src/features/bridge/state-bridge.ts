@@ -45,7 +45,7 @@ async function broadcastPageState() {
   await pageMessenger.sendMessage(PageMessage.pageStateChanged, currentState);
 }
 
-function removeSemiSubscription(channelId: string) {
+export function removeSemiSubscription(channelId: string) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
     mutator(subscriptions) {
