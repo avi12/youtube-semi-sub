@@ -8,3 +8,7 @@ Licensed under the Apache License, Version 2.0. Any distribution of this
 software or of a derivative work must carry the attribution notice above -
 in the accompanying documentation, and in any user-facing "about", "credits"
 or third-party-notices display the distribution provides.
+
+This product bundles the LiteRT-LM WebAssembly runtime (litertlm-wasm/), copied
+unmodified from the @litert-lm/core package: Copyright Google LLC, licensed under
+the Apache License, Version 2.0 (https://github.com/google-ai-edge/LiteRT-LM).

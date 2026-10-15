@@ -1,6 +1,6 @@
 {
   "name": "youtube-semi-sub",
-  "description": "Semi-subscribe to YouTube channels: only the videos whose titles match your RegExp land in your subscriptions feed",
+  "description": "Semi-subscribe to YouTube channels: only the videos your filter (a RegExp or an AI match) lets through land in your subscriptions feed",
   "private": false,
   "version": "0.1.0",
   "license": "Apache-2.0",
