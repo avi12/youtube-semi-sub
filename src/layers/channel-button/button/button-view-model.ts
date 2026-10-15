@@ -1,3 +1,5 @@
+import { z } from "@/lib/zod";
+
 // www.youtube.com's Polymer `<yt-button-view-model>`: its rendering is driven by the `.data` property, which only
 // exists in the page realm. Values were read from YouTube's own runtime
 
@@ -23,23 +25,20 @@ export enum ButtonViewModelIcon {
   filter = "FILTER"
 }
 
-export interface ButtonViewModelData {
-  title: string;
-  iconName: ButtonViewModelIcon;
-  accessibilityText: string;
-  style: ButtonViewModelStyle;
-  type: ButtonViewModelType;
-  buttonSize: ButtonViewModelSize;
-  state: ButtonViewModelState;
-  isFullWidth: boolean;
-}
-
-export interface YtButtonViewModelElement extends HTMLElement {
-  data: ButtonViewModelData;
-}
+const buttonViewModelDataSchema = z.object({
+  title: z.string(),
+  iconName: z.enum(ButtonViewModelIcon),
+  accessibilityText: z.string(),
+  style: z.enum(ButtonViewModelStyle),
+  type: z.enum(ButtonViewModelType),
+  buttonSize: z.enum(ButtonViewModelSize),
+  state: z.enum(ButtonViewModelState),
+  isFullWidth: z.boolean()
+});
+type ButtonViewModelData = z.infer<typeof buttonViewModelDataSchema>;
 
 declare global {
   interface HTMLElementTagNameMap {
-    "yt-button-view-model": YtButtonViewModelElement;
+    "yt-button-view-model": HTMLElement & { data: ButtonViewModelData };
   }
 }

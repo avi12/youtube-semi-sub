@@ -120,6 +120,17 @@ const subscribeButtonRendererSchema = z.looseObject({
   subscribed: z.boolean()
 });
 
+/** The channel a watch or channel page is about, plus what the page data says about the viewer's relation to it */
+export const pageChannelSchema = z.object({
+  kind: z.enum(PageKind),
+  channel: channelInfoSchema,
+  videoId: z.string().optional(),
+  isOwnedByViewer: z.boolean(),
+  hasSubscribeControl: z.boolean(),
+  officialSubscription: z.boolean().optional()
+});
+export type PageChannel = z.infer<typeof pageChannelSchema>;
+
 export function getPageKind(pathname: string) {
   if (WATCH_PATH_PATTERN.test(pathname)) {
     return PageKind.watch;
@@ -292,7 +303,7 @@ function readWatchChannel({ response, playerResponse }: {
     return null;
   }
 
-  return {
+  const pageChannel: PageChannel = {
     kind: PageKind.watch,
     channel,
     videoId: videoDetails?.videoId,
@@ -304,6 +315,7 @@ function readWatchChannel({ response, playerResponse }: {
       channelId
     })
   };
+  return pageChannel;
 }
 
 function readChannelPageChannel(response: unknown) {
@@ -335,7 +347,7 @@ function readChannelPageChannel(response: unknown) {
     keys: SUBSCRIBE_CONTROL_KEYS,
     isMatch: isRecord
   });
-  return {
+  const pageChannel: PageChannel = {
     kind: PageKind.channel,
     channel,
     videoId: undefined,
@@ -347,6 +359,7 @@ function readChannelPageChannel(response: unknown) {
       channelId: channel.channelId
     })
   };
+  return pageChannel;
 }
 
 /**
@@ -373,5 +386,3 @@ export function readPageChannel({ pageData, kind }: {
 
   return readChannelPageChannel(response);
 }
-
-export type PageChannel = NonNullable<ReturnType<typeof readPageChannel>>;

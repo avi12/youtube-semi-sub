@@ -1,7 +1,9 @@
 import { createFrameScheduler, observeSubtree } from "./dom";
 import { listsView } from "./lists-view.svelte";
 import { onPageState } from "@/lib/page/page-state";
+import { elementSchema } from "@/lib/schemas/dom";
 import { onYouTubeNavigate } from "@/lib/youtube/navigation";
+import { z } from "@/lib/zod";
 import { type Component, mount, unmount } from "svelte";
 
 export enum SemiListSurface {
@@ -14,10 +16,12 @@ const SURFACE_ATTRIBUTE = "data-yss-surface";
 /** Stops a tug of war with a page that keeps dropping foreign nodes */
 const MAX_MOUNTS_PER_PAGE = 20;
 
-interface Placement {
-  target: Element;
-  anchor: Element | null;
-}
+/** Where a surface mounts: into `target`, before `anchor` (or at its end) */
+const placementSchema = z.object({
+  target: elementSchema,
+  anchor: elementSchema.nullable()
+});
+type Placement = z.infer<typeof placementSchema>;
 
 /** Attachment for a surface's root element(s), so the surface can tell whether YouTube re-rendered it away */
 export function markSurface(surface: SemiListSurface) {

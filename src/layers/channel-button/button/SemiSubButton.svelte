@@ -5,8 +5,7 @@
     ButtonViewModelSize,
     ButtonViewModelState,
     ButtonViewModelStyle,
-    ButtonViewModelType,
-    type YtButtonViewModelElement
+    ButtonViewModelType
   } from "./button-view-model";
   import type { NativeButtonClasses } from "./native-button-classes";
   import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
@@ -44,7 +43,7 @@
 
   let pageState = $state(getPageState());
   let elRoot = $state<HTMLElement>();
-  let elButtonViewModel = $state<YtButtonViewModelElement>();
+  let elButtonViewModel = $state<HTMLElementTagNameMap["yt-button-view-model"]>();
 
   $effect(() => onPageState(state => {
     pageState = state;

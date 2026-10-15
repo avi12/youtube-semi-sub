@@ -3,7 +3,7 @@ import { buildFeedItem, findTemplate } from "./feed-item-builder";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
-import type { VideoRenderer } from "#feed/items/feed-items";
+import type { VideoRenderer } from "#feed/items/feed-schemas";
 
 /**
  * The feed contents with the semi-subscribed `videos` placed into the band and `removedVideoIds` taken out, or null

@@ -113,12 +113,13 @@ const channelBrowseResponseSchema = z.looseObject({
 });
 type ChannelBrowseResponse = z.infer<typeof channelBrowseResponseSchema>;
 
-interface GridUpload {
-  videoId: string;
-  title: string;
+const gridUploadSchema = z.object({
+  videoId: z.string(),
+  title: z.string(),
   /** Every text that may carry the relative publish time, most precise first */
-  timeTexts: string[];
-}
+  timeTexts: z.array(z.string())
+});
+type GridUpload = z.infer<typeof gridUploadSchema>;
 
 function readText(text: InnerTubeText) {
   return text.simpleText ?? text.runs?.map(run => run.text).join("") ?? "";

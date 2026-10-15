@@ -99,6 +99,19 @@ const classicRendererSchema = z.looseObject({
   thumbnail: z.looseObject({ thumbnails: z.array(imageSourceSchema).optional() }).optional()
 });
 
+/** A video item's renderer, tagged with the key it sits under */
+export const videoRendererSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal(RendererKind.lockupViewModel),
+    renderer: lockupSchema
+  }),
+  z.object({
+    kind: z.enum(CLASSIC_RENDERER_KINDS),
+    renderer: classicRendererSchema
+  })
+]);
+export type VideoRenderer = z.infer<typeof videoRendererSchema>;
+
 const shortsLockupSchema = z.looseObject({
   onTap: z.looseObject({
     innertubeCommand: z.looseObject({

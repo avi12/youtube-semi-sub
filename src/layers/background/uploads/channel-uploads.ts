@@ -1,6 +1,8 @@
 import { fetchRssUploads } from "./rss-feed";
 import { fetchVideosTabUploads } from "./videos-tab-uploads";
-import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { channelIdSchema } from "@/lib/schemas/channel";
+import { feedVideoSchema } from "@/lib/schemas/feed-video";
+import { z } from "@/lib/zod";
 
 export enum UploadsSource {
   /** Every upload kind, exact publish times */
@@ -9,12 +11,13 @@ export enum UploadsSource {
   videosTab = "videos-tab"
 }
 
-export interface ChannelUploads {
-  channelId: string;
-  source: UploadsSource;
+const channelUploadsSchema = z.object({
+  channelId: channelIdSchema,
+  source: z.enum(UploadsSource),
   /** Newest first */
-  videos: FeedVideo[];
-}
+  videos: z.array(feedVideoSchema)
+});
+export type ChannelUploads = z.infer<typeof channelUploadsSchema>;
 
 const pendingFetchByChannel = new Map<string, Promise<ChannelUploads | null>>();
 

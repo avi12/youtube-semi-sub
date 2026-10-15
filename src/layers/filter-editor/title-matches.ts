@@ -1,5 +1,6 @@
 import { compileTitleFilter, getTitleFilterError, type TitleFilter } from "@/lib/filter/title-filter";
-import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
+import { z } from "@/lib/zod";
 
 const GLOBAL_FLAG = "g";
 
@@ -10,16 +11,18 @@ export enum MatchState {
   pending = "pending"
 }
 
-export interface TitleSegment {
-  text: string;
-  isHighlighted: boolean;
-}
+const titleSegmentSchema = z.object({
+  text: z.string(),
+  isHighlighted: z.boolean()
+});
+type TitleSegment = z.infer<typeof titleSegmentSchema>;
 
-export interface PreviewRow {
-  video: FeedVideo;
-  matchState: MatchState;
-  segments: TitleSegment[];
-}
+const previewRowSchema = z.object({
+  video: feedVideoSchema,
+  matchState: z.enum(MatchState),
+  segments: z.array(titleSegmentSchema)
+});
+export type PreviewRow = z.infer<typeof previewRowSchema>;
 
 /** Splits a title into the substrings the filter matched and the plain text between them */
 export function highlightMatches({ title, regex }: {

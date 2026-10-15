@@ -1,4 +1,5 @@
 import { PageKind } from "./channel-page-data";
+import { elementSchema, htmlElementSchema } from "@/lib/schemas/dom";
 import { z } from "@/lib/zod";
 
 // MAIN world: where YouTube's own Subscribe button sits on the current page, on www and m.youtube.com alike
@@ -59,6 +60,19 @@ const subscribeControlDataSchema = z.looseObject({
   })
 });
 
+/** Where the button goes: next to `elReference`, styled after YouTube's own Subscribe button */
+export const pageAnchorSchema = z.object({
+  elContainer: htmlElementSchema,
+  /** YouTube's own Subscribe control; null signed out, where a header action stands in for it */
+  elSubscribe: htmlElementSchema.nullable(),
+  elReference: elementSchema,
+  placement: z.enum(ButtonPlacement),
+  wrapperClass: z.string(),
+  scopingClass: z.string(),
+  nativeButtonClass: z.string()
+});
+type PageAnchor = z.infer<typeof pageAnchorSchema>;
+
 function isVisible(elTarget: HTMLElement) {
   return elTarget.offsetWidth > 0 && elTarget.offsetHeight > 0;
 }
@@ -112,7 +126,7 @@ export function findPageAnchor({ kind, isSignedIn }: {
       }
 
       const elNativeButton = elControl instanceof HTMLButtonElement ? elControl : elControl.querySelector("button");
-      return {
+      const anchor: PageAnchor = {
         elContainer,
         elSubscribe,
         ...findReference({
@@ -122,12 +136,11 @@ export function findPageAnchor({ kind, isSignedIn }: {
         scopingClass: getPolymerScopeClass(elControl),
         nativeButtonClass: elNativeButton?.getAttribute("class") ?? ""
       };
+      return anchor;
     }
   }
   return null;
 }
-
-export type PageAnchor = NonNullable<ReturnType<typeof findPageAnchor>>;
 
 /** The view model keeps its state in YouTube's entity store; its button style is the only outward sign */
 function readViewModelSubscription(elSubscribe: HTMLElement) {

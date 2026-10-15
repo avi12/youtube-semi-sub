@@ -1,6 +1,7 @@
 import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/innertube";
-import { rendererFromGridItem, videoIdFromGridItem, type VideoRenderer } from "#feed/items/feed-items";
-import { browseResponseSchema } from "#feed/items/feed-schemas";
+import { z } from "@/lib/zod";
+import { rendererFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
+import { browseResponseSchema, type VideoRenderer, videoRendererSchema } from "#feed/items/feed-schemas";
 
 // A channel's Videos tab, fetched with the page's own client so its renderers match what this client renders
 // (lockupViewModel on www, compactVideoRenderer on m). Cached per page session
@@ -9,16 +10,18 @@ const VIDEOS_TAB_PARAMS = "EgZ2aWRlb3PyBgQKAjoA";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const FAILED_FETCH_RETRY_MS = 30 * 1000;
 
-interface ChannelNatives {
-  avatarUrl: string | null;
-  renderersByVideoId: Map<string, VideoRenderer>;
-}
+const channelNativesSchema = z.object({
+  avatarUrl: z.string().nullable(),
+  renderersByVideoId: z.map(z.string(), videoRendererSchema)
+});
+type ChannelNatives = z.infer<typeof channelNativesSchema>;
 
-interface CacheEntry {
-  fetchedAt: number;
-  natives: Promise<ChannelNatives | null>;
-  result?: ChannelNatives | null;
-}
+const cacheEntrySchema = z.object({
+  fetchedAt: z.number(),
+  natives: z.custom<Promise<ChannelNatives | null>>(value => value instanceof Promise),
+  result: channelNativesSchema.nullable().optional()
+});
+type CacheEntry = z.infer<typeof cacheEntrySchema>;
 
 const cacheByChannelId = new Map<string, CacheEntry>();
 

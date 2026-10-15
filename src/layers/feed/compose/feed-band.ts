@@ -1,5 +1,6 @@
-import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
+import { z } from "@/lib/zod";
 import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 
 // The feed's root contents mix section markers (shelves) with root-level video items. The root videos form the
@@ -8,18 +9,29 @@ import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem
 
 const UNKNOWN_TIME_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
-interface InlineRun {
-  start: number;
-  end: number;
-}
+const inlineRunSchema = z.object({
+  start: z.number(),
+  end: z.number()
+});
+type InlineRun = z.infer<typeof inlineRunSchema>;
 
-type BandSlot = {
-  videoId: string;
-  item: unknown;
-} | {
-  videoId: string;
-  video: FeedVideo;
-};
+const bandSlotBaseSchema = z.object({
+  videoId: z.string()
+});
+
+/** A video item the feed already holds */
+const bandItemSchema = bandSlotBaseSchema.extend({
+  item: z.unknown()
+});
+type BandItem = z.infer<typeof bandItemSchema>;
+
+/** A semi-subscribed video to build an item for */
+const bandVideoSchema = bandSlotBaseSchema.extend({
+  video: feedVideoSchema
+});
+
+const bandSlotSchema = z.union([bandItemSchema, bandVideoSchema]);
+type BandSlot = z.infer<typeof bandSlotSchema>;
 
 export function findInlineRuns(contents: readonly unknown[]) {
   const runs: InlineRun[] = [];
@@ -53,10 +65,7 @@ function extractBand({ contents, runs }: {
   contents: readonly unknown[];
   runs: InlineRun[];
 }) {
-  const band: {
-    videoId: string;
-    item: unknown;
-  }[] = [];
+  const band: BandItem[] = [];
   for (const run of runs) {
     for (const item of contents.slice(run.start, run.end)) {
       const videoId = videoIdFromGridItem(item);

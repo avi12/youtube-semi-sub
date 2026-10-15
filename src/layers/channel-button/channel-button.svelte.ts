@@ -8,8 +8,14 @@ import { getYouTubeSite } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 import { buildNativeButtonClasses } from "#channel-button/button/native-button-classes";
 import SemiSubButton from "#channel-button/button/SemiSubButton.svelte";
-import { getPageKind, type PageChannel, PageKind, readPageChannel } from "#channel-button/page/channel-page-data";
-import { findPageAnchor, type PageAnchor, readSubscribeControl } from "#channel-button/page/page-anchor";
+import {
+  getPageKind,
+  type PageChannel,
+  pageChannelSchema,
+  PageKind,
+  readPageChannel
+} from "#channel-button/page/channel-page-data";
+import { findPageAnchor, pageAnchorSchema, readSubscribeControl } from "#channel-button/page/page-anchor";
 import { readIsSignedIn, readPageData, readUrlVideoId } from "#channel-button/page/page-data-source";
 import { mount, unmount } from "svelte";
 
@@ -36,10 +42,11 @@ enum Unresolved {
 
 const subscriptionChangedDetailSchema = z.boolean();
 
-interface Target {
-  pageChannel: PageChannel;
-  anchor: PageAnchor;
-}
+const targetSchema = z.object({
+  pageChannel: pageChannelSchema,
+  anchor: pageAnchorSchema
+});
+type Target = z.infer<typeof targetSchema>;
 
 let cachedPageData: unknown = null;
 let cachedPageChannel: PageChannel | null = null;

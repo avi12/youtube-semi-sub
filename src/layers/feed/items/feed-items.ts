@@ -3,7 +3,8 @@ import {
   type FormattedText,
   gridItemSchema,
   RendererKind,
-  richItemContentSchema
+  richItemContentSchema,
+  type VideoRenderer
 } from "./feed-schemas";
 import { VIDEO_ID_PATTERN } from "@/lib/schemas/feed-video";
 
@@ -17,25 +18,25 @@ export function rendererFromContent(content: unknown) {
 
   const lockup = parsed.data[RendererKind.lockupViewModel];
   if (lockup) {
-    return {
-      kind: RendererKind.lockupViewModel as const,
+    const video: VideoRenderer = {
+      kind: RendererKind.lockupViewModel,
       renderer: lockup
     };
+    return video;
   }
 
   for (const kind of CLASSIC_RENDERER_KINDS) {
     const renderer = parsed.data[kind];
     if (renderer) {
-      return {
+      const video: VideoRenderer = {
         kind,
         renderer
       };
+      return video;
     }
   }
   return null;
 }
-
-export type VideoRenderer = NonNullable<ReturnType<typeof rendererFromContent>>;
 
 function richItemContent(item: unknown) {
   const parsed = gridItemSchema.safeParse(item);

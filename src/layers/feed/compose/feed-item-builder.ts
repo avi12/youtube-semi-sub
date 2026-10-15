@@ -1,13 +1,8 @@
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { formatRelativeTime } from "@/lib/youtube/relative-time";
-import {
-  labelFromFormatted,
-  rendererFromGridItem,
-  textFromFormatted,
-  type VideoRenderer
-} from "#feed/items/feed-items";
-import { type Lockup, type MetadataRow, RendererKind } from "#feed/items/feed-schemas";
+import { labelFromFormatted, rendererFromGridItem, textFromFormatted } from "#feed/items/feed-items";
+import { type Lockup, type MetadataRow, RendererKind, type VideoRenderer } from "#feed/items/feed-schemas";
 
 // Builds a feed tile for a semi-subscribed video in the renderer the feed already uses (a sibling item is the
 // template). The channel's own Videos-tab renderer ("native") supplies duration, views and menu when known; the
