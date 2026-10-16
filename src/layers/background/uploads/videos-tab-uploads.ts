@@ -100,7 +100,7 @@ function findPublishedAt({ timeTexts, now }: {
   return parseFirstRelativeTime({
     texts: timeTexts,
     now
-  })?.approxTime ?? now;
+  })?.approximateTime ?? now;
 }
 
 function findGridContents(response: ChannelBrowseResponse) {

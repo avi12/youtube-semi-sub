@@ -146,7 +146,7 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
   const slots: FeedSlot[] = isTimeKnown ? [] : pending.splice(0);
   for (const [i, slot] of band.entries()) {
     const time = times[i];
-    while (time && pending[0] && pending[0].video.publishedAt > time.approxTime) {
+    while (time && pending[0] && pending[0].video.publishedAt > time.approximateTime) {
       slots.push(...pending.splice(0, 1));
     }
     slots.push(slot);

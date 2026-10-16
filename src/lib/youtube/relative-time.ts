@@ -70,7 +70,7 @@ const UNIT_BY_SPELLING = new Map<string, TimeUnit>([
 
 const RELATIVE_TIME_PATTERN = /(\d+)\s*([a-z]+)\s+ago\b/i;
 
-/** `approxTime` is the newest moment the text can mean ("3 hours ago" = 3 hours), `earliestTime` the oldest (4) */
+/** `approximateTime` is the newest moment the text can mean ("3 hours ago" = 3 hours), `earliestTime` the oldest (4) */
 export function parseRelativeTime({ text, now }: {
   text: string;
   now: number;
@@ -84,7 +84,7 @@ export function parseRelativeTime({ text, now }: {
   const unitMilliseconds = MILLISECONDS_BY_UNIT[unit];
   const count = Number(countText);
   return {
-    approxTime: now - count * unitMilliseconds,
+    approximateTime: now - count * unitMilliseconds,
     earliestTime: now - (count + 1) * unitMilliseconds
   };
 }
@@ -115,15 +115,15 @@ const UNITS_LARGEST_FIRST = [
   TimeUnit.second
 ] as const;
 
+const DEFAULT_LOCALE = "en";
+
 function createRelativeTimeFormat(locale: string) {
   try {
     return new Intl.RelativeTimeFormat(locale, { numeric: "always" });
   } catch {
-    return new Intl.RelativeTimeFormat("en", { numeric: "always" });
+    return new Intl.RelativeTimeFormat(DEFAULT_LOCALE, { numeric: "always" });
   }
 }
-
-const DEFAULT_LOCALE = "en";
 
 /** "3 hours ago" like YouTube's own upload dates, in the page's language when given */
 export function formatRelativeTime({ time, now, locale = DEFAULT_LOCALE }: {

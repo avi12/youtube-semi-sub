@@ -25,7 +25,7 @@ describe("parseRelativeTime", () => {
     ["Streamed 5 hours ago", 5 * HOUR],
     ["Premiered 2 days ago", 2 * DAY]
   ])("reads %s", (text, age) => {
-    expect(parse(text)?.approxTime).toBe(NOW - age);
+    expect(parse(text)?.approximateTime).toBe(NOW - age);
   });
 
   it.each([
@@ -35,15 +35,15 @@ describe("parseRelativeTime", () => {
     ["2w ago", 2 * WEEK],
     ["1 hr ago", HOUR]
   ])("reads the compact %s", (text, age) => {
-    expect(parse(text)?.approxTime).toBe(NOW - age);
+    expect(parse(text)?.approximateTime).toBe(NOW - age);
   });
 
   it("tells months (mo) from minutes (m)", () => {
     const months = parse("5mo ago");
     const years = parse("2y ago");
-    expect(months && NOW - months.approxTime).toBeGreaterThan(150 * DAY);
-    expect(months && NOW - months.approxTime).toBeLessThan(155 * DAY);
-    expect(years && NOW - years.approxTime).toBeGreaterThan(730 * DAY);
+    expect(months && NOW - months.approximateTime).toBeGreaterThan(150 * DAY);
+    expect(months && NOW - months.approximateTime).toBeLessThan(155 * DAY);
+    expect(years && NOW - years.approximateTime).toBeGreaterThan(730 * DAY);
   });
 
   it("bounds the oldest moment the text can mean by one more unit", () => {
@@ -70,7 +70,7 @@ describe("parseFirstRelativeTime", () => {
       texts: ["Subscribed Channel", "13 million views", "5 days ago"],
       now: NOW
     });
-    expect(parsed?.approxTime).toBe(NOW - 5 * DAY);
+    expect(parsed?.approximateTime).toBe(NOW - 5 * DAY);
   });
 });
 
