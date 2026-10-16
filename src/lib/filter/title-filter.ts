@@ -1,5 +1,5 @@
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
+import { type FeedVideo, sortNewestFirst, type VideosByChannel } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import type { StoredState } from "@/lib/schemas/stored-state";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
@@ -186,7 +186,7 @@ export function createModeJudge({ filter, mode, ...context }: AiJudgeContext & {
  */
 export function selectFeedVideos({ subscriptions, videosByChannel, ...context }: AiJudgeContext & {
   subscriptions: SemiSubscriptions;
-  videosByChannel: Partial<Record<string, FeedVideo[]>>;
+  videosByChannel: VideosByChannel;
 }) {
   const selectedById = new Map<string, FeedVideo>();
   for (const channelId in subscriptions) {

@@ -1,5 +1,6 @@
 import { fetchText } from "./fetch-text";
 import { type FeedVideo, feedVideoSchema, VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
+import { WHITESPACE_RUN_PATTERN } from "@/lib/utils/text";
 import { isShortsUrl, YOUTUBE_ORIGIN } from "@/lib/youtube/site";
 import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
 import { z } from "@/lib/zod";
@@ -10,7 +11,6 @@ const RSS_CHANNEL_ID_PARAM = "channel_id";
 const RSS_ENTRY_TAG = "entry";
 const RSS_LINK_TAG = "link";
 const URL_PATTERN = /https?:\/\/\S+/g;
-const WHITESPACE_RUN_PATTERN = /\s+/g;
 
 // MV3 service workers have no DOMParser. Namespace prefixes are dropped (`yt:videoId` -> `videoId`), tag values stay
 // strings (a title like "1984" must not become a number), and `entry` and `link` are always arrays, even for one

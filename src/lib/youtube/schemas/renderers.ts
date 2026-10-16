@@ -25,8 +25,10 @@ export const CLASSIC_RENDERER_KINDS = [
   RendererKind.gridVideoRenderer
 ] as const;
 
+const textContentSchema = z.looseObject({ content: z.string() });
+
 const metadataPartSchema = z.looseObject({
-  text: z.looseObject({ content: z.string() }).optional(),
+  text: textContentSchema.optional(),
   accessibilityLabel: z.string().optional()
 });
 
@@ -45,8 +47,6 @@ const thumbnailBadgeSchema = z.looseObject({
 /** A view model's image: every size YouTube offers */
 const sourcedImageSchema = z.looseObject({ sources: z.array(thumbnailSchema).optional() });
 
-const textContentSchema = z.looseObject({ content: z.string() });
-
 export const lockupSchema = z.looseObject({
   contentId: z.string(),
   contentType: z.string().optional(),
@@ -64,7 +64,7 @@ export const lockupSchema = z.looseObject({
   }).optional(),
   metadata: z.looseObject({
     lockupMetadataViewModel: z.looseObject({
-      title: z.looseObject({ content: z.string().optional() }).optional(),
+      title: textContentSchema.partial().optional(),
       image: z.looseObject({
         decoratedAvatarViewModel: z.looseObject({
           avatar: z.looseObject({

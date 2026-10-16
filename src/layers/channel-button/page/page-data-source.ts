@@ -1,3 +1,4 @@
+import { functionSchema } from "@/lib/schemas/function";
 import { readYtcfg, YtcfgKey } from "@/lib/youtube/page/globals";
 import { LIVE_PATH_PATTERN, WATCH_VIDEO_PARAM } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
@@ -10,7 +11,7 @@ interface PageManagerElement extends Element {
 }
 
 const pageManagerSchema = z.looseObject({
-  getCurrentData: z.custom<() => unknown>(value => typeof value === "function")
+  getCurrentData: functionSchema
 });
 
 /** m.youtube.com's app element keeps the page data as an own property */

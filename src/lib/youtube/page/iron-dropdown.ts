@@ -1,3 +1,4 @@
+import { functionSchema } from "@/lib/schemas/function";
 import { z } from "@/lib/zod";
 
 /** YouTube's popup menus: a fixed-position overlay lined up with the element that opened it */
@@ -11,8 +12,8 @@ export interface IronDropdownElement extends HTMLElement {
 export const IRON_DROPDOWN_SELECTOR = "tp-yt-iron-dropdown";
 
 const ironDropdownSchema = z.object({
-  refit: z.custom<() => void>(value => typeof value === "function"),
-  close: z.custom<() => void>(value => typeof value === "function")
+  refit: functionSchema,
+  close: functionSchema
 });
 
 export function isIronDropdown(target: unknown): target is IronDropdownElement {

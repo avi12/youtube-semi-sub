@@ -1,3 +1,4 @@
+import { functionSchema } from "@/lib/schemas/function";
 import { z } from "@/lib/zod";
 
 /** A www.youtube.com Polymer element: renders from `data` and accepts model writes through `set` */
@@ -7,7 +8,7 @@ export interface PolymerElement extends HTMLElement {
 }
 
 const polymerElementSchema = z.object({
-  set: z.custom<PolymerElement["set"]>(value => typeof value === "function")
+  set: functionSchema
 });
 
 /** `data` is checked with `in`: Polymer defines it on the prototype, and an unset one reads as undefined */

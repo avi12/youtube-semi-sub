@@ -40,8 +40,11 @@ export type ChannelVideos = z.infer<typeof channelVideosSchema>;
 export const channelVideosCacheSchema = z.record(channelIdSchema, channelVideosSchema);
 export type ChannelVideosCache = z.infer<typeof channelVideosCacheSchema>;
 
+/** Each channel's cached uploads, as the filters read them */
+export type VideosByChannel = Partial<Record<string, FeedVideo[]>>;
+
 export function videosByChannelFromCache(cache: ChannelVideosCache) {
-  const videosByChannel: Partial<Record<string, FeedVideo[]>> = {};
+  const videosByChannel: VideosByChannel = {};
   for (const channelId in cache) {
     videosByChannel[channelId] = cache[channelId]?.videos;
   }
