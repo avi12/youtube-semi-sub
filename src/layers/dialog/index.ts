@@ -1,5 +1,5 @@
 import SemiSubDialog from "./SemiSubDialog.svelte";
-import { openDialogRequestSchema, PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import { type ContentScriptContext, createShadowRootUi, type ShadowRootContentScriptUi } from "#imports";
 import { mount, unmount } from "svelte";
@@ -47,13 +47,7 @@ export function registerSemiSubDialog(context: ContentScriptContext) {
     ui.mount();
   }
 
-  pageMessenger.onMessage(PageMessage.openSemiSubDialog, ({ data }) => {
-    const parsed = openDialogRequestSchema.safeParse(data);
-    if (!parsed.success) {
-      return;
-    }
-
-    const { isSubscribed, ...channel } = parsed.data;
+  pageMessenger.onMessage(PageMessage.openSemiSubDialog, ({ isSubscribed, ...channel }) => {
     openDialog({
       channel,
       isSubscribed

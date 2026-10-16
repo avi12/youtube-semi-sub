@@ -1,10 +1,12 @@
-import { channelInfoSchema } from "@/lib/schemas/channel";
+import { defineValidatedMessaging } from "@/lib/messaging/validated-messaging";
+import { channelIdSchema, channelInfoSchema } from "@/lib/schemas/channel";
 import { feedVideoSchema, videoIdSchema } from "@/lib/schemas/feed-video";
 import { storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
+import type { ProtocolWithReturn } from "@webext-core/messaging";
 import { defineCustomEventMessaging } from "@webext-core/messaging/page";
 
-export const pageStateSchema = storedStateSchema
+const pageStateSchema = storedStateSchema
   .pick({
     isExtensionEnabled: true,
     isAnimationsEnabled: true,
@@ -20,40 +22,58 @@ export const pageStateSchema = storedStateSchema
   });
 export type PageState = z.infer<typeof pageStateSchema>;
 
-export const officialSubscriptionChangeSchema = z.object({
-  channelId: z.string(),
+const officialSubscriptionChangeSchema = z.object({
+  channelId: channelIdSchema,
   isSubscribed: z.boolean()
 });
 export type OfficialSubscriptionChange = z.infer<typeof officialSubscriptionChangeSchema>;
 
-export const semiUnsubscribeRequestSchema = officialSubscriptionChangeSchema.pick({ channelId: true });
-
-/** The channel to open the dialog for, and - from a page that shows it - whether the user is subscribed to it */
-export const openDialogRequestSchema = channelInfoSchema.extend(
-  officialSubscriptionChangeSchema.pick({ isSubscribed: true }).partial().shape
-);
-type OpenDialogRequest = z.infer<typeof openDialogRequestSchema>;
-type SemiUnsubscribeRequest = z.infer<typeof semiUnsubscribeRequestSchema>;
-
 export enum PageMessage {
-  getPageState = "getPageState",
-  pageStateChanged = "pageStateChanged",
-  openSemiSubDialog = "openSemiSubDialog",
-  officialSubscriptionChanged = "officialSubscriptionChanged",
-  semiUnsubscribe = "semiUnsubscribe"
+  getPageState = "get-page-state",
+  pageStateChanged = "page-state-changed",
+  openSemiSubDialog = "open-semi-sub-dialog",
+  officialSubscriptionChanged = "official-subscription-changed",
+  semiUnsubscribe = "semi-unsubscribe"
 }
 
-interface PageProtocolMap {
+const NO_PAYLOAD = z.undefined();
+const NO_REPLY = z.void();
+
+/** Every page message's payload and reply: the one source of their types, checked on both ends */
+const PAGE_MESSAGE_SCHEMAS = {
   /** MAIN -> ISOLATED: the current state (null until storage is read) */
-  [PageMessage.getPageState](): PageState | null;
+  [PageMessage.getPageState]: {
+    request: NO_PAYLOAD,
+    reply: pageStateSchema.nullable()
+  },
   /** ISOLATED -> MAIN: pushed on every storage change, and once when the bridge is ready */
-  [PageMessage.pageStateChanged](state: PageState): void;
-  /** MAIN -> ISOLATED: the injected button or a list's manage button was pressed */
-  [PageMessage.openSemiSubDialog](request: OpenDialogRequest): void;
+  [PageMessage.pageStateChanged]: {
+    request: pageStateSchema,
+    reply: NO_REPLY
+  },
+  /**
+   * MAIN -> ISOLATED: the injected button or a list's manage button was pressed - for this channel, and, from a page
+   * that shows it, whether the user is subscribed to it
+   */
+  [PageMessage.openSemiSubDialog]: {
+    request: channelInfoSchema.extend(officialSubscriptionChangeSchema.pick({ isSubscribed: true }).partial().shape),
+    reply: NO_REPLY
+  },
   /** MAIN -> ISOLATED: the user pressed YouTube's own Subscribe/Unsubscribe and it succeeded */
-  [PageMessage.officialSubscriptionChanged](change: OfficialSubscriptionChange): void;
+  [PageMessage.officialSubscriptionChanged]: {
+    request: officialSubscriptionChangeSchema,
+    reply: NO_REPLY
+  },
   /** MAIN -> ISOLATED: "Semi-unsubscribe" was picked in an inserted video's menu */
-  [PageMessage.semiUnsubscribe](request: SemiUnsubscribeRequest): void;
-}
+  [PageMessage.semiUnsubscribe]: {
+    request: officialSubscriptionChangeSchema.pick({ channelId: true }),
+    reply: NO_REPLY
+  }
+};
 
-export const pageMessenger = defineCustomEventMessaging<PageProtocolMap>({ namespace: "youtube-semi-sub" });
+export const pageMessenger = defineValidatedMessaging({
+  schemas: PAGE_MESSAGE_SCHEMAS,
+  messenger: defineCustomEventMessaging<Record<PageMessage, ProtocolWithReturn<unknown, unknown>>>({
+    namespace: "youtube-semi-sub"
+  })
+});

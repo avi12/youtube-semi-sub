@@ -1,12 +1,6 @@
 import { selectFeedVideos, selectHiddenVideoIds } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
-import {
-  officialSubscriptionChangeSchema,
-  PageMessage,
-  pageMessenger,
-  type PageState,
-  semiUnsubscribeRequestSchema
-} from "@/lib/messaging/page-messaging";
+import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
 import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
 import { removeSemiSubscription, setSemiSubscriptionSubscribed } from "@/lib/semi-subscription-storage";
 import {
@@ -59,22 +53,12 @@ async function broadcastPageState() {
 
 export function startStateBridge(context: ContentScriptContext) {
   pageMessenger.onMessage(PageMessage.getPageState, () => currentState);
-  pageMessenger.onMessage(PageMessage.officialSubscriptionChanged, async ({ data }) => {
-    const parsed = officialSubscriptionChangeSchema.safeParse(data);
-    if (!parsed.success) {
-      return;
-    }
-
-    // Subscribing switches the channel to hiding; unsubscribing switches it back to following
-    await setSemiSubscriptionSubscribed(parsed.data);
+  // Subscribing switches the channel to hiding; unsubscribing switches it back to following
+  pageMessenger.onMessage(PageMessage.officialSubscriptionChanged, async change => {
+    await setSemiSubscriptionSubscribed(change);
   });
-  pageMessenger.onMessage(PageMessage.semiUnsubscribe, async ({ data }) => {
-    const parsed = semiUnsubscribeRequestSchema.safeParse(data);
-    if (!parsed.success) {
-      return;
-    }
-
-    await removeSemiSubscription(parsed.data.channelId);
+  pageMessenger.onMessage(PageMessage.semiUnsubscribe, async ({ channelId }) => {
+    await removeSemiSubscription(channelId);
   });
 
   function handleStorageChange() {

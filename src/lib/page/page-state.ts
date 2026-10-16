@@ -1,19 +1,18 @@
-import { PageMessage, pageMessenger, type PageState, pageStateSchema } from "@/lib/messaging/page-messaging";
+import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
 
 // MAIN world: the read-only mirror of the extension state the ISOLATED bridge owns
 
 const listeners = new Set<(state: PageState) => void>();
 let currentState: PageState | null = null;
 
-function applyIncomingState(incoming: unknown) {
-  const parsed = pageStateSchema.safeParse(incoming);
-  if (!parsed.success) {
+function applyIncomingState(incoming: PageState | null) {
+  if (!incoming) {
     return;
   }
 
-  currentState = parsed.data;
+  currentState = incoming;
   for (const listener of listeners) {
-    listener(parsed.data);
+    listener(incoming);
   }
 }
 
@@ -48,7 +47,7 @@ export function whenPageStateKnown(listener: (state: PageState) => void) {
 }
 
 export function initPageState() {
-  pageMessenger.onMessage(PageMessage.pageStateChanged, ({ data }) => applyIncomingState(data));
+  pageMessenger.onMessage(PageMessage.pageStateChanged, state => applyIncomingState(state));
   // The bridge may not be listening yet; it also pushes pageStateChanged once ready, so a lost request is harmless
   pageMessenger.sendMessage(PageMessage.getPageState).then(applyIncomingState).catch(() => {});
 }
