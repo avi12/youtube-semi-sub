@@ -3,15 +3,7 @@ import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
 import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
 import { removeSemiSubscription, setSemiSubscriptionSubscribed } from "@/lib/semi-subscription-storage";
-import {
-  aiVerdictsItem,
-  channelVideosItem,
-  isAiEnabledItem,
-  isAnimationsEnabledItem,
-  isExtensionEnabledItem,
-  readStoredState,
-  semiSubscriptionsItem
-} from "@/lib/storage";
+import { readStoredState, watchStoredState } from "@/lib/storage";
 import { prefersReducedMotion } from "@/lib/utils/motion";
 import type { ContentScriptContext } from "#imports";
 
@@ -65,19 +57,7 @@ export function startStateBridge(context: ContentScriptContext) {
     broadcastPageState().catch(() => {});
   }
 
-  const unwatchers = [
-    isExtensionEnabledItem.watch(handleStorageChange),
-    isAnimationsEnabledItem.watch(handleStorageChange),
-    isAiEnabledItem.watch(handleStorageChange),
-    semiSubscriptionsItem.watch(handleStorageChange),
-    channelVideosItem.watch(handleStorageChange),
-    aiVerdictsItem.watch(handleStorageChange)
-  ];
-  context.onInvalidated(() => {
-    for (const unwatch of unwatchers) {
-      unwatch();
-    }
-  });
+  context.onInvalidated(watchStoredState(handleStorageChange));
 
   handleStorageChange();
   sendMessage(MessageType.refreshStaleChannels).catch(() => {});

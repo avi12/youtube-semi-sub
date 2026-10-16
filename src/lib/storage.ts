@@ -123,36 +123,44 @@ export const aiVerdictsItem = defineSchemaItem({
   fallback: {}
 });
 
+/** A storage item read and written whole - what `mutateStorageItem` and the item tables take */
+export interface StorageItem<T> {
+  getValue(): Promise<T>;
+  setValue(value: T): Promise<void>;
+}
+
+/** The item each `StoredState` field lives in - the one list every reader and watcher of the whole state walks */
+const STORED_STATE_ITEMS = {
+  isExtensionEnabled: isExtensionEnabledItem,
+  isAnimationsEnabled: isAnimationsEnabledItem,
+  isAiEnabled: isAiEnabledItem,
+  subscriptions: semiSubscriptionsItem,
+  channelVideos: channelVideosItem,
+  aiVerdicts: aiVerdictsItem
+} satisfies { [Key in keyof StoredState]: StorageItem<StoredState[Key]> };
+
 export async function readStoredState() {
-  const [subscriptions, channelVideos, aiVerdicts] = await Promise.all([
-    semiSubscriptionsItem.getValue(),
-    channelVideosItem.getValue(),
-    aiVerdictsItem.getValue()
-  ]);
-  const [isExtensionEnabled, isAnimationsEnabled, isAiEnabled] = await Promise.all([
-    isExtensionEnabledItem.getValue(),
-    isAnimationsEnabledItem.getValue(),
-    isAiEnabledItem.getValue()
-  ]);
-  const state: StoredState = {
-    subscriptions,
-    channelVideos,
-    aiVerdicts,
-    isExtensionEnabled,
-    isAnimationsEnabled,
-    isAiEnabled
+  const entries = await Promise.all(
+    Object.entries(STORED_STATE_ITEMS).map(async ([key, item]) => [key, await item.getValue()])
+  );
+  return storedStateSchema.parse(Object.fromEntries(entries));
+}
+
+/** Calls back whenever any part of the stored state changes; returns the function that stops watching */
+export function watchStoredState(callback: () => void) {
+  const unwatchers = Object.values(STORED_STATE_ITEMS).map(item => item.watch(() => callback()));
+  return () => {
+    for (const unwatch of unwatchers) {
+      unwatch();
+    }
   };
-  return state;
 }
 
 const pendingMutationByItem = new WeakMap<object, Promise<unknown>>();
 
 /** Serialises read-modify-write per item so concurrent mutations never drop each other's changes */
 export function mutateStorageItem<T>({ item, mutator }: {
-  item: {
-    getValue(): Promise<T>;
-    setValue(value: T): Promise<void>;
-  };
+  item: StorageItem<T>;
   mutator: (value: T) => T;
 }) {
   const previous = pendingMutationByItem.get(item) ?? Promise.resolve();

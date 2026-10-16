@@ -10,14 +10,7 @@
   } from "@/lib/schemas/semi-subscription";
   import type { StoredState } from "@/lib/schemas/stored-state";
   import { removeSemiSubscription, restoreSemiSubscription } from "@/lib/semi-subscription-storage";
-  import {
-    aiVerdictsItem,
-    channelVideosItem,
-    isAiEnabledItem,
-    isAnimationsEnabledItem,
-    isExtensionEnabledItem,
-    semiSubscriptionsItem
-  } from "@/lib/storage";
+  import { isAnimationsEnabledItem, isExtensionEnabledItem, readStoredState, watchStoredState } from "@/lib/storage";
   import { prefersReducedMotion } from "@/lib/utils/motion";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
@@ -47,44 +40,19 @@
   const LOADING_INDICATOR_SIZE = 20;
   const isMotionAllowed = !prefersReducedMotion();
 
-  let subscriptions = $state.raw(untrack(() => initialState.subscriptions));
-  let channelVideos = $state.raw(untrack(() => initialState.channelVideos));
-  let aiVerdicts = $state.raw(untrack(() => initialState.aiVerdicts));
-  let isAiEnabled = $state(untrack(() => initialState.isAiEnabled));
-  let isExtensionEnabled = $state(untrack(() => initialState.isExtensionEnabled));
-  let isAnimationsEnabled = $state(untrack(() => initialState.isAnimationsEnabled));
+  let storedState = $state.raw(untrack(() => initialState));
+  const { subscriptions, channelVideos, aiVerdicts, isAiEnabled, isExtensionEnabled, isAnimationsEnabled } = $derived(
+    storedState
+  );
   let editingChannelId = $state<string | null>(null);
   let announcement = $state("");
   let isRefreshing = $state(false);
   let isRefreshFailed = $state(false);
 
-  $effect(() => {
-    const unwatchers = [
-      semiSubscriptionsItem.watch(value => {
-        subscriptions = value;
-      }),
-      channelVideosItem.watch(value => {
-        channelVideos = value;
-      }),
-      aiVerdictsItem.watch(value => {
-        aiVerdicts = value;
-      }),
-      isAiEnabledItem.watch(value => {
-        isAiEnabled = value;
-      }),
-      isExtensionEnabledItem.watch(value => {
-        isExtensionEnabled = value;
-      }),
-      isAnimationsEnabledItem.watch(value => {
-        isAnimationsEnabled = value;
-      })
-    ];
-    return () => {
-      for (const unwatch of unwatchers) {
-        unwatch();
-      }
-    };
-  });
+  $effect(() =>
+    watchStoredState(async () => {
+      storedState = await readStoredState();
+    }));
 
   $effect(() => {
     void refreshAiStatus();
@@ -234,7 +202,10 @@
         {#snippet trailing()}
           <Switch
             bind:checked={() => isExtensionEnabled, isEnabled => {
-              isExtensionEnabled = isEnabled;
+              storedState = {
+                ...storedState,
+                isExtensionEnabled: isEnabled
+              };
               void isExtensionEnabledItem.setValue(isEnabled);
             }} />
         {/snippet}
@@ -246,7 +217,10 @@
         {#snippet trailing()}
           <Switch
             bind:checked={() => isAnimationsEnabled, isEnabled => {
-              isAnimationsEnabled = isEnabled;
+              storedState = {
+                ...storedState,
+                isAnimationsEnabled: isEnabled
+              };
               void isAnimationsEnabledItem.setValue(isEnabled);
             }} />
         {/snippet}

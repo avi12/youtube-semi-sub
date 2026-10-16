@@ -126,3 +126,37 @@ describe("the semi-subscriptions migration", () => {
     });
   });
 });
+
+describe("the stored state", () => {
+  beforeEach(() => {
+    fakeBrowser.reset();
+  });
+
+  it("reads every setting and record, falling back where nothing is stored", async () => {
+    const { isAiEnabledItem, readStoredState } = await loadStorage();
+    await isAiEnabledItem.setValue(true);
+
+    expect(await readStoredState()).toEqual({
+      isExtensionEnabled: true,
+      isAnimationsEnabled: true,
+      isAiEnabled: true,
+      subscriptions: {},
+      channelVideos: {},
+      aiVerdicts: {}
+    });
+  });
+
+  it("calls back on a change to any part of it, until it is told to stop", async () => {
+    const { isAnimationsEnabledItem, isExtensionEnabledItem, watchStoredState } = await loadStorage();
+    const callback = vi.fn();
+    const stopWatching = watchStoredState(callback);
+
+    await isExtensionEnabledItem.setValue(false);
+    await isAnimationsEnabledItem.setValue(false);
+    expect(callback).toHaveBeenCalledTimes(2);
+
+    stopWatching();
+    await isExtensionEnabledItem.setValue(true);
+    expect(callback).toHaveBeenCalledTimes(2);
+  });
+});

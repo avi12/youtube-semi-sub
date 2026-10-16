@@ -8,18 +8,14 @@ import {
   channelCheckedAtItem,
   channelVideosItem,
   mutateStorageItem,
-  semiSubscriptionsItem
+  semiSubscriptionsItem,
+  type StorageItem
 } from "@/lib/storage";
 import { type ChannelUploads, fetchChannelUploads } from "#background/uploads/channel-uploads";
 
 const MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const MAX_CONCURRENT_FETCHES = 4;
 export const UPLOADS_UNAVAILABLE_ERROR = "Couldn't load uploads from YouTube";
-
-interface ChannelRecordItem<Value> {
-  getValue(): Promise<Record<string, Value>>;
-  setValue(value: Record<string, Value>): Promise<void>;
-}
 
 function keepSubscribedChannels<Value>({ record, subscriptions }: {
   record: Record<string, Value>;
@@ -222,7 +218,7 @@ export async function refreshChannel(channelId: string) {
 }
 
 async function pruneItem<Value>({ item, subscriptions }: {
-  item: ChannelRecordItem<Value>;
+  item: StorageItem<Record<string, Value>>;
   subscriptions: SemiSubscriptions;
 }) {
   const isPruneNeeded = hasUnsubscribedChannels({
