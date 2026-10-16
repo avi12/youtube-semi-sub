@@ -2,26 +2,20 @@ import { isFilterInert } from "@/lib/filter/title-filter";
 import { getModeFilter, type SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 
-// Short and native-looking beside YouTube's own Subscribe/Subscribed: a follow button for a channel the user isn't
-// subscribed to, and a plain "Filter" for one they are - "Semi-subscribe" would contradict the "Subscribed" beside it
+// Short and native-looking beside YouTube's own Subscribe/Subscribed, and named the same in both modes; only its
+// accessible description says what the mode does
 
 enum ButtonLabel {
   semiSubscribe = "Semi-subscribe",
-  semiSubscribed = "Semi-subscribed",
-  filter = "Filter",
-  filtered = "Filtered"
+  semiSubscribed = "Semi-subscribed"
 }
 
-const BUTTON_TEXT = {
+const ACCESSIBILITY_TEXT = {
   [SubscriptionMode.follow]: {
-    label: ButtonLabel.semiSubscribe,
-    activeLabel: ButtonLabel.semiSubscribed,
     accessibilityText: (title: string) => `Semi-subscribe to ${title}`,
     activeAccessibilityText: (title: string) => `Edit your semi-subscription to ${title}`
   },
   [SubscriptionMode.hide]: {
-    label: ButtonLabel.filter,
-    activeLabel: ButtonLabel.filtered,
     accessibilityText: (title: string) => `Hide some of ${title}'s videos from your subscriptions feed`,
     activeAccessibilityText: (title: string) => `Edit what's hidden from ${title} in your subscriptions feed`
   }
@@ -37,7 +31,7 @@ export function describeChannelButton({ channelTitle, subscription, mode }: {
   subscription: SemiSubscription | undefined;
   mode: SubscriptionMode;
 }) {
-  const text = BUTTON_TEXT[mode];
+  const text = ACCESSIBILITY_TEXT[mode];
   const isActive = !!subscription && !isFilterInert({
     filter: getModeFilter({
       subscription,
@@ -48,14 +42,14 @@ export function describeChannelButton({ channelTitle, subscription, mode }: {
   if (!isActive) {
     return {
       isActive,
-      label: text.label,
+      label: ButtonLabel.semiSubscribe,
       accessibilityText: text.accessibilityText(channelTitle)
     };
   }
 
   return {
     isActive,
-    label: text.activeLabel,
+    label: ButtonLabel.semiSubscribed,
     accessibilityText: text.activeAccessibilityText(channelTitle)
   };
 }

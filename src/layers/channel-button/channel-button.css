@@ -1,4 +1,4 @@
-/* The channel button (button/SemiSubButton.svelte), "Semi-subscribe" or "Filter" by mode. Its look comes from
+/* The channel button (button/SemiSubButton.svelte), "Semi-subscribe" in either mode. Its look comes from
    YouTube's own button classes; this only places it and hides it */
 .yss-channel-button {
   @media (prefers-reduced-motion: no-preference) {

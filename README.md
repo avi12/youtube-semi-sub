@@ -7,7 +7,7 @@ Follow a YouTube channel without getting all of it, or subscribe and leave out t
 Works on `www.youtube.com` and `m.youtube.com`, in Chromium browsers (Chrome, Edge, Opera) and Firefox.
 
 ## Features
-- **A button on every channel** - "Semi-subscribe" on one you aren't subscribed to, "Filter" on one you are. Subscribing or unsubscribing with YouTube's own button switches the mode; both filters are kept
+- **A button on every channel** - always "Semi-subscribe": on one you aren't subscribed to it adds videos, on one you are it hides them. Subscribing or unsubscribing with YouTube's own button switches the mode; both filters are kept
 - **Two kinds of filter**
   - **RegExp** - matched against each video's title, e.g. `/tutorial|deep dive/i`
   - **AI match** - describe what you want in plain words ("only phone reviews, not unboxings"), and a model on your device judges each video's title and description

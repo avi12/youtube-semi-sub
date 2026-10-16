@@ -25,7 +25,7 @@ import {
 import { readIsSignedIn, readPageData, readUrlVideoId } from "#channel-button/page/page-data-source";
 import { mount, unmount } from "svelte";
 
-// MAIN world: keeps one channel button - "Semi-subscribe" or "Filter", by mode - next to YouTube's own Subscribe
+// MAIN world: keeps one channel button - "Semi-subscribe", in either mode - next to YouTube's own Subscribe
 // button, across SPA navigations
 
 /** YouTube may re-render the row it sits in; past this many re-mounts on one page, it gives up instead of fighting */

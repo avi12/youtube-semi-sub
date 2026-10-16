@@ -49,19 +49,19 @@ describe("describeChannelButton", () => {
     ).toBe("Semi-subscribe");
   });
 
-  it("reads Filter on a subscribed channel, and Filtered once its hide filter hides something", () => {
+  it("reads the same on a subscribed channel, past tense once its hide filter hides something", () => {
     expect(
       labelFor({
         subscription: undefined,
         mode: SubscriptionMode.hide
       })
-    ).toBe("Filter");
+    ).toBe("Semi-subscribe");
     expect(
       labelFor({
         subscription: SUBSCRIPTION,
         mode: SubscriptionMode.hide
       })
-    ).toBe("Filter");
+    ).toBe("Semi-subscribe");
     expect(
       labelFor({
         subscription: {
@@ -74,6 +74,6 @@ describe("describeChannelButton", () => {
         },
         mode: SubscriptionMode.hide
       })
-    ).toBe("Filtered");
+    ).toBe("Semi-subscribed");
   });
 });
