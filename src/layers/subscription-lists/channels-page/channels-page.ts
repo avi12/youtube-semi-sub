@@ -1,32 +1,70 @@
-import ChannelsGroup from "./ChannelsGroup.svelte";
+import { readSemiChannelId, withSemiChannelsSection } from "./channels-shelf";
+import { onPageState } from "@/lib/page/page-state";
+import { createFrameScheduler } from "@/lib/utils/dom";
+import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
+import { isPolymerElement } from "@/lib/youtube/page/polymer";
 import { FeedPathname } from "@/lib/youtube/site";
-import { SemiListSurface, startSemiListSurface } from "#subscription-lists/semi-list-surface";
+import { openSemiSubDialog } from "#subscription-lists/components/open-dialog";
+import { listsView } from "#subscription-lists/lists-view.svelte";
+import { createPageWatcher } from "#subscription-lists/semi-list-surface";
 
-// www.youtube.com/feed/channels is page "subscriptions-channels" in YouTube's page manager - a ytd-browse of its own
+// www.youtube.com/feed/channels is page "subscriptions-channels" in YouTube's page manager - a ytd-browse of its own.
+// The semi-subscriptions are a section of its section list's data (see `channels-shelf`); YouTube replaces that data
+// on every sort, so each pass puts the section back where it is missing or out of date
 
 const PAGE_MANAGER_SELECTOR = "ytd-page-manager";
 const SECTION_LIST_SELECTOR = "ytd-browse[page-subtype='subscriptions-channels'] ytd-section-list-renderer";
-/** The sort menu and the list both follow; the group goes before whichever the section list stamped first */
-const SECTION_LIST_START_SELECTOR = ":scope > #header-container, :scope > #contents";
+const CHANNEL_RENDERER_SELECTOR = "ytd-channel-renderer";
+/** Where a channel row stamps its `subscribeButton` - for ours, the manage button */
+const CHANNEL_BUTTON_SELECTOR = `${CHANNEL_RENDERER_SELECTOR} #subscribe-button button`;
 
-function findChannelsPagePlacement() {
+function syncChannelsSection() {
   const elSectionList = document.querySelector(SECTION_LIST_SELECTOR);
-  if (!elSectionList) {
-    return null;
+  if (!elSectionList || !isPolymerElement(elSectionList)) {
+    return;
   }
 
-  return {
-    target: elSectionList,
-    anchor: elSectionList.querySelector(SECTION_LIST_START_SELECTOR)
-  };
+  const data = withSemiChannelsSection({
+    data: elSectionList.data,
+    subscriptions: listsView.subscriptions,
+    isAiEnabled: listsView.isAiEnabled
+  });
+  if (data) {
+    elSectionList.data = data;
+  }
+}
+
+/** Our rows' buttons carry no command of their own: a click opens the dialog for that row's channel */
+function handleManageButtonClick(e: MouseEvent) {
+  const elButton = e.target instanceof Element ? e.target.closest(CHANNEL_BUTTON_SELECTOR) : null;
+  const elChannel = elButton?.closest(CHANNEL_RENDERER_SELECTOR);
+  const channelId = elChannel && isPolymerElement(elChannel) ? readSemiChannelId(elChannel.data) : null;
+  const subscription = listsView.subscriptions.find(listed => listed.channelId === channelId);
+  if (!subscription) {
+    return;
+  }
+
+  e.preventDefault();
+  e.stopPropagation();
+  openSemiSubDialog(subscription);
 }
 
 export function startChannelsPageList() {
-  startSemiListSurface({
-    surface: SemiListSurface.channels,
+  const scheduleSync = createFrameScheduler(sync);
+  const watchPage = createPageWatcher({
     pathname: FeedPathname.channels,
     observedSelector: PAGE_MANAGER_SELECTOR,
-    findPlacement: findChannelsPagePlacement,
-    component: ChannelsGroup
+    onChange: scheduleSync
   });
+
+  function sync() {
+    if (watchPage()) {
+      syncChannelsSection();
+    }
+  }
+
+  addEventListener("click", handleManageButtonClick, { capture: true });
+  onYouTubeNavigate(scheduleSync);
+  onPageState(scheduleSync);
+  scheduleSync();
 }

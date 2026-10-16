@@ -8,7 +8,6 @@ import { z } from "@/lib/zod";
 import { type Component, mount, unmount } from "svelte";
 
 export enum SemiListSurface {
-  channels = "channels",
   mobileChannels = "mobile-channels",
   mobileStrip = "mobile-strip"
 }
@@ -28,6 +27,41 @@ type Placement = z.infer<typeof placementSchema>;
 export function markSurface(surface: SemiListSurface) {
   return function mark(element: Element) {
     element.setAttribute(SURFACE_ATTRIBUTE, surface);
+  };
+}
+
+/**
+ * Observes one page's DOM only while that page is open: `watch()` (re)attaches the observer for the current page
+ * and says whether it is open; `onChange` runs on every mutation under `observedSelector`
+ */
+export function createPageWatcher({ pathname, observedSelector, onChange }: {
+  pathname: string;
+  observedSelector: string;
+  onChange: () => void;
+}) {
+  let observer: MutationObserver | null = null;
+  let elObserved: Element | null = null;
+
+  return function watch() {
+    const isOnPage = location.pathname === pathname;
+    if (!isOnPage) {
+      observer?.disconnect();
+      observer = null;
+      elObserved = null;
+      return false;
+    }
+
+    const elRoot = document.querySelector(observedSelector) ?? document.documentElement;
+    if (elRoot !== elObserved) {
+      observer?.disconnect();
+      elObserved = elRoot;
+      observer = observeSubtree({
+        elements: [elRoot],
+        onChange
+      });
+    }
+
+    return true;
   };
 }
 
@@ -59,9 +93,12 @@ export function startSemiListSurface({
 }) {
   let mounted: ReturnType<typeof mount> | null = null;
   let mountCount = 0;
-  let observer: MutationObserver | null = null;
-  let elObserved: Element | null = null;
   const scheduleSync = createFrameScheduler(sync);
+  const watchPage = createPageWatcher({
+    pathname,
+    observedSelector,
+    onChange: scheduleSync
+  });
 
   function detach() {
     if (!mounted) {
@@ -72,30 +109,8 @@ export function startSemiListSurface({
     mounted = null;
   }
 
-  function watchPage(isOnPage: boolean) {
-    if (!isOnPage) {
-      observer?.disconnect();
-      observer = null;
-      elObserved = null;
-      return;
-    }
-
-    const elRoot = document.querySelector(observedSelector) ?? document.documentElement;
-    if (elRoot === elObserved) {
-      return;
-    }
-
-    observer?.disconnect();
-    elObserved = elRoot;
-    observer = observeSubtree({
-      elements: [elRoot],
-      onChange: scheduleSync
-    });
-  }
-
   function sync() {
-    const isOnPage = location.pathname === pathname;
-    watchPage(isOnPage);
+    const isOnPage = watchPage();
     const isWanted = isOnPage && listShown(listsView.subscriptions).length > 0;
     const placement = isWanted ? findPlacement() : null;
     if (!placement) {

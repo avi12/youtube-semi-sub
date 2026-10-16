@@ -15,7 +15,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
   - `page-styles.content` - page-level CSS: imports each in-page layer's stylesheet (`#channel-button`, `#feed`, `#subscription-lists`).
 - `feed` - MAIN world: the feed response hook and the live feed: insertion into, and hiding from, the Latest band (`compose/band/`) and the Shorts shelf (`compose/shelf/`).
 - `channel-button` - MAIN world: the channel button, its words for every surface (`describeChannelButton`), and official-subscription detection.
-- `subscription-lists` - MAIN world: lists every semi-subscribed channel on `/feed/channels` (www and m), and the followed ones in the sidebar guide and m's avatar strip; a subscribed channel gets the manage button on YouTube's own sidebar entry. Each opens the dialog.
+- `subscription-lists` - MAIN world: lists every semi-subscribed channel on `/feed/channels` (www and m; on www as a section of YouTube's own `channelRenderer` rows written into the page's section-list data), and the followed ones in the sidebar guide and m's avatar strip; a subscribed channel gets the manage button on YouTube's own sidebar entry. Each opens the dialog.
 - `dialog` - ISOLATED world: the semi-subscribe dialog, on the channel's current mode.
 - `filter-editor` - `FilterEditor`, shared by the popup and the dialog.
 - `popup` - manage semi-subscriptions and settings, including the AI match opt-in card (`ai/`: one store for the opt-in and download, shared with the editor's inline prompt).
