@@ -24,13 +24,13 @@ When it's on, the extension checks what your browser offers:
 
 Either way, judging happens on your device: video titles and descriptions are never sent to a server. Each verdict is remembered per filter and video, so a video is judged once.
 
-LiteRT-LM needs WebGPU and WebAssembly JSPI, which Firefox ships from version 153.
+LiteRT-LM needs WebGPU, WebAssembly JSPI and relaxed SIMD: Chromium 137+ or Firefox 153+.
 
 ## Works with YouTube Auto Feed
 If you also use [YouTube Auto Feed](https://github.com/avi12/youtube-auto-feed), the two cooperate: semi-subscribed videos are added to the feed data Auto Feed reads, so it keeps them and animates them like any other new video. Semi-subscribed Shorts join its Shorts shelf too, and hidden videos leave it, once your Auto Feed version supports it.
 
 ## Privacy
-- The extension fetches the public RSS feed of each channel you follow, and of each subscribed channel whose filter hides something, from `youtube.com` every 15 minutes
+- The extension fetches the public RSS feed of each channel you follow, and of each subscribed channel whose filter hides something, from `youtube.com` every 15 minutes - falling back to the channel's Videos page when RSS is down
 - Your semi-subscriptions and filters stay in your browser's extension storage
 - No analytics, no accounts, no servers of its own
 
