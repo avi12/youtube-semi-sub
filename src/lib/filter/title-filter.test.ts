@@ -113,6 +113,16 @@ describe("getTitleFilterError", () => {
       })
     ).toEqual(expect.any(String));
   });
+
+  it("explains a flag that would make the filter stateful, as compileTitleFilter refuses it", () => {
+    const filter = {
+      kind: FilterKind.regex,
+      pattern: "review",
+      flags: "g"
+    } as const;
+    expect(compileTitleFilter(filter)).toBeNull();
+    expect(getTitleFilterError(filter)).toEqual(expect.stringContaining("flags"));
+  });
 });
 
 describe("isTitleFilterValid", () => {

@@ -60,26 +60,37 @@ export const EMPTY_AI_FILTER: AiFilter = {
   description: ""
 };
 
-export function compileTitleFilter(filter: RegexFilter) {
+const UNSUPPORTED_FLAGS_ERROR = `Only the ${ALLOWED_FILTER_FLAGS.join(", ")} flags work in a title filter`;
+
+/** The one place a RegExp filter is compiled: its RegExp, or why it has none */
+function compileRegexFilter(filter: RegexFilter) {
   const isFlagSetValid = regexFilterSchema.safeParse(filter).success;
   if (!isFlagSetValid) {
-    return null;
+    return {
+      regex: null,
+      error: UNSUPPORTED_FLAGS_ERROR
+    };
   }
 
   try {
-    return new RegExp(filter.pattern, filter.flags);
-  } catch {
-    return null;
+    return {
+      regex: new RegExp(filter.pattern, filter.flags),
+      error: null
+    };
+  } catch (e) {
+    return {
+      regex: null,
+      error: e instanceof Error ? e.message : String(e)
+    };
   }
 }
 
+export function compileTitleFilter(filter: RegexFilter) {
+  return compileRegexFilter(filter).regex;
+}
+
 export function getTitleFilterError(filter: RegexFilter) {
-  try {
-    new RegExp(filter.pattern, filter.flags);
-    return null;
-  } catch (e) {
-    return e instanceof Error ? e.message : String(e);
-  }
+  return compileRegexFilter(filter).error;
 }
 
 /** Whether a draft can be saved: a pattern that compiles, or a description that isn't blank or too long */
