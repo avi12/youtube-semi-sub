@@ -32,6 +32,8 @@ enum YtafMessageType {
 
 /** What ytaf promises from each contract version on */
 enum YtafContractVersion {
+  /** Before ytaf took on the contract: it keeps nothing it didn't fetch itself */
+  none = 0,
   /** It keeps tagged items YouTube's own feed lacks - Shorts in its shelf too - for as long as a response has them */
   honorsSemiSubTags = 1,
   /** It also drops the videos a response lists as hidden (`yssHiddenVideoIds`) at once, and never adds one */
@@ -41,7 +43,7 @@ enum YtafContractVersion {
 /** Absent before ytaf took on the contract, `true` for its first version, a number since */
 const contractVersionSchema = z
   .union([z.literal(true).transform(() => YtafContractVersion.honorsSemiSubTags), z.number().int().nonnegative()])
-  .catch(0);
+  .catch(YtafContractVersion.none);
 
 const ytafSettingsSchema = z.looseObject({
   isExtensionEnabled: z.boolean()
