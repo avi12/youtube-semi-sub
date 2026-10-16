@@ -2,7 +2,13 @@ import { readInitialDataHtml, readSubscriptionsContinuation, readSubscriptionsFe
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
-import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
+import {
+  FeedPathname,
+  getYouTubeSite,
+  InnerTubePath,
+  isYouTubeUrlAt,
+  YouTubeSite
+} from "@/lib/youtube/site";
 import {
   composeForPageState,
   findHiddenVideoIds,
@@ -25,8 +31,6 @@ import { isHiddenVideoListHonored } from "#feed/live/ytaf";
 // page also lists them beside its grid for a YouTube Auto Feed that reads the list, which would otherwise keep showing
 // what it already shows
 
-const BROWSE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/youtubei\/v1\/browse(?:[?#]|$)/;
-const FEED_PAGE_URL_PATTERN = /^https:\/\/(?:www|m)\.youtube\.com\/feed\/subscriptions\/?(?:[?#]|$)/;
 // The longest a feed response is held back for native renderers; slower ones are inserted live afterwards
 const RESPONSE_PATCH_BUDGET_MS = 1500;
 const NO_REMOVALS: ReadonlySet<string> = new Set();
@@ -191,18 +195,30 @@ function installResponsePatch() {
   }
 
   function json(this: Response) {
-    return BROWSE_URL_PATTERN.test(this.url) ? readPatchedJson(this) : originalJson.call(this);
+    const isBrowseResponse = isYouTubeUrlAt({
+      url: this.url,
+      pathname: InnerTubePath.browse
+    });
+    return isBrowseResponse ? readPatchedJson(this) : originalJson.call(this);
   }
 
   function text(this: Response) {
-    if (BROWSE_URL_PATTERN.test(this.url)) {
+    const isBrowseResponse = isYouTubeUrlAt({
+      url: this.url,
+      pathname: InnerTubePath.browse
+    });
+    if (isBrowseResponse) {
       return readPatchedText({
         response: this,
         patch: patchBrowseText
       });
     }
 
-    if (FEED_PAGE_URL_PATTERN.test(this.url)) {
+    const isFeedPage = isYouTubeUrlAt({
+      url: this.url,
+      pathname: FeedPathname.subscriptions
+    });
+    if (isFeedPage) {
       return readPatchedText({
         response: this,
         patch: patchFeedHtml

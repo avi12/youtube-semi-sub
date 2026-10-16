@@ -1,7 +1,8 @@
 import { channelIdSchema } from "@/lib/schemas/channel";
+import { VIDEO_ID_SOURCE } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 
-export const VIDEO_ID_PATTERN = /^[\w-]{11}$/;
+export const VIDEO_ID_PATTERN = new RegExp(`^${VIDEO_ID_SOURCE}$`);
 export const videoIdSchema = z.string().regex(VIDEO_ID_PATTERN);
 /** Enough of a description to tell what a video is about, without filling storage with link lists and credits */
 export const VIDEO_DESCRIPTION_MAX_LENGTH = 400;

@@ -1,6 +1,6 @@
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
-import { formatHandle } from "@/lib/youtube/channel-link";
+import { buildChannelPath, formatHandle } from "@/lib/youtube/channel-link";
 import { buildChannelEndpoint, buildWatchEndpoint } from "@/lib/youtube/endpoints";
 import { formatRelativeTime } from "@/lib/youtube/relative-time";
 import {
@@ -27,7 +27,7 @@ function channelCommand(channel: ChannelInfo) {
   const canonicalBaseUrl = channel.handle ? `/${formatHandle(channel.handle)}` : undefined;
   return buildChannelEndpoint({
     channelId: channel.channelId,
-    url: canonicalBaseUrl ?? `/channel/${channel.channelId}`,
+    url: canonicalBaseUrl ?? buildChannelPath(channel.channelId),
     canonicalBaseUrl
   });
 }

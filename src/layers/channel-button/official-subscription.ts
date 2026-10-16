@@ -2,16 +2,12 @@ import { type OfficialSubscriptionChange, PageMessage, pageMessenger } from "@/l
 import { whenPageStateKnown } from "@/lib/page/page-state";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { parseJson } from "@/lib/utils/json";
+import { InnerTubePath } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 
 // MAIN world: what this tab saw the user do with YouTube's own Subscribe button, newest first in line
 
-enum SubscriptionEndpointPath {
-  subscribe = "/youtubei/v1/subscription/subscribe",
-  unsubscribe = "/youtubei/v1/subscription/unsubscribe"
-}
-
-const SUBSCRIPTION_ENDPOINT_PATHS: ReadonlySet<string> = new Set(Object.values(SubscriptionEndpointPath));
+const SUBSCRIPTION_ENDPOINT_PATHS: ReadonlySet<string> = new Set([InnerTubePath.subscribe, InnerTubePath.unsubscribe]);
 
 const subscriptionRequestSchema = z.looseObject({
   channelIds: z.array(channelIdSchema).min(1)
@@ -129,7 +125,7 @@ async function reportSubscriptionRequest({ endpointPath, requestBody, response }
     return;
   }
 
-  const isSubscribed = endpointPath === SubscriptionEndpointPath.subscribe;
+  const isSubscribed = endpointPath === InnerTubePath.subscribe;
   for (const channelId of parsed.data.channelIds) {
     const change: OfficialSubscriptionChange = {
       channelId,

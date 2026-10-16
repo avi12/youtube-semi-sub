@@ -1,8 +1,8 @@
-import { CHANNEL_ID_PATTERN, type ChannelInfo, channelInfoSchema } from "@/lib/schemas/channel";
+import { CHANNEL_ID_SOURCE, type ChannelInfo, channelInfoSchema } from "@/lib/schemas/channel";
 import { browseEndpointSchema, channelMetadataRendererSchema } from "@/lib/youtube/schemas/browse";
 import { textRunSchema } from "@/lib/youtube/schemas/text";
 import { type Thumbnail, thumbnailListSchema, thumbnailSchema } from "@/lib/youtube/schemas/thumbnail";
-import { YOUTUBE_ORIGIN } from "@/lib/youtube/site";
+import { VIDEO_ID_SOURCE, YOUTUBE_ORIGIN } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 
 // Pure readers over a page's InnerTube data ({ response, playerResponse }), shared by www and m.youtube.com
@@ -12,9 +12,9 @@ export enum PageKind {
   channel = "channel"
 }
 
-const WATCH_PATH_PATTERN = /^\/(?:watch$|live\/[\w-]{11}$)/;
-const CHANNEL_PATH_PATTERN = /^\/(?:@[^/]+|channel\/UC[\w-]{22}|c\/[^/]+|user\/[^/]+)(?:\/|$)/;
-const CHANNEL_ID_IN_TEXT_PATTERN = new RegExp(CHANNEL_ID_PATTERN.source.slice(1, -1));
+const WATCH_PATH_PATTERN = new RegExp(`^/(?:watch$|live/${VIDEO_ID_SOURCE}$)`);
+const CHANNEL_PATH_PATTERN = new RegExp(`^/(?:@[^/]+|channel/${CHANNEL_ID_SOURCE}|c/[^/]+|user/[^/]+)(?:/|$)`);
+const CHANNEL_ID_IN_TEXT_PATTERN = new RegExp(CHANNEL_ID_SOURCE);
 const HANDLE_PATH_PATTERN = /^\/(@[^/]+)/;
 const PROTOCOL_RELATIVE_PREFIX = "//";
 const PREFERRED_AVATAR_SIZE = 88;

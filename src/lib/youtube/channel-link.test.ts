@@ -1,4 +1,4 @@
-import { formatHandle, getChannelUrl } from "./channel-link";
+import { buildChannelPath, formatHandle, getChannelUrl } from "./channel-link";
 import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UC0123456789abcdefghijkl";
@@ -20,5 +20,11 @@ describe("channel links", () => {
 
   it("falls back to the channel id URL", () => {
     expect(getChannelUrl({ channelId: CHANNEL_ID })).toBe(`https://www.youtube.com/channel/${CHANNEL_ID}`);
+  });
+});
+
+describe("buildChannelPath", () => {
+  it("builds the path that opens a channel by its id", () => {
+    expect(buildChannelPath(CHANNEL_ID)).toBe(`/channel/${CHANNEL_ID}`);
   });
 });

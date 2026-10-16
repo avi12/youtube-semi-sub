@@ -1,4 +1,4 @@
-import { buildShortsPath, WATCH_VIDEO_PARAM } from "@/lib/youtube/site";
+import { buildShortsPath, buildWatchPath, InnerTubePath } from "@/lib/youtube/site";
 
 // The navigation endpoints YouTube's router follows, shaped like the ones in its own responses
 
@@ -14,13 +14,11 @@ enum RootVisualElement {
   channel = 3611
 }
 
-const BROWSE_API_URL = "/youtubei/v1/browse";
-
 export function buildWatchEndpoint(videoId: string) {
   return {
     commandMetadata: {
       webCommandMetadata: {
-        url: `/watch?${WATCH_VIDEO_PARAM}=${videoId}`,
+        url: buildWatchPath(videoId),
         webPageType: WebPageType.watch,
         rootVe: RootVisualElement.watch
       }
@@ -59,7 +57,7 @@ export function buildChannelEndpoint({ channelId, url, canonicalBaseUrl }: {
         url,
         webPageType: WebPageType.channel,
         rootVe: RootVisualElement.channel,
-        apiUrl: BROWSE_API_URL
+        apiUrl: InnerTubePath.browse
       }
     },
     browseEndpoint: {

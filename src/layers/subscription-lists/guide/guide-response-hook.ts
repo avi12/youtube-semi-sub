@@ -1,6 +1,7 @@
 import { buildSemiGuideEntry, patchGuideResponse, readGuideSubscriptions } from "./guide-data";
 import { getPageState } from "@/lib/page/page-state";
 import { parseJson } from "@/lib/utils/json";
+import { InnerTubePath, isYouTubeUrlAt } from "@/lib/youtube/site";
 import { applySubscriptionSnapshot } from "#channel-button";
 import { listFollowedSubscriptions, listSemiSubscriptions } from "#subscription-lists/semi-channels";
 
@@ -8,11 +9,11 @@ import { listFollowedSubscriptions, listSemiSubscriptions } from "#subscription-
 // with text(). Patching the body puts the semi-subscribed channels into the very first render of the guide and of
 // the mini guide's Subscriptions flyout. Every other response passes through the previous override untouched
 
-const GUIDE_PATHNAME = "/youtubei/v1/guide";
-
 function isGuideResponse(response: Response) {
-  const hasUrl = response.url !== "";
-  return hasUrl && new URL(response.url).pathname === GUIDE_PATHNAME;
+  return isYouTubeUrlAt({
+    url: response.url,
+    pathname: InnerTubePath.guide
+  });
 }
 
 function readSemiGuideEntries() {

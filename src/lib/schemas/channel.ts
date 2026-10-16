@@ -1,6 +1,8 @@
 import { z } from "@/lib/zod";
 
-export const CHANNEL_ID_PATTERN = /^UC[\w-]{22}$/;
+/** A channel id, unanchored - for building the patterns that find one inside a URL or text */
+export const CHANNEL_ID_SOURCE = String.raw`UC[\w-]{22}`;
+const CHANNEL_ID_PATTERN = new RegExp(`^${CHANNEL_ID_SOURCE}$`);
 export const channelIdSchema = z.string().regex(CHANNEL_ID_PATTERN);
 
 export const channelInfoSchema = z.object({

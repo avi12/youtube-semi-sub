@@ -1,6 +1,7 @@
 import { fetchText } from "./fetch-text";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { parseJson } from "@/lib/utils/json";
+import { buildChannelPath } from "@/lib/youtube/channel-link";
 import { findInitialDataJson } from "@/lib/youtube/initial-data";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { channelMetadataRendererSchema, tabbedColumnSchema } from "@/lib/youtube/schemas/browse";
@@ -165,7 +166,7 @@ export function parseVideosTab({ response, now }: {
 
 /** The channel's Videos tab uploads, or null when the page is unavailable or unreadable */
 export async function fetchVideosTabUploads(channelId: string) {
-  const url = new URL(`/channel/${channelId}/videos`, YOUTUBE_ORIGIN);
+  const url = new URL(`${buildChannelPath(channelId)}/videos`, YOUTUBE_ORIGIN);
   url.searchParams.set(INTERFACE_LANGUAGE_PARAM, ENGLISH_INTERFACE_LANGUAGE);
   // Cookies carry the user's consent choice - without them EU visitors get the consent interstitial instead
   const html = await fetchText({

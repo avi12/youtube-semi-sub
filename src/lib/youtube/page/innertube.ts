@@ -1,12 +1,12 @@
 import { readYtcfg, YtcfgKey } from "@/lib/youtube/page/globals";
+import { InnerTubePath } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 
 // MAIN world only: reads the page's `ytcfg` and signs requests the way the page does, so the response
 // carries the same renderer shapes the page itself renders (WEB on www.youtube.com, MWEB on m.youtube.com)
 
 export enum InnerTubeEndpoint {
-  browse = "/youtubei/v1/browse?prettyPrint=false",
-  next = "/youtubei/v1/next?prettyPrint=false"
+  browse = `${InnerTubePath.browse}?prettyPrint=false`
 }
 
 const APISID_COOKIE_NAMES = ["SAPISID", "__Secure-3PAPISID", "__Secure-1PAPISID"] as const;

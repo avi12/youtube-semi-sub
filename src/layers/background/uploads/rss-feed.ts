@@ -1,11 +1,11 @@
 import { fetchText } from "./fetch-text";
 import { type FeedVideo, feedVideoSchema, VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
-import { isShortsUrl } from "@/lib/youtube/site";
+import { isShortsUrl, YOUTUBE_ORIGIN } from "@/lib/youtube/site";
 import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
 import { z } from "@/lib/zod";
 import { XMLParser } from "fast-xml-parser";
 
-const RSS_FEED_URL = "https://www.youtube.com/feeds/videos.xml";
+const RSS_FEED_PATH = "/feeds/videos.xml";
 const RSS_CHANNEL_ID_PARAM = "channel_id";
 const RSS_ENTRY_TAG = "entry";
 const RSS_LINK_TAG = "link";
@@ -107,7 +107,7 @@ export function parseRssFeed(xml: string) {
 
 /** The channel's latest uploads (newest first, up to 15) from its RSS feed, or null when the feed is unavailable */
 export async function fetchRssUploads(channelId: string) {
-  const url = new URL(RSS_FEED_URL);
+  const url = new URL(RSS_FEED_PATH, YOUTUBE_ORIGIN);
   url.searchParams.set(RSS_CHANNEL_ID_PARAM, channelId);
   const xml = await fetchText({
     url,
