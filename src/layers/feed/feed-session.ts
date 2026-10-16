@@ -8,6 +8,7 @@ import { settleBefore } from "@/lib/utils/promise";
 import { composeFeedContents, planFeed } from "#feed/compose/feed-compose";
 import {
   channelIdFromGridItem,
+  channelIdsFromGridItem,
   shelfItemsFromGridItem,
   titleFromGridItem,
   videoIdFromGridItem,
@@ -155,8 +156,8 @@ function judgeResumedChannelVideos({ contents, state }: {
 
 /**
  * Whether a subscribed channel's hide filter hides this feed item: an upload the cache knows as the channel's own and
- * hidden, or a tile linking to that one channel alone whose title or verdict the filter matches. A Short names no
- * channel, so only the cache knows it; a video several channels share is hidden only when it is the channel's own
+ * hidden, or a tile linking to the channel - as its uploader or a collaborator - whose title or verdict the filter
+ * matches. A Short names no channel, so only the cache knows it
  */
 function createHiddenItemCheck(state: PageState) {
   const cachedHiddenIds = new Set(state.hiddenVideoIds);
@@ -168,22 +169,20 @@ function createHiddenItemCheck(state: PageState) {
       return true;
     }
 
-    const channelId = channelIdFromGridItem(item);
-    const subscription = channelId ? state.subscriptions[channelId] : undefined;
-    const judge = subscription?.isSubscribed && createModeJudge({
-      filter: subscription.hideFilter,
-      mode: SubscriptionMode.hide,
-      aiVerdicts: state.aiVerdicts,
-      isAiEnabled: state.isAiEnabled
-    });
-    if (!judge) {
-      return false;
-    }
-
-    return judge({
+    const video = {
       videoId,
       title: titleFromGridItem(item) ?? ""
-    }) === MatchState.matches;
+    };
+    return [...channelIdsFromGridItem(item)].some(channelId => {
+      const subscription = state.subscriptions[channelId];
+      const judge = subscription?.isSubscribed && createModeJudge({
+        filter: subscription.hideFilter,
+        mode: SubscriptionMode.hide,
+        aiVerdicts: state.aiVerdicts,
+        isAiEnabled: state.isAiEnabled
+      });
+      return !!judge && judge(video) === MatchState.matches;
+    });
   };
 }
 

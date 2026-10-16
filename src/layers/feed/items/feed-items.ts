@@ -76,8 +76,8 @@ const channelLinkSchema = z.looseObject({
   })
 });
 
-/** The one channel a root-level item links to, or null for none - or several, a collaboration it may share */
-export function channelIdFromGridItem(item: unknown) {
+/** Every channel a root-level item links to: its uploader, and each collaborator on a collaboration */
+export function channelIdsFromGridItem(item: unknown) {
   const channelIds = new Set<string>();
   const pending: unknown[] = [richItemContent(item)];
   while (pending.length > 0) {
@@ -93,7 +93,12 @@ export function channelIdFromGridItem(item: unknown) {
 
     pending.push(...Object.values(value));
   }
+  return channelIds;
+}
 
+/** The one channel a root-level item links to, or null for none - or several, a collaboration it may share */
+export function channelIdFromGridItem(item: unknown) {
+  const channelIds = channelIdsFromGridItem(item);
   if (channelIds.size !== 1) {
     return null;
   }

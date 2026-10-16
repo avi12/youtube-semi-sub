@@ -372,8 +372,8 @@ describe("findHiddenVideoIds", () => {
     ).toEqual(new Set([videoId(1)]));
   });
 
-  it("hides a shared video only when the channel's cached uploads know it as its own", () => {
-    const collaboration = richItem({
+  it("hides a collaboration its hide filter matches, whether the channel uploaded it or is a guest on it", () => {
+    const uploadedCollaboration = richItem({
       ...semiChannelItem({
         index: 4,
         title: "Hide this collab"
@@ -384,18 +384,36 @@ describe("findHiddenVideoIds", () => {
         }
       }
     });
+    const guestCollaboration = richItem({
+      ...desktopFeedItem({
+        index: 5,
+        published: PUBLISHED,
+        title: "Hide this guest spot"
+      }).richItemRenderer.content,
+      collaborator: {
+        browseEndpoint: {
+          browseId: CHANNEL_ID
+        }
+      }
+    });
+    const keptCollaboration = richItem({
+      ...desktopFeedItem({
+        index: 6,
+        published: PUBLISHED,
+        title: "Keep this guest spot"
+      }).richItemRenderer.content,
+      collaborator: {
+        browseEndpoint: {
+          browseId: CHANNEL_ID
+        }
+      }
+    });
     expect(
       session.findHiddenVideoIds({
-        contents: [collaboration],
+        contents: [uploadedCollaboration, guestCollaboration, keptCollaboration],
         state: hidingState()
       })
-    ).toEqual(new Set());
-    expect(
-      session.findHiddenVideoIds({
-        contents: [collaboration],
-        state: hidingState({ hiddenVideoIds: [videoId(4)] })
-      })
-    ).toEqual(new Set([videoId(4)]));
+    ).toEqual(new Set([videoId(4), videoId(5)]));
   });
 
   it("hides a Short in either site's Shorts shelf by the cached uploads, as it names no channel", () => {
