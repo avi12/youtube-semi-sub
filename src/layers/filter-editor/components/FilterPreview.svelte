@@ -238,15 +238,11 @@
   }
 
   .video__title {
-    display: -webkit-box;
-    overflow: hidden;
     color: var(--editor-fg);
     font-weight: 500;
     font-size: 13px;
     line-height: 1.35;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    overflow-wrap: anywhere;
   }
 
   .video__meta {
