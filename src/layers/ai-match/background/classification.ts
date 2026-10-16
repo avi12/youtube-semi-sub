@@ -1,7 +1,7 @@
 import { AiEngine } from "@/lib/ai/ai-status";
 import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
 import { aiFilterSchema, FilterKind } from "@/lib/filter/title-filter";
-import { feedVideoSchema, sortNewestFirst } from "@/lib/schemas/feed-video";
+import { feedVideoSchema, MAX_CACHED_VIDEOS_PER_CHANNEL, sortNewestFirst } from "@/lib/schemas/feed-video";
 import { getActiveFilter } from "@/lib/schemas/semi-subscription";
 import type { StoredState } from "@/lib/schemas/stored-state";
 import {
@@ -20,15 +20,13 @@ import { buildPrefaceMessages } from "#ai-match/classify/prompt";
 import { inferLocally } from "#ai-match/engine/litert/litert-client";
 import { openBuiltInSession } from "#ai-match/engine/prompt-api";
 
-/** The editor previews at most a channel's cached uploads (50), so a request never needs more */
-const MAX_REQUEST_VIDEOS = 50;
 /** Editor requests kept while the model isn't ready yet - older ones are previews the user has moved on from */
 const MAX_QUEUED_REQUESTS = 8;
 
-/** The editor's ask: judge these videos against this filter (verdicts land in the shared cache) */
+/** The editor's ask: judge these videos (at most a channel's cached uploads) against this filter */
 export const classifyRequestSchema = z.object({
   filter: aiFilterSchema,
-  videos: z.array(feedVideoSchema).max(MAX_REQUEST_VIDEOS)
+  videos: z.array(feedVideoSchema).max(MAX_CACHED_VIDEOS_PER_CHANNEL)
 });
 type ClassifyRequest = z.infer<typeof classifyRequestSchema>;
 

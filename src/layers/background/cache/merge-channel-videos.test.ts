@@ -1,4 +1,5 @@
-import { isVideoListUnchanged, MAX_CACHED_VIDEOS_PER_CHANNEL, mergeChannelVideos } from "./merge-channel-videos";
+import { isVideoListUnchanged, mergeChannelVideos } from "./merge-channel-videos";
+import { MAX_CACHED_VIDEOS_PER_CHANNEL } from "@/lib/schemas/feed-video";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { UploadsSource } from "#background/uploads/channel-uploads";
 import { describe, expect, it } from "vitest";

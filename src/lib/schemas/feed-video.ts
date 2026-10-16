@@ -24,6 +24,12 @@ export function sortNewestFirst(videos: readonly FeedVideo[]) {
   return videos.toSorted((left, right) => right.publishedAt - left.publishedAt);
 }
 
+/**
+ * RSS only lists the latest 15 uploads, so a matching video would vanish as soon as the channel posts 15 others. The
+ * cache therefore keeps videos that slid out of the fetched window, up to this many per channel
+ */
+export const MAX_CACHED_VIDEOS_PER_CHANNEL = 50;
+
 const channelVideosSchema = z.object({
   fetchedAt: z.number(),
   videos: z.array(feedVideoSchema)
