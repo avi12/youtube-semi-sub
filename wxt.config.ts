@@ -44,7 +44,7 @@ function copyLiteRtWasm(outDir: string) {
 export default defineConfig({
   manifest: ({ browser }) => ({
     name: "YouTube Semi-Subscribe",
-    description: "Semi-subscribe to a YouTube channel - only the videos your filter (a RegExp or an AI match) lets through land in your feed",
+    description: "Filter what a YouTube channel puts in your feed: follow it without subscribing, or subscribe and hide what you don't want",
     homepage_url: REPOSITORY_URL,
     permissions: [
       "storage",
