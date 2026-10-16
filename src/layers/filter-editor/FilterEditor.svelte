@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { watchAiMatchPreview } from "./ai-match-preview.svelte";
   import { MODE_COPY } from "./mode-copy";
-  import { previewAiFilter, previewTitleFilter, type TitleFilterPreview } from "./title-matches";
   import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
   import {
     DEFAULT_TITLE_FILTER,
@@ -16,6 +14,8 @@
   import FilterPreview from "#filter-editor/components/FilterPreview.svelte";
   import KindSwitch from "#filter-editor/components/KindSwitch.svelte";
   import RegexFilterFields from "#filter-editor/components/RegexFilterFields.svelte";
+  import { watchAiMatchPreview } from "#filter-editor/preview/ai-match-preview.svelte";
+  import { previewAiFilter, previewTitleFilter, type TitleFilterPreview } from "#filter-editor/preview/title-matches";
   import type { Snippet } from "svelte";
 
   interface Props {

@@ -1,5 +1,5 @@
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
-import type { PreviewHints } from "#filter-editor/title-matches";
+import type { PreviewHints } from "#filter-editor/preview/title-matches";
 
 // The editor's words per mode: a follow filter picks what is added to the feed, a hide filter what is hidden from it
 

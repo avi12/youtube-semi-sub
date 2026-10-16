@@ -8,7 +8,7 @@
     IGNORE_CASE_FLAG,
     setFilterFlag
   } from "#filter-editor/filter-flags";
-  import { getReadableFilterError } from "#filter-editor/title-matches";
+  import { getReadableFilterError } from "#filter-editor/preview/title-matches";
 
   interface Props {
     filter: RegexFilter;

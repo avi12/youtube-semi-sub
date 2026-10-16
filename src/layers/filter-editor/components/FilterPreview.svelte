@@ -2,8 +2,8 @@
   import Disclosure from "./Disclosure.svelte";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
-  import { popTile, slideTile } from "#filter-editor/tile-motion";
-  import type { PreviewHints, PreviewRow, TitleFilterPreview } from "#filter-editor/title-matches";
+  import { popTile, slideTile } from "#filter-editor/preview/tile-motion";
+  import type { PreviewHints, PreviewRow, TitleFilterPreview } from "#filter-editor/preview/title-matches";
 
   interface Props {
     /** `isStale`: the filter is mid-edit and invalid, so this is the last valid result */
