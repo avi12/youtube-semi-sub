@@ -1,12 +1,8 @@
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
+import { channelInfoSchema } from "@/lib/schemas/channel";
 import { getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { describeChannelButton } from "#channel-button";
-import { toChannelInfo } from "#subscription-lists/semi-channels";
 import { on } from "svelte/events";
-
-function openSemiSubDialog(subscription: SemiSubscription) {
-  pageMessenger.sendMessage(PageMessage.openSemiSubDialog, toChannelInfo(subscription)).catch(() => {});
-}
 
 /**
  * Attachment for a manage button: opens the ISOLATED-world dialog (edit the filter, remove the semi-subscription).
@@ -18,7 +14,8 @@ export function opensSemiSubDialog(subscription: SemiSubscription) {
     return on(elButton, "click", e => {
       e.preventDefault();
       e.stopPropagation();
-      openSemiSubDialog(subscription);
+      // The channel's details only: the dialog reads the filters from storage itself
+      pageMessenger.sendMessage(PageMessage.openSemiSubDialog, channelInfoSchema.parse(subscription)).catch(() => {});
     });
   };
 }

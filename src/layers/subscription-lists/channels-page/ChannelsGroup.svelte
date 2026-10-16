@@ -1,6 +1,7 @@
 <script lang="ts">
   import ChannelRow from "#subscription-lists/components/ChannelRow.svelte";
   import { listsView } from "#subscription-lists/lists-view.svelte";
+  import { SEMI_LIST_TITLE } from "#subscription-lists/semi-channels";
   import { markSurface, SemiListSurface } from "#subscription-lists/semi-list-surface";
 
   const titleId = $props.id();
@@ -8,7 +9,7 @@
 
 <!-- www.youtube.com/feed/channels: sits above YouTube's own "All subscriptions" list -->
 <section class="yss-channels" {@attach markSurface(SemiListSurface.channels)} aria-labelledby={titleId}>
-  <h2 id={titleId} class="yss-channels__title">Semi-subscriptions</h2>
+  <h2 id={titleId} class="yss-channels__title">{SEMI_LIST_TITLE}</h2>
   <ul class="yss-channels__list">
     {#each listsView.subscriptions as subscription (subscription.channelId)}
       <ChannelRow {subscription} />

@@ -109,9 +109,9 @@ function readEntryChannelId(elEntry: Element) {
   }
 
   const subscribedChannelId = readSubscribedGuideEntryChannelId(elEntry.data);
-  const isHidingChannel = listsView.subscriptions
+  const isSubscribedSemiChannel = listsView.subscriptions
     .some(subscription => subscription.channelId === subscribedChannelId && subscription.isSubscribed);
-  return isHidingChannel ? subscribedChannelId : readSemiGuideEntryChannelId(elEntry.data);
+  return isSubscribedSemiChannel ? subscribedChannelId : readSemiGuideEntryChannelId(elEntry.data);
 }
 
 /** Polymer recycles entry elements between items, so a button follows the entry's current data, not the element */

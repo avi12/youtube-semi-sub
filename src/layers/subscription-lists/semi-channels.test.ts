@@ -1,4 +1,4 @@
-import { getChannelPath, listFollowedSubscriptions, listSemiSubscriptions, toChannelInfo } from "./semi-channels";
+import { getChannelPath, listFollowedSubscriptions, listSemiSubscriptions } from "./semi-channels";
 import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -69,17 +69,6 @@ describe("getChannelPath", () => {
       })
     ).toBe("/@Alpha");
     expect(getChannelPath({ channelId: ALPHA.channelId })).toBe(`/channel/${ALPHA.channelId}`);
-  });
-});
-
-describe("toChannelInfo", () => {
-  it("drops the filter and timestamps the dialog does not take", () => {
-    expect(toChannelInfo(ALPHA)).toEqual({
-      channelId: ALPHA.channelId,
-      title: "Alpha",
-      handle: "@Alpha",
-      avatarUrl: undefined
-    });
   });
 });
 

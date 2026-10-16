@@ -4,10 +4,12 @@ import { listByTitle, type SemiSubscription } from "@/lib/schemas/semi-subscript
 import { getChannelUrl } from "@/lib/youtube/channel-link";
 import { buildChannelEndpoint } from "@/lib/youtube/endpoints";
 
+/** The heading of every list of ours that stands apart from YouTube's own */
+export const SEMI_LIST_TITLE = "Semi-subscriptions";
+
 /** What every list shows: nothing while the extension is off, otherwise A-Z like YouTube's own sort */
 export function listSemiSubscriptions(state: PageState | null) {
-  const isListed = state?.isExtensionEnabled === true;
-  if (!state || !isListed) {
+  if (!state?.isExtensionEnabled) {
     return [];
   }
 
@@ -34,14 +36,4 @@ export function buildListedChannelEndpoint(channel: Pick<ChannelInfo, "channelId
     url,
     canonicalBaseUrl: url
   });
-}
-
-export function toChannelInfo({ channelId, title, handle, avatarUrl }: SemiSubscription) {
-  const channel: ChannelInfo = {
-    channelId,
-    title,
-    handle,
-    avatarUrl
-  };
-  return channel;
 }

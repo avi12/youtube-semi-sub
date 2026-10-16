@@ -4,7 +4,7 @@
   import FilterLiteral from "#subscription-lists/components/FilterLiteral.svelte";
   import { describeManageButton, opensSemiSubDialog } from "#subscription-lists/components/open-dialog";
   import { listsView } from "#subscription-lists/lists-view.svelte";
-  import { getChannelPath } from "#subscription-lists/semi-channels";
+  import { getChannelPath, SEMI_LIST_TITLE } from "#subscription-lists/semi-channels";
   import { markSurface, SemiListSurface } from "#subscription-lists/semi-list-surface";
 
   const titleId = $props.id();
@@ -12,7 +12,7 @@
 
 <!-- m.youtube.com/feed/channels: above YouTube's own "All channels" shelf. m.youtube.com routes plain links itself -->
 <section class="yss-m-channels" {@attach markSurface(SemiListSurface.mobileChannels)} aria-labelledby={titleId}>
-  <h2 id={titleId} class="yss-m-channels__title">Semi-subscriptions</h2>
+  <h2 id={titleId} class="yss-m-channels__title">{SEMI_LIST_TITLE}</h2>
   <ul class="yss-m-channels__list">
     {#each listsView.subscriptions as subscription (subscription.channelId)}
       <li class="yss-m-channel">

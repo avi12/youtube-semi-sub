@@ -2,6 +2,7 @@ import { channelIdSchema } from "@/lib/schemas/channel";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
 import { buildListedChannelEndpoint } from "#subscription-lists/semi-channels";
+import { SEMI_LIST_TITLE } from "#subscription-lists/semi-channels";
 
 // The desktop guide (sidebar) and the mini guide's Subscriptions flyout both render from the /youtubei/v1/guide
 // response. Semi-subscribed channels are written into that data as native guide entries, tagged so they can be
@@ -11,7 +12,8 @@ const SEMI_ENTRY_CHANNEL_ID_KEY = "youtubeSemiSubChannelId";
 const SEMI_SECTION_KEY = "youtubeSemiSubSection";
 /** YouTube inserts a fresh subscription right after this header entry - semi-subscriptions go to the same spot */
 const SUBSCRIPTIONS_HEADER_ENTRY_ID = "subscriptions-channels-header";
-const SEMI_SECTION_TITLE = "Semi-subscriptions";
+/** The guide opens with its main section; signed out, the sign-in promo comes next */
+const SIGN_IN_PROMO_INDEX = 1;
 /** Any of YouTube's continuation keys - a section that has one was cut short and loads the rest later */
 const CONTINUATION_KEY_PREFIX = "\"continuation";
 const SUBSCRIBE_ACTION_HANDLER = "GUIDE_ACTION_ADD_TO_SUBSCRIPTIONS";
@@ -152,7 +154,7 @@ function buildSemiSection(entries: unknown[]) {
   return {
     [GuideItemKey.section]: {
       formattedTitle: {
-        simpleText: SEMI_SECTION_TITLE
+        simpleText: SEMI_LIST_TITLE
       },
       items: entries,
       [SEMI_SECTION_KEY]: true
@@ -272,7 +274,8 @@ function withSemiSection({ items, entries }: Parameters<typeof patchGuideItems>[
     return items;
   }
 
-  const iAfterSignInPromo = signInPromoItemSchema.safeParse(items[1]).success ? 2 : 1;
+  const isSignInPromoShown = signInPromoItemSchema.safeParse(items[SIGN_IN_PROMO_INDEX]).success;
+  const iAfterSignInPromo = isSignInPromoShown ? SIGN_IN_PROMO_INDEX + 1 : SIGN_IN_PROMO_INDEX;
   const iInsert = Math.min(iAfterSignInPromo, items.length);
   return [...items.slice(0, iInsert), buildSemiSection(entries), ...items.slice(iInsert)];
 }
