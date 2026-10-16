@@ -1,4 +1,4 @@
-import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
+import { type AiStatus, isAiEngineAvailable } from "@/lib/ai/ai-status";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, type AiJudgeContext, isTitleFilterValid } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
@@ -10,7 +10,7 @@ import { untrack } from "svelte";
 const CLASSIFY_DEBOUNCE_MS = 800;
 
 function isWaitingForModel(aiStatus: AiStatus | null) {
-  return aiStatus !== null && aiStatus.engine !== AiEngine.none && !aiStatus.isModelReady;
+  return isAiEngineAvailable(aiStatus) && !aiStatus.isModelReady;
 }
 
 /**

@@ -23,6 +23,7 @@ export const downloadFractionSchema = z.number().min(0).max(1);
 const aiDownloadSchema = z.object({
   fraction: downloadFractionSchema.nullable()
 });
+export type AiDownload = z.infer<typeof aiDownloadSchema>;
 
 const readinessShape = {
   /** The model is on disk, so classification can run without any download */
@@ -56,6 +57,15 @@ export type AiEngineChoice = z.infer<typeof aiEngineChoiceSchema>;
 export const aiStatusSchema = z.discriminatedUnion("engine", [builtInStatusSchema, liteRtStatusSchema, unavailableStatusSchema]);
 export type AiStatus = z.infer<typeof aiStatusSchema>;
 
+/** Whether this browser has an engine to judge AI filters with, its model on disk or not */
+export function isAiEngineAvailable(status: AiStatus | null): status is Exclude<AiStatus, { engine: AiEngine.none }> {
+  return status !== null && status.engine !== AiEngine.none;
+}
+
+/** Whether AI filters can be judged right now, with nothing left to download */
+export function isAiModelReady(status: AiStatus | null) {
+  return isAiEngineAvailable(status) && status.isModelReady;
+}
+
 /** Broadcast by the page downloading the local model: its progress, then null once the download ended */
 export const modelDownloadChangeSchema = aiDownloadSchema;
-export type ModelDownloadChange = z.infer<typeof modelDownloadChangeSchema>;

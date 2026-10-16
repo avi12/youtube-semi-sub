@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MODE_COPY } from "./mode-copy";
-  import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
+  import { AiEngine, type AiStatus, isAiEngineAvailable } from "@/lib/ai/ai-status";
   import {
     DEFAULT_TITLE_FILTER,
     EMPTY_AI_FILTER,
@@ -96,7 +96,7 @@
 
     return null;
   });
-  const isSetupOffered = $derived(aiNotice !== null && aiMatch.aiStatus?.engine !== AiEngine.none);
+  const isSetupOffered = $derived(aiNotice !== null && isAiEngineAvailable(aiMatch.aiStatus));
 
   let lastValidRegexPreview: {
     videos: FeedVideo[];

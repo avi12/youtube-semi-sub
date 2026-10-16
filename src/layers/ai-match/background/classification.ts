@@ -1,4 +1,4 @@
-import { AiEngine } from "@/lib/ai/ai-status";
+import { AiEngine, isAiModelReady } from "@/lib/ai/ai-status";
 import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
 import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
 import { FilterKind } from "@/lib/filter/title-filter";
@@ -83,8 +83,7 @@ export function collectClassificationJobs({ requests, subscriptions, channelVide
 /** A judge for the engine this browser resolves to - only when its model is already on disk, so nothing downloads */
 async function openReadyJudge() {
   const status = await readAiStatus();
-  const isReady = status.engine !== AiEngine.none && status.isModelReady;
-  if (!isReady) {
+  if (!isAiModelReady(status)) {
     return null;
   }
 

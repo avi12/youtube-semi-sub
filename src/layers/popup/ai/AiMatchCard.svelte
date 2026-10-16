@@ -1,6 +1,6 @@
 <script lang="ts">
   import { aiMatchSetup, turnOffAiMatch, turnOnAiMatch } from "./ai-match-setup.svelte";
-  import { AiEngine, AiUnavailableReason } from "@/lib/ai/ai-status";
+  import { AiEngine, AiUnavailableReason, isAiEngineAvailable } from "@/lib/ai/ai-status";
   import { pluralize } from "@/lib/utils/pluralize";
   import { LITERT_MODEL_SIZE_LABEL } from "#ai-match";
   import { AI_MATCH_ICON } from "#popup/icons";
@@ -31,7 +31,7 @@
 
   const status = $derived(aiMatchSetup.status);
   const download = $derived(aiMatchSetup.download);
-  const isAvailable = $derived(status !== null && status.engine !== AiEngine.none);
+  const isAvailable = $derived(isAiEngineAvailable(status));
   const downloadPercent = $derived(Math.round((download?.fraction ?? 0) * PERCENT));
   const supportingText = $derived.by(() => {
     if (!status) {
@@ -64,7 +64,7 @@
     return `${aiFilterCount} ${noun} paused until you turn this on`;
   });
   const isMissingModel = $derived.by(() => {
-    if (!status || status.engine === AiEngine.none) {
+    if (!isAiEngineAvailable(status)) {
       return false;
     }
 

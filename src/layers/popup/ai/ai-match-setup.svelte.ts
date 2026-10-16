@@ -1,4 +1,4 @@
-import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
+import { type AiDownload, AiEngine, type AiStatus, isAiEngineAvailable } from "@/lib/ai/ai-status";
 import { MessageType, onMessage, sendMessage } from "@/lib/messaging/extension-messaging";
 import { isAiEnabledItem } from "@/lib/storage";
 import { downloadBuiltInModel } from "#ai-match";
@@ -6,10 +6,9 @@ import { downloadBuiltInModel } from "#ai-match";
 // The popup's one AI match opt-in flow, shared by the settings card and the filter editor's "turn it on" prompt, so
 // both show the same download and never start a second one
 
-/** `download.fraction` is null while the browser downloads without reporting progress */
 export const aiMatchSetup = $state<{
   status: AiStatus | null;
-  download: { fraction: number | null } | null;
+  download: AiDownload | null;
   isFailed: boolean;
 }>({
   status: null,
@@ -24,7 +23,7 @@ export async function refreshAiStatus() {
   aiMatchSetup.status = status;
   // A download that outlived an earlier popup (or runs in the browser) shows up here when this one opens
   const isDownloadedByThisPopup = builtInDownload !== null;
-  if (status && status.engine !== AiEngine.none && !isDownloadedByThisPopup) {
+  if (isAiEngineAvailable(status) && !isDownloadedByThisPopup) {
     aiMatchSetup.download = status.download;
   }
 }
@@ -69,7 +68,7 @@ async function downloadLocal() {
  */
 export async function turnOnAiMatch() {
   const { status } = aiMatchSetup;
-  const isTurnable = status !== null && status.engine !== AiEngine.none && !aiMatchSetup.download;
+  const isTurnable = isAiEngineAvailable(status) && !aiMatchSetup.download;
   if (!isTurnable) {
     return;
   }

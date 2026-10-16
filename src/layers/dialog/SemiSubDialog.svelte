@@ -1,7 +1,7 @@
 <script lang="ts">
   import { isPageDarkTheme } from "./page-theme";
   import { ToastMessage } from "./toast-message";
-  import { AiEngine } from "@/lib/ai/ai-status";
+  import { isAiModelReady } from "@/lib/ai/ai-status";
   import { DEFAULT_TITLE_FILTER, isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
@@ -198,7 +198,7 @@
         }}>
         {#snippet aiSetup({ isAiEnabled, aiStatus })}
           <!-- With the model on disk, one click here; a download goes through the popup, which explains its size -->
-          {#if aiStatus && aiStatus.engine !== AiEngine.none && aiStatus.isModelReady && !isAiEnabled}
+          {#if isAiModelReady(aiStatus) && !isAiEnabled}
             <button class="button button--tonal" onclick={() => isAiEnabledItem.setValue(true)} type="button">
               Turn on AI match
             </button>
