@@ -1,3 +1,4 @@
+import { downloadFractionSchema } from "@/lib/ai/ai-status";
 import type { ChatMessage } from "@/lib/ai/chat-message";
 import { z } from "@/lib/zod";
 
@@ -22,9 +23,9 @@ const languageModelOptionsSchema = z.object({
 });
 type LanguageModelOptions = z.infer<typeof languageModelOptionsSchema>;
 
-/** `downloadprogress` reports `loaded` as a 0..1 fraction */
+/** `downloadprogress` reports `loaded` as a fraction */
 const downloadProgressEventSchema = z.looseObject({
-  loaded: z.number().min(0).max(1)
+  loaded: downloadFractionSchema
 });
 
 // The reply is JSON with English keys, so English is the one output language declared. Input languages are left

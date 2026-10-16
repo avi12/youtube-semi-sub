@@ -16,9 +16,12 @@ export enum AiUnavailableReason {
   outdatedBrowser = "outdated-browser"
 }
 
+/** How much of a model download is done, from 0 to 1 */
+export const downloadFractionSchema = z.number().min(0).max(1);
+
 /** A model download in progress; `fraction` is null when the browser downloads it without reporting progress */
 const aiDownloadSchema = z.object({
-  fraction: z.number().min(0).max(1).nullable()
+  fraction: downloadFractionSchema.nullable()
 });
 
 const readinessShape = {
@@ -53,8 +56,6 @@ export type AiEngineChoice = z.infer<typeof aiEngineChoiceSchema>;
 const aiStatusSchema = z.discriminatedUnion("engine", [builtInStatusSchema, liteRtStatusSchema, unavailableStatusSchema]);
 export type AiStatus = z.infer<typeof aiStatusSchema>;
 
-/** Broadcast by the page downloading the local model: its 0..1 progress, then null once the download ended */
-export const modelDownloadChangeSchema = z.object({
-  fraction: z.number().min(0).max(1).nullable()
-});
+/** Broadcast by the page downloading the local model: its progress, then null once the download ended */
+export const modelDownloadChangeSchema = aiDownloadSchema;
 export type ModelDownloadChange = z.infer<typeof modelDownloadChangeSchema>;
