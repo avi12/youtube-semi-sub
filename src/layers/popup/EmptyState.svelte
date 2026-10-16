@@ -17,11 +17,12 @@
     </div>
     <h2 id="empty-heading" class="empty__heading">No semi-subscriptions yet</h2>
     <p class="empty__text">
-      Open a channel or video you're not subscribed to and press <strong>Semi-subscribe</strong> next to Subscribe
+      Open a channel or video and press the button next to Subscribe - <strong>Semi-subscribe</strong> on a channel
+      you're not subscribed to, <strong>Filter</strong> on one you are
     </p>
     <p class="empty__text">
-      Then write a filter - a RegExp, or a plain description an AI judges - and only the videos it lets through land in
-      your subscriptions feed
+      Then write a filter - a RegExp, or a plain description an AI judges. Not subscribed, only the videos it lets
+      through are added to your subscriptions feed; subscribed, the ones it matches are hidden from it
     </p>
   </section>
 </Card>
