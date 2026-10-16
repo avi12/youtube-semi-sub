@@ -80,7 +80,7 @@
 .yss-filter-literal__paused {
   padding-inline: 4px;
   border-radius: 4px;
-  background: var(--yt-sys-color-baseline--additive-background, var(--yt-spec-badge-chip-background, rgb(0 0 0 / 5%)));
+  background: var(--yss-tonal);
   font-weight: 500;
   font-size: 0.85em;
 }
