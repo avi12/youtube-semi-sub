@@ -1,5 +1,6 @@
 <script lang="ts">
   import { isPageDarkTheme } from "./page-theme";
+  import SemiSubSnackbar from "./SemiSubSnackbar.svelte";
   import { ToastMessage } from "./toast-message";
   import { isAiModelReady } from "@/lib/ai/ai-status";
   import { DEFAULT_TITLE_FILTER, isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
@@ -257,21 +258,11 @@
 </dialog>
 
 {#if toastMessage}
-  <output
-    class="toast"
-    data-theme={isDarkTheme ? "dark" : "light"}
-    onanimationend={e => {
-      if (e.target === e.currentTarget) {
-        onDone();
-      }
-    }}>
-    {toastMessage}
-  </output>
+  <SemiSubSnackbar message={toastMessage} {onDone} />
 {/if}
 
 <style>
-  .dialog,
-  .toast {
+  .dialog {
     --fallback-surface: #ffffff;
     --fallback-text: #0f0f0f;
     --fallback-text-secondary: #606060;
@@ -279,8 +270,6 @@
     --fallback-error: #c30027;
     --fallback-outline: rgb(0 0 0 / 10%);
     --fallback-additive: rgb(0 0 0 / 5%);
-    --fallback-inverse-surface: #0f0f0f;
-    --fallback-inverse-text: #f1f1f1;
     --surface:
       var(
         --yt-sys-color-baseline--raised-background,
@@ -302,25 +291,6 @@
       );
     --font: "Roboto", "Arial", sans-serif;
     --ease: cubic-bezier(0.2, 0, 0, 1);
-
-    color-scheme: light;
-
-    &[data-theme="dark"] {
-      --fallback-surface: #212121;
-      --fallback-text: #f1f1f1;
-      --fallback-text-secondary: #aaaaaa;
-      --fallback-accent: #3ea6ff;
-      --fallback-error: #ff8b8b;
-      --fallback-outline: rgb(255 255 255 / 20%);
-      --fallback-additive: rgb(255 255 255 / 10%);
-      --fallback-inverse-surface: #f1f1f1;
-      --fallback-inverse-text: #0f0f0f;
-
-      color-scheme: dark;
-    }
-  }
-
-  .dialog {
     --filter-editor-fg: var(--text);
     --filter-editor-muted: var(--text-secondary);
     --filter-editor-accent: var(--accent);
@@ -340,6 +310,7 @@
     border-radius: 12px;
     background: var(--surface);
     color: var(--text);
+    color-scheme: light;
     font-family: var(--font);
     font-size: 14px;
     line-height: 1.4;
@@ -376,6 +347,18 @@
         scale: 1;
         translate: 0 100%;
       }
+    }
+
+    &[data-theme="dark"] {
+      --fallback-surface: #212121;
+      --fallback-text: #f1f1f1;
+      --fallback-text-secondary: #aaaaaa;
+      --fallback-accent: #3ea6ff;
+      --fallback-error: #ff8b8b;
+      --fallback-outline: rgb(255 255 255 / 20%);
+      --fallback-additive: rgb(255 255 255 / 10%);
+
+      color-scheme: dark;
     }
 
     &::backdrop {
@@ -572,61 +555,5 @@
     block-size: 24px;
     inline-size: 24px;
     fill: currentColor;
-  }
-
-  .toast {
-    position: fixed;
-    inset-block-end: 24px;
-    inset-inline-start: 24px;
-    z-index: 2147483647;
-    max-inline-size: min(560px, 100vw - 48px);
-    padding-block: 14px;
-    padding-inline: 16px;
-    border-radius: 8px;
-    background: var(--yt-sys-color-baseline--inverted-background, var(--fallback-inverse-surface));
-    color: var(--yt-sys-color-baseline--text-primary-inverse, var(--fallback-inverse-text));
-    font-family: var(--font);
-    font-size: 14px;
-    line-height: 20px;
-    box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
-
-    @media (prefers-reduced-motion: no-preference) {
-      animation: toast-life 4000ms var(--ease) both;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      animation: toast-hold 4000ms step-end both;
-    }
-
-    @media (width <= 600px) {
-      inset-inline: 12px;
-      inset-block-end: 64px;
-      max-inline-size: none;
-    }
-  }
-
-  @keyframes toast-life {
-    0% {
-      opacity: 0%;
-      translate: 0 16px;
-    }
-
-    6%,
-    92% {
-      opacity: 100%;
-      translate: 0 0;
-    }
-
-    100% {
-      opacity: 0%;
-      translate: 0 0;
-    }
-  }
-
-  /* No motion, only the toast's lifetime - its end removes it */
-  @keyframes toast-hold {
-    to {
-      visibility: hidden;
-    }
   }
 </style>

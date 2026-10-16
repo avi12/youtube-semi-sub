@@ -5,3 +5,9 @@ export enum ToastMessage {
   removed = "Semi-subscription removed",
   hideFilterRemoved = "Filter removed - you'll see all their videos again"
 }
+
+/** The values of `dir` m.youtube.com's stylesheet slides its `c3-toast` by */
+export enum MobileToastDirection {
+  entering = "in",
+  leaving = "out"
+}
