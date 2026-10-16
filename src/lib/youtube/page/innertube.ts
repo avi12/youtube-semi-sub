@@ -20,7 +20,20 @@ const innerTubeContextSchema = z.looseObject({
   })
 });
 
-const clientNameNumberSchema = z.union([z.number(), z.string()]);
+/** A number ytcfg may hold as either type: the client name's id, the signed-in account's index */
+const numberOrStringSchema = z.union([z.number(), z.string()]);
+const delegatedSessionIdSchema = z.string();
+/** The first of the browser's Google accounts, when the page names none */
+const DEFAULT_SESSION_INDEX = 0;
+
+/** A ytcfg value of the expected shape, or null */
+function readYtcfgValue<TSchema extends z.ZodType>({ key, schema }: {
+  key: YtcfgKey;
+  schema: TSchema;
+}) {
+  const parsed = schema.safeParse(readYtcfg(key));
+  return parsed.success ? parsed.data : null;
+}
 
 function readApisidCookie() {
   const cookies = new Map(document.cookie.split("; ").map(cookie => {
@@ -59,8 +72,10 @@ async function buildAuthorization() {
 }
 
 function getInnerTubeContext() {
-  const parsed = innerTubeContextSchema.safeParse(readYtcfg(YtcfgKey.innerTubeContext));
-  return parsed.success ? parsed.data : null;
+  return readYtcfgValue({
+    key: YtcfgKey.innerTubeContext,
+    schema: innerTubeContextSchema
+  });
 }
 
 async function buildHeaders(clientVersion: string) {
@@ -68,13 +83,21 @@ async function buildHeaders(clientVersion: string) {
     "Content-Type": "application/json",
     [OWN_REQUEST_MARKER_HEADER]: "1",
     "X-Origin": location.origin,
-    "X-Goog-AuthUser": String(readYtcfg(YtcfgKey.sessionIndex) ?? "0"),
+    "X-Goog-AuthUser": String(
+      readYtcfgValue({
+        key: YtcfgKey.sessionIndex,
+        schema: numberOrStringSchema
+      }) ?? DEFAULT_SESSION_INDEX
+    ),
     "X-Youtube-Client-Version": clientVersion
   };
 
-  const clientNameNumber = clientNameNumberSchema.safeParse(readYtcfg(YtcfgKey.clientNameNumber));
-  if (clientNameNumber.success) {
-    headers["X-Youtube-Client-Name"] = String(clientNameNumber.data);
+  const clientNameNumber = readYtcfgValue({
+    key: YtcfgKey.clientNameNumber,
+    schema: numberOrStringSchema
+  });
+  if (clientNameNumber !== null) {
+    headers["X-Youtube-Client-Name"] = String(clientNameNumber);
   }
 
   const authorization = await buildAuthorization();
@@ -82,8 +105,11 @@ async function buildHeaders(clientVersion: string) {
     headers.Authorization = authorization;
   }
 
-  const delegatedSessionId = readYtcfg(YtcfgKey.delegatedSessionId);
-  if (typeof delegatedSessionId === "string") {
+  const delegatedSessionId = readYtcfgValue({
+    key: YtcfgKey.delegatedSessionId,
+    schema: delegatedSessionIdSchema
+  });
+  if (delegatedSessionId !== null) {
     headers["X-Goog-PageId"] = delegatedSessionId;
   }
 
