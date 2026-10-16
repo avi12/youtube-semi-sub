@@ -71,9 +71,11 @@
   });
   const feedVideos = $derived(selectFeedVideos(filterInput));
   const hiddenVideoCount = $derived(selectHiddenVideoIds(filterInput).length);
+  const followedCount = $derived(subscriptionList.filter(subscription => !subscription.isSubscribed).length);
+  const watchedList = $derived(subscriptionList.filter(isUploadsWatched));
   const feedSummary = $derived.by(() => {
     const channelNoun = pluralize({
-      count: subscriptionList.length,
+      count: followedCount,
       one: "channel",
       other: "channels"
     });
@@ -82,7 +84,7 @@
       one: "video",
       other: "videos"
     });
-    const summary = `${feedVideos.length} ${videoNoun} from ${subscriptionList.length} ${channelNoun} in your feed`;
+    const summary = `${feedVideos.length} ${videoNoun} from ${followedCount} ${channelNoun} in your feed`;
     if (hiddenVideoCount === 0) {
       return summary;
     }
@@ -91,7 +93,7 @@
   });
   const oldestCheckAt = $derived.by(() => {
     let oldest = Infinity;
-    for (const { channelId } of subscriptionList.filter(isUploadsWatched)) {
+    for (const { channelId } of watchedList) {
       oldest = Math.min(oldest, channelVideos[channelId]?.fetchedAt ?? Infinity);
     }
     return oldest;
@@ -136,7 +138,7 @@
         <span class="top-bar__mark" aria-hidden="true"></span>
         Semi-Subscribe
       </h1>
-      {#if subscriptionList.length > 0}
+      {#if watchedList.length > 0}
         <Button
           disabled={isRefreshing}
           iconType="left"
@@ -165,7 +167,9 @@
     </div>
     {#if subscriptionList.length > 0}
       <p class="top-bar__summary">{feedSummary}</p>
-      <output class="top-bar__status">{refreshStatus}</output>
+      {#if watchedList.length > 0}
+        <output class="top-bar__status">{refreshStatus}</output>
+      {/if}
     {/if}
   </header>
 
@@ -198,7 +202,7 @@
   <section class="group" aria-labelledby="settings-heading">
     <h2 id="settings-heading" class="group__heading">Settings</h2>
     <ul class="group__list group__list--settings">
-      <ListItem headline="Enabled" label supporting="Add matching videos to your subscriptions feed">
+      <ListItem headline="Enabled" label supporting="Add or hide matching videos in your subscriptions feed">
         {#snippet trailing()}
           <Switch
             bind:checked={() => isExtensionEnabled, isEnabled => {
@@ -213,7 +217,7 @@
       <ListItem
         headline="Animations"
         label
-        supporting="Slide new videos into the feed - also off when your system asks for reduced motion">
+        supporting="Slide videos into and out of the feed - also off when your system asks for reduced motion">
         {#snippet trailing()}
           <Switch
             bind:checked={() => isAnimationsEnabled, isEnabled => {

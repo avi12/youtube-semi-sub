@@ -1,5 +1,6 @@
 <script lang="ts">
   import { aiMatchSetup, turnOffAiMatch, turnOnAiMatch } from "./ai-match-setup.svelte";
+  import { isAiEngineAvailable } from "@/lib/ai/ai-status";
   import { Button } from "m3-svelte";
 
   interface Props {
@@ -23,7 +24,7 @@
   </output>
   <Button onclick={() => turnOffAiMatch()} size="s" variant="text">Cancel</Button>
 {:else}
-  <Button onclick={() => turnOnAiMatch()} size="s" variant="tonal">
+  <Button disabled={!isAiEngineAvailable(aiMatchSetup.status)} onclick={() => turnOnAiMatch()} size="s" variant="tonal">
     {#if isAiEnabled}
       Download the model
     {:else}

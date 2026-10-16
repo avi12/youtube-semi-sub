@@ -38,7 +38,7 @@
       return "Checking what this browser can run";
     }
 
-    return "Describe the videos you want in plain words, and a model on your device picks them";
+    return "Describe videos in plain words, and a model on your device picks the ones to add or hide";
   });
   const engineText = $derived.by(() => {
     if (status?.engine === AiEngine.builtIn) {
