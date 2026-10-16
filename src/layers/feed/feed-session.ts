@@ -187,15 +187,19 @@ function createHiddenItemCheck(state: PageState) {
   };
 }
 
-/** The feed items, in the band or a shelf, that a subscribed channel's hide filter hides - none while switched off */
+/**
+ * The videos subscribed channels' hide filters hide - none while switched off: every cached upload they hide, since a
+ * page may lack one an earlier page put in the grid, plus the feed items, in the band or a shelf, they hide
+ */
 export function findHiddenVideoIds({ contents, state }: {
   contents: readonly unknown[];
   state: PageState;
 }) {
-  const hiddenIds = new Set<string>();
   if (!state.isExtensionEnabled) {
-    return hiddenIds;
+    return new Set<string>();
   }
+
+  const hiddenIds = new Set(state.hiddenVideoIds);
 
   const isHiddenItem = createHiddenItemCheck(state);
   for (const item of contents.flatMap(gridItem => [gridItem, ...shelfItemsFromGridItem(gridItem)])) {

@@ -408,6 +408,15 @@ describe("findHiddenVideoIds", () => {
     ).toEqual(new Set([videoId(91), videoId(93)]));
   });
 
+  it("lists every cached upload the hide filter hides, also one the page doesn't hold", () => {
+    expect(
+      session.findHiddenVideoIds({
+        contents: [shortsShelf([90])],
+        state: hidingState({ hiddenVideoIds: [videoId(91)] })
+      })
+    ).toEqual(new Set([videoId(91)]));
+  });
+
   it("hides nothing while the extension is off", () => {
     expect(
       session.findHiddenVideoIds({
