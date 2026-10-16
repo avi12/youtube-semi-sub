@@ -1,6 +1,7 @@
 import MobileChannelsGroup from "./MobileChannelsGroup.svelte";
 import MobileStripItems from "./MobileStripItems.svelte";
 import { FeedPathname } from "@/lib/youtube/site";
+import { listFollowedSubscriptions } from "#subscription-lists/semi-channels";
 import { SemiListSurface, startSemiListSurface } from "#subscription-lists/semi-list-surface";
 
 // m.youtube.com has no sidebar. Its channel lists are /feed/channels ("All channels": ytm-shelf-renderer >
@@ -51,6 +52,7 @@ export function startMobileLists() {
     pathname: FeedPathname.subscriptions,
     observedSelector: APP_SELECTOR,
     findPlacement: findStripPlacement,
-    component: MobileStripItems
+    component: MobileStripItems,
+    listShown: listFollowedSubscriptions
   });
 }

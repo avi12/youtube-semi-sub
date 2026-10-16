@@ -1,6 +1,7 @@
 import { listsView } from "./lists-view.svelte";
 import { onPageState } from "@/lib/page/page-state";
 import { elementSchema } from "@/lib/schemas/dom";
+import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { createFrameScheduler, observeSubtree } from "@/lib/utils/dom";
 import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
 import { z } from "@/lib/zod";
@@ -30,17 +31,31 @@ export function markSurface(surface: SemiListSurface) {
   };
 }
 
+function listEverySubscription(subscriptions: readonly SemiSubscription[]) {
+  return subscriptions;
+}
+
 /**
  * Keeps one Svelte list mounted on one page: mounted while `pathname` is open and there is something to list,
  * re-mounted when YouTube re-renders it away, unmounted on leaving the page, when the list empties or the
- * extension is turned off. The page's DOM is only observed while that page is open
+ * extension is turned off. The page's DOM is only observed while that page is open. `listShown` picks the channels
+ * the component renders (every one by default), so a list with nothing to render is never mounted - it would never
+ * read as in place, and every page change would mount it again
  */
-export function startSemiListSurface({ surface, pathname, observedSelector, findPlacement, component }: {
+export function startSemiListSurface({
+  surface,
+  pathname,
+  observedSelector,
+  findPlacement,
+  component,
+  listShown = listEverySubscription
+}: {
   surface: SemiListSurface;
   pathname: string;
   observedSelector: string;
   findPlacement: () => Placement | null;
   component: Component;
+  listShown?: (subscriptions: readonly SemiSubscription[]) => readonly SemiSubscription[];
 }) {
   let mounted: ReturnType<typeof mount> | null = null;
   let mountCount = 0;
@@ -81,7 +96,7 @@ export function startSemiListSurface({ surface, pathname, observedSelector, find
   function sync() {
     const isOnPage = location.pathname === pathname;
     watchPage(isOnPage);
-    const isWanted = isOnPage && listsView.subscriptions.length > 0;
+    const isWanted = isOnPage && listShown(listsView.subscriptions).length > 0;
     const placement = isWanted ? findPlacement() : null;
     if (!placement) {
       detach();
