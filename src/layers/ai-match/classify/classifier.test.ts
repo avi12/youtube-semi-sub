@@ -1,9 +1,9 @@
-import { createBuiltInJudge } from "./built-in-judge";
 import { classifyVideos } from "./classifier";
 import { AI_BATCH_SIZE } from "./prompt";
 import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { answerFromPrompt, createFakeBase, createSessionMock } from "#ai-match/classify/fixtures/fake-prompt-session";
+import { createBuiltInJudge } from "#ai-match/classify/judges/built-in-judge";
 import type { PromptSession } from "#ai-match/engine/prompt-api";
 import { describe, expect, it, vi } from "vitest";
 

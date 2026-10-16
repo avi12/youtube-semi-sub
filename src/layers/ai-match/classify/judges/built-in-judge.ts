@@ -1,7 +1,7 @@
-import type { BatchJudge } from "./classifier";
-import { buildBatchPrompt, buildResponseConstraint } from "./prompt";
-import { parseVerdictReply } from "./verdict-parser";
 import { parseJson } from "@/lib/utils/json";
+import type { BatchJudge } from "#ai-match/classify/classifier";
+import { buildBatchPrompt, buildResponseConstraint } from "#ai-match/classify/prompt";
+import { parseVerdictReply } from "#ai-match/classify/reply/verdict-parser";
 import type { PromptSession } from "#ai-match/engine/prompt-api";
 
 const PROMPT_TIMEOUT_MS = 60_000;

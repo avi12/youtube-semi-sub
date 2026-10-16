@@ -1,8 +1,8 @@
-import type { BatchJudge } from "./classifier";
-import { extractJsonFromText } from "./extract-json";
-import { buildBatchPrompt, buildPrefaceMessages } from "./prompt";
-import { parseVerdictReply } from "./verdict-parser";
 import { type ChatMessage, ChatRole } from "@/lib/ai/chat-message";
+import type { BatchJudge } from "#ai-match/classify/classifier";
+import { buildBatchPrompt, buildPrefaceMessages } from "#ai-match/classify/prompt";
+import { extractJsonFromText } from "#ai-match/classify/reply/extract-json";
+import { parseVerdictReply } from "#ai-match/classify/reply/verdict-parser";
 
 /** Each local generation is expensive, and the worked example usually lands valid JSON the first time */
 const MAX_ATTEMPTS = 2;

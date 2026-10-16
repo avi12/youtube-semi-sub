@@ -15,9 +15,9 @@ import {
 } from "@/lib/storage";
 import { z } from "@/lib/zod";
 import { readAiStatus } from "#ai-match/background/read-ai-status";
-import { createBuiltInJudge } from "#ai-match/classify/built-in-judge";
 import { type BatchJudge, classifyVideos, videoBatchSchema } from "#ai-match/classify/classifier";
-import { createLiteRtJudge } from "#ai-match/classify/litert-judge";
+import { createBuiltInJudge } from "#ai-match/classify/judges/built-in-judge";
+import { createLiteRtJudge } from "#ai-match/classify/judges/litert-judge";
 import { buildPrefaceMessages } from "#ai-match/classify/prompt";
 import { inferLocally } from "#ai-match/engine/litert/litert-client";
 import { openBuiltInSession } from "#ai-match/engine/prompt-api";
