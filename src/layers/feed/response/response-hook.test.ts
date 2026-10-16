@@ -500,6 +500,12 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
     expect(hiddenIdList(await readFeed())).toBeUndefined();
   });
 
+  it("takes hidden videos out of www's hard-load ytInitialData, adding nothing there", () => {
+    hideWith({ hideFilter: TITLE_HIDE_FILTER });
+    globalThis.ytInitialData = feedResponseBody();
+    expect(feedIds(globalThis.ytInitialData)).toEqual([videoId(1), null]);
+  });
+
   it("takes hidden videos out of www's later pages too, adding nothing there", async () => {
     hideWith({ hideFilter: TITLE_HIDE_FILTER });
     const data = await responseAt({

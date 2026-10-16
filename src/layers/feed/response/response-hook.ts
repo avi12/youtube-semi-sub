@@ -94,8 +94,14 @@ function recordShelvedShorts({ insertedIds, state }: {
   }
 }
 
-/** Synchronous: uses whatever page state and native renderers are already loaded */
-function patchFeedDataNow(data: unknown) {
+/**
+ * Synchronous: uses whatever page state and native renderers are already loaded. Without `isInserting` the page only
+ * loses what is hidden
+ */
+function patchFeedDataNow({ data, isInserting }: {
+  data: unknown;
+  isInserting: boolean;
+}) {
   const page = readFeedPage(data);
   if (page && !page.isLaterPage) {
     shelvedShortIds.clear();
@@ -110,12 +116,16 @@ function patchFeedDataNow(data: unknown) {
     contents: page.contents,
     state
   });
+  const pageState = stateForPage({
+    state,
+    isLaterPage: page.isLaterPage
+  });
   const composed = composeForPageState({
     contents: page.contents,
-    state: stateForPage({
-      state,
-      isLaterPage: page.isLaterPage
-    }),
+    state: isInserting ? pageState : {
+      ...pageState,
+      feedVideos: []
+    },
     removedVideoIds: hiddenIds
   });
   const isHiddenListWritten = hiddenIds.size > 0 && !page.isLaterPage && isHiddenVideoListHonored();
@@ -161,7 +171,10 @@ async function patchFeedData(data: unknown) {
     videos: insertedVideos,
     deadline
   });
-  return patchFeedDataNow(data);
+  return patchFeedDataNow({
+    data,
+    isInserting: true
+  });
 }
 
 async function patchBrowseText(text: string) {
@@ -235,9 +248,12 @@ function installResponsePatch() {
 export function installResponseHooks() {
   installResponsePatch();
 
-  // www renders a hard load as is and inserts live, animated, with full native renderers. m.youtube.com renders it
-  // from `ytInitialData`, patched as it is assigned (the first assignment, a JSON string, passes through)
-  if (getYouTubeSite() === YouTubeSite.mobile) {
-    interceptInitialData(value => patchFeedDataNow(value) ?? value);
-  }
+  // A hard load renders from `ytInitialData`, patched as it is assigned (m's first assignment, a JSON string, passes
+  // through). www only takes the hidden videos out there - a running YouTube Auto Feed would otherwise show them until
+  // its first poll - and inserts live, animated, with full native renderers
+  const isInsertingOnHardLoad = getYouTubeSite() === YouTubeSite.mobile;
+  interceptInitialData(value => patchFeedDataNow({
+    data: value,
+    isInserting: isInsertingOnHardLoad
+  }) ?? value);
 }
