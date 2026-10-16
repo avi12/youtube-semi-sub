@@ -28,13 +28,15 @@
       description: "You're not subscribed, so only the videos your filter lets through are added to your feed",
       createLabel: "Semi-subscribe",
       createdMessage: ToastMessage.semiSubscribed,
-      savedMessage: ToastMessage.filterSaved
+      savedMessage: ToastMessage.filterSaved,
+      removedMessage: ToastMessage.removed
     },
     [SubscriptionMode.hide]: {
       description: "You're subscribed, so the videos your filter matches are hidden from your feed",
       createLabel: "Save",
       createdMessage: ToastMessage.hideFilterSaved,
-      savedMessage: ToastMessage.hideFilterSaved
+      savedMessage: ToastMessage.hideFilterSaved,
+      removedMessage: ToastMessage.hideFilterRemoved
     }
   } as const;
 
@@ -55,6 +57,7 @@
   let isLoadingVideos = $state(true);
   let isLoadFailed = $state(false);
   let isSaving = $state(false);
+  let isSaveFailed = $state(false);
   let toastMessage = $state<ToastMessage | null>(null);
 
   const isFilterValid = $derived(isTitleFilterValid(filter));
@@ -140,6 +143,7 @@
       }
 
       isSaving = true;
+      isSaveFailed = false;
       try {
         await saveSemiSubscription({
           channel: $state.snapshot(channel),
@@ -147,6 +151,8 @@
           filter: $state.snapshot(filter)
         });
         closeWithToast(savedMessage);
+      } catch {
+        isSaveFailed = true;
       } finally {
         isSaving = false;
       }
@@ -188,6 +194,10 @@
         </p>
       {/if}
 
+      {#if isSaveFailed}
+        <p class="notice" role="alert">Couldn't save your change - try again</p>
+      {/if}
+
       <FilterEditor
         isLoading={isLoadingVideos}
         {mode}
@@ -225,9 +235,12 @@
             }
 
             isSaving = true;
+            isSaveFailed = false;
             try {
               await removeSemiSubscription(channel.channelId);
-              closeWithToast(ToastMessage.removed);
+              closeWithToast(modeText.removedMessage);
+            } catch {
+              isSaveFailed = true;
             } finally {
               isSaving = false;
             }
