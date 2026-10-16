@@ -1,4 +1,5 @@
 import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { MILLISECONDS_PER_MINUTE } from "@/lib/utils/time";
 import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/page/innertube";
 import { shortsLockupSchema } from "@/lib/youtube/schemas/renderers";
 import { z } from "@/lib/zod";
@@ -18,7 +19,7 @@ const TAB_PARAMS: Record<ChannelTab, string> = {
   [ChannelTab.videos]: "EgZ2aWRlb3PyBgQKAjoA",
   [ChannelTab.shorts]: "EgZzaG9ydHPyBgUKA5oBAA=="
 };
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 5 * MILLISECONDS_PER_MINUTE;
 const FAILED_FETCH_RETRY_MS = 30 * 1000;
 
 const tabRequestSchema = z.object({

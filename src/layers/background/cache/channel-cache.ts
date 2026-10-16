@@ -11,9 +11,10 @@ import {
   semiSubscriptionsItem,
   type StorageItem
 } from "@/lib/storage";
+import { MILLISECONDS_PER_MINUTE } from "@/lib/utils/time";
 import { type ChannelUploads, fetchChannelUploads } from "#background/uploads/channel-uploads";
 
-const MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+const MIN_REFRESH_INTERVAL_MS = 5 * MILLISECONDS_PER_MINUTE;
 const MAX_CONCURRENT_FETCHES = 4;
 export const UPLOADS_UNAVAILABLE_ERROR = "Couldn't load uploads from YouTube";
 

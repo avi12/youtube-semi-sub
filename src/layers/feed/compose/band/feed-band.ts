@@ -1,4 +1,5 @@
 import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
+import { MILLISECONDS_PER_DAY } from "@/lib/utils/time";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { z } from "@/lib/zod";
 import type { FeedItemSlot, FeedSlot } from "#feed/compose/feed-slot";
@@ -8,7 +9,7 @@ import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem
 // "Latest" band, split into runs by the markers. Only the band is touched: videos are added or removed, and the
 // result is poured back into the runs at their original lengths so every marker keeps its row
 
-const UNKNOWN_TIME_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+const UNKNOWN_TIME_MAX_AGE_MS = MILLISECONDS_PER_DAY;
 
 const inlineRunSchema = z.object({
   start: z.number(),

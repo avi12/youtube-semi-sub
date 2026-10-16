@@ -1,3 +1,4 @@
+import { MILLISECONDS_PER_SECOND } from "@/lib/utils/time";
 import { readYtcfg, YtcfgKey } from "@/lib/youtube/page/globals";
 import { InnerTubePath } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
@@ -45,7 +46,7 @@ async function buildAuthorization() {
     return null;
   }
 
-  const seconds = Math.floor(Date.now() / 1000);
+  const seconds = Math.floor(Date.now() / MILLISECONDS_PER_SECOND);
   const digest = await crypto.subtle
     .digest("SHA-1", new TextEncoder().encode(`${seconds} ${apisid} ${location.origin}`))
     .catch(() => null);

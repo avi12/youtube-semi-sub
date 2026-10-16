@@ -1,10 +1,10 @@
 import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { MILLISECONDS_PER_HOUR } from "@/lib/utils/time";
 
 // Test data trimmed from real InnerTube payloads: www (WEB client) feed lockups carry the channel on a row of
 // its own, m (MWEB client) feed lockups lead their single row with it; channel Videos tabs omit it entirely
 
 export const NOW = Date.UTC(2026, 9, 15, 12);
-const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
 
 export const CHANNEL_ID = "UCsemisubscribedchannel1";
 export const OTHER_CHANNEL_ID = "UCalreadysubscribedchan2";

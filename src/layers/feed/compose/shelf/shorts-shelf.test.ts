@@ -1,5 +1,6 @@
 import { findShortsShelf, planShortsShelf } from "./shorts-shelf";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { MILLISECONDS_PER_HOUR } from "@/lib/utils/time";
 import { ShelfRendererKind } from "@/lib/youtube/schemas/renderers";
 import { buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
 import {
@@ -16,7 +17,6 @@ import {
 import { describe, expect, it } from "vitest";
 
 const NO_REMOVALS = new Set<string>();
-const MILLISECONDS_PER_HOUR = 60 * 60 * 1000;
 const LOADED_SPAN_HOURS = 48;
 
 function isWithinTwoDays(video: FeedVideo) {

@@ -1,6 +1,13 @@
 // YouTube only exposes a feed item's age as localized relative text ("3 hours ago", "Streamed 2 days ago",
 // "5d ago"). English is parsed into an approximate timestamp; other languages yield null
 
+import {
+  MILLISECONDS_PER_DAY,
+  MILLISECONDS_PER_HOUR,
+  MILLISECONDS_PER_MINUTE,
+  MILLISECONDS_PER_SECOND
+} from "@/lib/utils/time";
+
 enum TimeUnit {
   second = "second",
   minute = "minute",
@@ -11,19 +18,14 @@ enum TimeUnit {
   year = "year"
 }
 
-const MILLISECONDS_PER_SECOND = 1000;
-const SECONDS_PER_MINUTE = 60;
-const MINUTES_PER_HOUR = 60;
-const HOURS_PER_DAY = 24;
 const DAYS_PER_WEEK = 7;
 const DAYS_PER_MONTH = 30.436875;
 const DAYS_PER_YEAR = 365.2425;
-const MILLISECONDS_PER_DAY = MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY;
 
 const MILLISECONDS_BY_UNIT: Record<TimeUnit, number> = {
   [TimeUnit.second]: MILLISECONDS_PER_SECOND,
-  [TimeUnit.minute]: MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE,
-  [TimeUnit.hour]: MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR,
+  [TimeUnit.minute]: MILLISECONDS_PER_MINUTE,
+  [TimeUnit.hour]: MILLISECONDS_PER_HOUR,
   [TimeUnit.day]: MILLISECONDS_PER_DAY,
   [TimeUnit.week]: MILLISECONDS_PER_DAY * DAYS_PER_WEEK,
   [TimeUnit.month]: MILLISECONDS_PER_DAY * DAYS_PER_MONTH,
