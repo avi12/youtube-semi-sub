@@ -3,7 +3,7 @@ import {
   onObservedOfficialSubscriptionChange,
   setObservedOfficialSubscription
 } from "./official-subscription";
-import { createFrameScheduler, SUBTREE_CHILD_LIST } from "@/lib/utils/dom";
+import { createFrameScheduler, SUBTREE_CHILD_LIST, whenDocumentParsed } from "@/lib/utils/dom";
 import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
 import { getYouTubeSite } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
@@ -16,11 +16,17 @@ import {
   PageKind,
   readPageChannel
 } from "#channel-button/page/channel-page-data";
-import { findPageAnchor, pageAnchorSchema, readSubscribeControl } from "#channel-button/page/page-anchor";
+import {
+  findPageAnchor,
+  pageAnchorSchema,
+  readSubscribeControl,
+  SUBSCRIBED_ATTRIBUTE
+} from "#channel-button/page/page-anchor";
 import { readIsSignedIn, readPageData, readUrlVideoId } from "#channel-button/page/page-data-source";
 import { mount, unmount } from "svelte";
 
-// MAIN world: keeps one Semi-subscribe button next to YouTube's own Subscribe button, across SPA navigations
+// MAIN world: keeps one channel button - "Semi-subscribe" or "Filter", by mode - next to YouTube's own Subscribe
+// button, across SPA navigations
 
 /** YouTube may re-render the row it sits in; past this many re-mounts on one page, it gives up instead of fighting */
 const MAX_MOUNTS_PER_PAGE = 8;
@@ -28,7 +34,7 @@ const SUBSCRIPTION_CHANGED_EVENT = "yt-subscription-changed";
 const SUBSCRIBE_CONTROL_MUTATIONS: MutationObserverInit = {
   subtree: true,
   attributes: true,
-  attributeFilter: ["subscribed", "class"]
+  attributeFilter: [SUBSCRIBED_ATTRIBUTE, "class"]
 };
 
 /** Why there is no target yet: the page is still rendering, or the page gets no button at all */
@@ -228,15 +234,6 @@ function trackPage(kind: PageKind) {
   return stop;
 }
 
-function whenBodyReady(callback: () => void) {
-  if (document.body) {
-    callback();
-    return;
-  }
-
-  document.addEventListener("DOMContentLoaded", callback, { once: true });
-}
-
 export function startChannelButton() {
   let stopCurrentPage: (() => void) | null = null;
 
@@ -249,8 +246,8 @@ export function startChannelButton() {
     }
   }
 
-  whenBodyReady(() => {
+  whenDocumentParsed().then(() => {
     handlePage();
     onYouTubeNavigate(handlePage);
-  });
+  }).catch(console.error);
 }

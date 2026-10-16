@@ -28,7 +28,8 @@ const OWNER_ROW_REFERENCE_SELECTOR = "#subscribe-button";
 const POLYMER_SCOPE_CLASS = "style-scope";
 const SUBSCRIBED_CLASS = "is-subscribed";
 const UNSUBSCRIBED_CLASS = "is-not-subscribed";
-const SUBSCRIBED_ATTRIBUTE = "subscribed";
+/** What YouTube's Subscribe control carries while the user is subscribed */
+export const SUBSCRIBED_ATTRIBUTE = "subscribed";
 const FILLED_BUTTON_PATTERN = /filled/i;
 const TONAL_BUTTON_PATTERN = /tonal/i;
 const LEADING_ICON_PATTERN = /IconLeading|icon-leading/;

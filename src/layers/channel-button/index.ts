@@ -4,7 +4,7 @@ export { applySubscriptionSnapshot, installSubscriptionWatch } from "./official-
 /** MAIN world, document_start: switch semi-subscriptions between modes by the subscription state in YouTube's data */
 export { installSubscriptionEntityWatch } from "./subscription-entities";
 
-/** MAIN world, document_start: inject the Semi-subscribe button next to YouTube's Subscribe button */
+/** MAIN world, document_start: inject the channel button (Semi-subscribe / Filter) beside YouTube's Subscribe */
 export { startChannelButton } from "./channel-button.svelte";
 
 /** The words on a channel's button, for every surface that opens its dialog */

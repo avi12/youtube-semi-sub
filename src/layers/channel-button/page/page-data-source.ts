@@ -23,14 +23,18 @@ function isPageManagerElement(elCandidate: Element | null): elCandidate is PageM
   return pageManagerSchema.safeParse(elCandidate).success;
 }
 
+const PAGE_MANAGER_SELECTOR = "ytd-page-manager";
+const MOBILE_APP_SELECTOR = "ytm-app";
+const isLoggedInSchema = z.boolean();
+
 export function readPageData() {
-  const elPageManager = document.querySelector("ytd-page-manager");
+  const elPageManager = document.querySelector(PAGE_MANAGER_SELECTOR);
   const desktopData = isPageManagerElement(elPageManager) ? elPageManager.getCurrentData() : undefined;
   if (desktopData) {
     return desktopData;
   }
 
-  const parsedMobileApp = mobileAppSchema.safeParse(document.querySelector("ytm-app"));
+  const parsedMobileApp = mobileAppSchema.safeParse(document.querySelector(MOBILE_APP_SELECTOR));
   if (parsedMobileApp.success && parsedMobileApp.data.data) {
     return parsedMobileApp.data.data;
   }
@@ -43,7 +47,7 @@ export function readPageData() {
 
 /** Signed out, YouTube's Subscribe is only a sign-in prompt, so every channel counts as not subscribed */
 export function readIsSignedIn() {
-  const parsed = z.boolean().safeParse(readYtcfg(YtcfgKey.isLoggedIn));
+  const parsed = isLoggedInSchema.safeParse(readYtcfg(YtcfgKey.isLoggedIn));
   return parsed.success && parsed.data;
 }
 
