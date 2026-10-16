@@ -15,27 +15,36 @@ import { shortsLockupFromItem, videoIdFromContent } from "#feed/items/feed-items
 // ytInitialData hooks are what cover m
 
 const DESKTOP_GRID_SELECTOR = "ytd-browse[page-subtype=\"subscriptions\"] ytd-rich-grid-renderer";
-const DESKTOP_TILE_SELECTOR = ":scope > #contents > ytd-rich-item-renderer";
-const DESKTOP_SHELF_TILE_SELECTOR = ":scope > #contents > ytd-rich-section-renderer ytd-rich-item-renderer";
+/** The elements a feed tile renders as */
+export enum FeedTileTag {
+  desktop = "ytd-rich-item-renderer",
+  mobile = "ytm-rich-item-renderer",
+  /** m's Shorts shelf lists bare lockups */
+  mobileShort = "ytm-shorts-lockup-view-model"
+}
+
+const DESKTOP_TILE_SELECTOR = `:scope > #contents > ${FeedTileTag.desktop}`;
+const DESKTOP_SHELF_TILE_SELECTOR = `:scope > #contents > ytd-rich-section-renderer ${FeedTileTag.desktop}`;
 const MOBILE_GRID_SELECTOR = "ytm-rich-grid-renderer";
-const MOBILE_TILE_SELECTOR = "ytm-rich-item-renderer";
 const CONTENTS_PATH = "data.contents";
-const POLYMER_GLOBAL = "Polymer";
 
 const gridDataSchema = z.looseObject({ contents: z.array(z.unknown()) });
 const tileDataSchema = z.looseObject({ content: z.unknown() });
 
-export function flushPolymer() {
-  const polymer: unknown = Object.getOwnPropertyDescriptor(globalThis, POLYMER_GLOBAL)?.value;
-  const flush = typeof polymer === "object" && polymer !== null && "flush" in polymer ? polymer.flush : undefined;
-  if (typeof flush === "function") {
-    flush.call(polymer);
-  }
+/** The element's `data` in the expected shape, or null when it has none or another */
+function readElementData<TSchema extends z.ZodType>({ element, schema }: {
+  element: HTMLElement;
+  schema: TSchema;
+}) {
+  const parsed = "data" in element ? schema.safeParse(element.data) : null;
+  return parsed?.success ? parsed.data : null;
 }
 
 function readDataContents(element: HTMLElement) {
-  const parsed = "data" in element ? gridDataSchema.safeParse(element.data) : null;
-  return parsed?.success ? parsed.data.contents : null;
+  return readElementData({
+    element,
+    schema: gridDataSchema
+  })?.contents ?? null;
 }
 
 function writeDataContents({ element, contents }: {
@@ -47,10 +56,13 @@ function writeDataContents({ element, contents }: {
     return;
   }
 
-  const parsed = "data" in element ? gridDataSchema.safeParse(element.data) : null;
-  if ("data" in element && parsed?.success) {
+  const data = readElementData({
+    element,
+    schema: gridDataSchema
+  });
+  if ("data" in element && data) {
     element.data = {
-      ...parsed.data,
+      ...data,
       contents
     };
   }
@@ -66,8 +78,11 @@ export interface FeedGrid {
 }
 
 function isShortsTile(elTile: HTMLElement) {
-  const parsed = "data" in elTile ? tileDataSchema.safeParse(elTile.data) : null;
-  return !!parsed?.success && shortsLockupFromItem(parsed.data.content) !== null;
+  const data = readElementData({
+    element: elTile,
+    schema: tileDataSchema
+  });
+  return !!data && shortsLockupFromItem(data.content) !== null;
 }
 
 /**
@@ -91,7 +106,7 @@ export function findFeedGrid() {
   }
 
   const isMobile = getYouTubeSite() === YouTubeSite.mobile;
-  const tileSelector = isMobile ? MOBILE_TILE_SELECTOR : DESKTOP_TILE_SELECTOR;
+  const tileSelector = isMobile ? FeedTileTag.mobile : DESKTOP_TILE_SELECTOR;
   const grid: FeedGrid = {
     element,
     readContents() {
@@ -127,7 +142,10 @@ function videoIdFromLink(elTile: HTMLElement) {
 }
 
 export function videoIdFromTile(elTile: HTMLElement) {
-  const parsed = "data" in elTile ? tileDataSchema.safeParse(elTile.data) : null;
-  const videoId = parsed?.success ? videoIdFromContent(parsed.data.content) : null;
+  const data = readElementData({
+    element: elTile,
+    schema: tileDataSchema
+  });
+  const videoId = data ? videoIdFromContent(data.content) : null;
   return videoId ?? videoIdFromLink(elTile);
 }

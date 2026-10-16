@@ -1,4 +1,4 @@
-import { type FeedGrid, flushPolymer, videoIdFromTile } from "./feed-grid";
+import { type FeedGrid, videoIdFromTile } from "./feed-grid";
 import {
   FeedMotionClass,
   glide,
@@ -9,7 +9,8 @@ import {
   whenMotionFinishes
 } from "./feed-motion";
 import { alignOpenMenuToItsVideo, pinOpenMenuToItsVideo, releaseOpenMenu } from "./open-menu";
-import { settleBefore } from "#feed/feed-session";
+import { settleBefore } from "@/lib/utils/promise";
+import { flushPolymer } from "@/lib/youtube/page/polymer";
 
 // The animated grid write (FLIP): leaving tiles fade out in place, then the model is written, surviving tiles are
 // pinned to their old positions and released to glide into their new slots while new tiles scale and fade in. The

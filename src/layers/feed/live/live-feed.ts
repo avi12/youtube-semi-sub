@@ -3,7 +3,7 @@ import { type FeedGrid, findFeedGrid } from "./feed-grid";
 import { isYouTubeAutoFeedActive, nudgeYouTubeAutoFeed, watchYouTubeAutoFeedSwitch } from "./ytaf";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import { observeSubtree } from "@/lib/utils/dom";
-import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
+import { onYouTubeNavigate, onYouTubeNavigateStart } from "@/lib/youtube/page/navigation";
 import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
 import { FeedPathname } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
@@ -36,8 +36,6 @@ import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
 // While YouTube Auto Feed runs (installed and switched on) the grid is its to write
 
 const LIVE_NATIVES_BUDGET_MS = 4000;
-// www fires yt-navigate-start; m fires state-navigatestart
-const NAVIGATION_START_EVENTS = ["yt-navigate-start", "state-navigatestart"] as const;
 
 const navigationDetailSchema = z.looseObject({
   url: z.string().optional(),
@@ -304,8 +302,5 @@ export function startLiveFeed() {
   // Switched off, ytaf leaves the grid alone - from then on it is written here, and the other way round
   watchYouTubeAutoFeedSwitch(requestReconcile);
   onYouTubeNavigate(requestReconcile);
-  for (const eventName of NAVIGATION_START_EVENTS) {
-    document.addEventListener(eventName, handleNavigationStart);
-    addEventListener(eventName, handleNavigationStart);
-  }
+  onYouTubeNavigateStart(handleNavigationStart);
 }

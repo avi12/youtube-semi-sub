@@ -4,6 +4,7 @@ import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
+import { settleBefore } from "@/lib/utils/promise";
 import { composeFeedContents, planFeed } from "#feed/compose/feed-compose";
 import {
   channelIdFromGridItem,
@@ -15,8 +16,8 @@ import {
 import { isShortsInjectionAllowed } from "#feed/live/ytaf";
 
 // Page-session glue between the pure feed composition and the live page: the extension state, the natives cache,
-// and the ids this page session inserted (the only feed videos it may later take out - besides what a channel left
-// behind when the user unsubscribed)
+// and the ids this page session inserted. Those are the only semi-sub videos it may later take out; besides them it
+// takes out what a channel left behind when the user unsubscribed, and what a subscribed channel's hide filter hides
 
 const PREFETCH_VIDEO_LIMIT = 20;
 
@@ -62,8 +63,8 @@ export function trackSubscriptionTransitions(state: PageState) {
   const previous = previousState;
   previousState = state;
   for (const [channelId, { isSubscribed }] of Object.entries(state.subscriptions)) {
-    const wasSubscribed = previous?.subscriptions[channelId]?.isSubscribed;
-    const isTransition = wasSubscribed !== undefined && wasSubscribed !== isSubscribed;
+    const isPreviouslySubscribed = previous?.subscriptions[channelId]?.isSubscribed;
+    const isTransition = isPreviouslySubscribed !== undefined && isPreviouslySubscribed !== isSubscribed;
     if (!isTransition) {
       continue;
     }
@@ -280,22 +281,6 @@ export function composeForPageState({ contents, state, removedVideoIds }: Parame
     findNative: findNativeRenderer,
     findNativeShort,
     findAvatarUrl: findLoadedAvatarUrl
-  });
-}
-
-/** Resolves with the promise's value, or null once the deadline passes (or the promise rejects) */
-export function settleBefore<T>({ promise, deadline }: {
-  promise: Promise<T>;
-  deadline: number;
-}) {
-  return new Promise<T | null>(resolve => {
-    const timer = setTimeout(() => resolve(null), Math.max(0, deadline - Date.now()));
-    function settle(value: T | null) {
-      clearTimeout(timer);
-      resolve(value);
-    }
-
-    promise.then(settle, () => settle(null));
   });
 }
 

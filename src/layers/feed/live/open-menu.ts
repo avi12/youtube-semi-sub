@@ -1,4 +1,4 @@
-import { videoIdFromTile } from "./feed-grid";
+import { FeedTileTag, videoIdFromTile } from "./feed-grid";
 import {
   FeedMotionClass,
   glide,
@@ -21,8 +21,6 @@ import { z } from "@/lib/zod";
 // resize lines the menu up too. A resize mid-glide moves the slot its tile glides to, so the menu drops its own glide
 // and is refit to its moving button every frame until the tile settles. While YouTube Auto Feed runs, the grid and its
 // menus are its own
-
-const TILE_SELECTOR = "ytd-rich-item-renderer";
 
 const openMenuSchema = z.object({
   elDropdown: ironDropdownElementSchema,
@@ -50,7 +48,7 @@ function recordOpenedMenu(e: Event) {
 
   const elAnchor = elDropdown.positionTarget;
   const elButton = elAnchor.matches("button") ? elAnchor : elAnchor.querySelector("button");
-  const elTile = elButton?.closest<HTMLElement>(TILE_SELECTOR);
+  const elTile = elButton?.closest<HTMLElement>(FeedTileTag.desktop);
   const parsed = openMenuSchema.safeParse({
     elDropdown,
     elAnchor,
@@ -98,7 +96,7 @@ function findMenuTarget({ menu, menuRect }: {
   const isTileShowingVideo = elTile.isConnected && videoIdFromTile(elTile) === videoId;
   const elCandidates = isTileShowingVideo
     ? [elTile]
-    : [...document.querySelectorAll<HTMLElement>(TILE_SELECTOR)]
+    : [...document.querySelectorAll<HTMLElement>(FeedTileTag.desktop)]
       .filter(elCandidate => videoIdFromTile(elCandidate) === videoId);
   function distanceFromMenu({ elButton }: MenuTarget) {
     return distanceBetweenCenters({

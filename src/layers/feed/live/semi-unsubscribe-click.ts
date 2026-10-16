@@ -1,4 +1,4 @@
-import { videoIdFromTile } from "./feed-grid";
+import { FeedTileTag, videoIdFromTile } from "./feed-grid";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
 import { IRON_DROPDOWN_SELECTOR, isIronDropdown } from "@/lib/youtube/page/iron-dropdown";
@@ -9,7 +9,7 @@ import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
 // menu was opened from is remembered when it is tapped
 
 // m's Shorts shelf lists bare lockups, with no rich item around them
-const TILE_SELECTOR = "ytd-rich-item-renderer, ytm-rich-item-renderer, ytm-shorts-lockup-view-model";
+const TILE_SELECTOR = Object.values(FeedTileTag).join(", ");
 const MENU_ITEM_SELECTOR = [
   "yt-list-item-view-model",
   "ytd-menu-service-item-renderer",

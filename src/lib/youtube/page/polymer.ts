@@ -7,6 +7,12 @@ export interface PolymerElement extends HTMLElement {
   set(path: string, value: unknown): void;
 }
 
+const POLYMER_GLOBAL = "Polymer";
+
+const polymerGlobalSchema = z.looseObject({
+  flush: functionSchema
+});
+
 const polymerElementSchema = z.object({
   set: functionSchema
 });
@@ -14,4 +20,13 @@ const polymerElementSchema = z.object({
 /** `data` is checked with `in`: Polymer defines it on the prototype, and an unset one reads as undefined */
 export function isPolymerElement(element: Element): element is PolymerElement {
   return "data" in element && polymerElementSchema.safeParse(element).success;
+}
+
+/** Renders Polymer's pending DOM changes now, so they can be measured; a no-op where Polymer isn't loaded (m) */
+export function flushPolymer() {
+  const polymer: unknown = Object.getOwnPropertyDescriptor(globalThis, POLYMER_GLOBAL)?.value;
+  const parsed = polymerGlobalSchema.safeParse(polymer);
+  if (parsed.success) {
+    parsed.data.flush.call(polymer);
+  }
 }
