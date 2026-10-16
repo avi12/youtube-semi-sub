@@ -24,13 +24,15 @@ const BATCH = {
 };
 
 describe("createLiteRtJudge", () => {
-  it("sends the worked example as the preface and the batch as the last message", async () => {
+  it("sends the worked examples as the preface and the batch as the last message", async () => {
     const infer = vi.fn(async (_messages: ChatMessage[]) => "{\"verdicts\":[{\"id\":1,\"match\":true},{\"id\":2,\"match\":false},{\"id\":3,\"match\":true}]}");
     await createLiteRtJudge(infer).judgeBatch(BATCH);
 
     const messages = infer.mock.calls[0]?.[0] ?? [];
     expect(messages.map(message => message.role)).toEqual([
       ChatRole.system,
+      ChatRole.user,
+      ChatRole.assistant,
       ChatRole.user,
       ChatRole.assistant,
       ChatRole.user
