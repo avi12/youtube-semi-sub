@@ -35,7 +35,8 @@ async function handleLocalModelDownloadEnded() {
 /** Only for a user who just switched AI match on, and only on a browser that resolves to the local model */
 async function downloadRequestedModel() {
   const [status, isAiEnabled] = await Promise.all([readAiStatus(), isAiEnabledItem.getValue()]);
-  if (status.engine !== AiEngine.liteRt || !isAiEnabled) {
+  const isLocalDownloadWanted = status.engine === AiEngine.liteRt && isAiEnabled;
+  if (!isLocalDownloadWanted) {
     return false;
   }
 
@@ -46,8 +47,8 @@ async function downloadRequestedModel() {
 
 /** Opt-out deletes the local model; also catches up on a deletion an earlier worker didn't get to finish */
 async function deleteModelWhileOff() {
-  const isAiEnabled = await isAiEnabledItem.getValue();
-  if (!isAiEnabled && await isLiteRtModelCached()) {
+  const isModelLeftOver = !await isAiEnabledItem.getValue() && await isLiteRtModelCached();
+  if (isModelLeftOver) {
     await deleteLocalModel();
   }
 }

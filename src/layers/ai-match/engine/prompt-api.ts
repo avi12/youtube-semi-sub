@@ -90,8 +90,8 @@ export async function readBuiltInAvailability() {
 export async function openBuiltInSession(initialPrompts: ChatMessage[]) {
   const languageModel = getLanguageModel();
   const availability = await readBuiltInAvailability();
-  const isReady = languageModel && availability === BuiltInAvailability.available;
-  if (!isReady) {
+  const isModelOnDisk = availability === BuiltInAvailability.available;
+  if (!languageModel || !isModelOnDisk) {
     return null;
   }
 

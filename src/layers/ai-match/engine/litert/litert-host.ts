@@ -219,8 +219,12 @@ function readReplyText(reply: unknown) {
 
 async function runConversation(messages: ChatMessage[]) {
   const lastMessage = messages.at(-1);
-  const engine = !isEngineBroken && lastMessage ? await ensureEngine() : null;
-  if (!lastMessage || !engine) {
+  if (!lastMessage || isEngineBroken) {
+    return null;
+  }
+
+  const engine = await ensureEngine();
+  if (!engine) {
     return null;
   }
 

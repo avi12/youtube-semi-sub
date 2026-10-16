@@ -37,7 +37,7 @@ export function parseVerdictReply({ reply, count }: {
     }
 
     const { id, match } = verdict.data;
-    const isNewIdInBatch = Number.isInteger(id) && id >= 1 && id <= count && !verdictsById.has(id);
+    const isNewIdInBatch = id >= 1 && id <= count && !verdictsById.has(id);
     if (isNewIdInBatch) {
       verdictsById.set(id, match);
     }

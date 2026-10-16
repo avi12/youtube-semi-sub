@@ -6,7 +6,8 @@ import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 
 // The background's handle on LiteRT-LM. Firefox's background is an event page with a DOM and WebGPU, so it hosts the
 // model itself; Chromium's service worker hands everything to the offscreen page. The browser check is a build-time
-// constant, so each build carries only its own path (compared as a string: under vitest FIREFOX is the string "false")
+// constant, so each build carries only its own path. It compares BROWSER rather than reading FIREFOX, which is the
+// string "false" under vitest
 
 const FIREFOX_BROWSER = "firefox";
 const IS_FIREFOX = import.meta.env.BROWSER === FIREFOX_BROWSER;
