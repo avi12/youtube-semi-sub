@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DELETE_ICON } from "./icons";
-  import { isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
+  import { DEFAULT_TITLE_FILTER, isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import { getModeFilter, type SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -29,7 +29,7 @@
       ...getModeFilter({
         subscription,
         mode
-      })
+      }) ?? DEFAULT_TITLE_FILTER
     }))
   );
   let isFetching = $state(false);

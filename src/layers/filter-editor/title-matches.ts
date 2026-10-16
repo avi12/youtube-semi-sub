@@ -4,7 +4,7 @@ import {
   compileTitleFilter,
   createVideoJudge,
   getTitleFilterError,
-  isHidingNothing,
+  isFilterInert,
   MatchState,
   type RegexFilter
 } from "@/lib/filter/title-filter";
@@ -127,14 +127,14 @@ export function partitionPreviewRows(rows: PreviewRow[]) {
 
 /**
  * How the filter treats each preview video - the same compiled RegExp the real feed is filtered by. An empty hide
- * filter matches nothing, where an empty follow filter matches every video
+ * filter matches nothing, where an empty follow filter matches every video (`isFilterInert`)
  */
 export function previewTitleFilter({ filter, videos, mode }: {
   filter: RegexFilter;
   videos: FeedVideo[];
   mode: SubscriptionMode;
 }) {
-  const isMatchingNothing = isHidingNothing({
+  const isMatchingNothing = isFilterInert({
     filter,
     mode
   });

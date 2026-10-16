@@ -44,7 +44,7 @@ describe("migrateSemiSubscriptionsToV2", () => {
           pattern: "review",
           flags: "i"
         },
-        hideFilter: DEFAULT_TITLE_FILTER,
+        hideFilter: null,
         isSubscribed: false
       }
     });
@@ -83,13 +83,13 @@ describe("migrateSemiSubscriptionsToV2", () => {
           pattern: "iphone",
           flags: ""
         },
-        hideFilter: DEFAULT_TITLE_FILTER,
+        hideFilter: null,
         isSubscribed: false
       },
       [AI_CHANNEL_ID]: {
         ...aiChannel,
         followFilter: aiFilter,
-        hideFilter: DEFAULT_TITLE_FILTER,
+        hideFilter: null,
         isSubscribed: false
       }
     });
@@ -136,7 +136,7 @@ describe("migrateSemiSubscriptionsToV4", () => {
     flags: "i"
   };
 
-  it("keeps the filter as the follow filter and starts an empty hide filter", () => {
+  it("keeps the filter as the follow filter and leaves the hide filter unset", () => {
     expect(
       migrateSemiSubscriptionsToV4({
         [REGEX_CHANNEL_ID]: {
@@ -149,13 +149,13 @@ describe("migrateSemiSubscriptionsToV4", () => {
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
         followFilter: filter,
-        hideFilter: DEFAULT_TITLE_FILTER,
+        hideFilter: null,
         isSubscribed: false
       }
     });
   });
 
-  it("reads a halt as a subscription, which hides nothing while the hide filter is empty", () => {
+  it("reads a halt as a subscription, which hides nothing while the hide filter is unset", () => {
     expect(
       semiSubscriptionsSchema.parse(
         migrateSemiSubscriptionsToV4({
@@ -170,7 +170,7 @@ describe("migrateSemiSubscriptionsToV4", () => {
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
         followFilter: filter,
-        hideFilter: DEFAULT_TITLE_FILTER,
+        hideFilter: null,
         isSubscribed: true
       }
     });
@@ -182,30 +182,50 @@ describe("migrateSemiSubscriptionsToV4", () => {
 });
 
 describe("isUploadsWatched", () => {
-  const hideFilter: RegexFilter = {
+  const filter: RegexFilter = {
     kind: FilterKind.regex,
     pattern: "shorts",
     flags: "i"
   };
 
-  it("watches a followed channel, and a subscribed one only while its hide filter hides something", () => {
+  it("watches a channel while its current mode's filter adds or hides something", () => {
     expect(
       isUploadsWatched({
-        hideFilter: DEFAULT_TITLE_FILTER,
+        followFilter: DEFAULT_TITLE_FILTER,
+        hideFilter: null,
         isSubscribed: false
       })
     ).toBe(true);
     expect(
       isUploadsWatched({
-        hideFilter: DEFAULT_TITLE_FILTER,
+        followFilter: filter,
+        hideFilter: filter,
+        isSubscribed: true
+      })
+    ).toBe(true);
+  });
+
+  it("leaves a channel alone while its current mode's filter is unset, or hides nothing", () => {
+    expect(
+      isUploadsWatched({
+        followFilter: null,
+        hideFilter: filter,
+        isSubscribed: false
+      })
+    ).toBe(false);
+    expect(
+      isUploadsWatched({
+        followFilter: filter,
+        hideFilter: null,
         isSubscribed: true
       })
     ).toBe(false);
     expect(
       isUploadsWatched({
-        hideFilter,
+        followFilter: filter,
+        hideFilter: DEFAULT_TITLE_FILTER,
         isSubscribed: true
       })
-    ).toBe(true);
+    ).toBe(false);
   });
 });

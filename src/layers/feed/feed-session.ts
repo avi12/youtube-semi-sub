@@ -1,5 +1,5 @@
 import { findLoadedAvatarUrl, findNativeRenderer, findNativeShort, loadChannelNatives } from "./channel-natives";
-import { createModeJudge, createVideoJudge, MatchState } from "@/lib/filter/title-filter";
+import { createModeJudge, MatchState } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
@@ -118,8 +118,8 @@ export function hasResumedChannels() {
 
 /**
  * A resumed channel's videos in the feed, each judged by the channel's follow filter - by title, or by verdict for an
- * AI filter (pending without one) - not by the cached uploads, which lag right after a resume. A paused filter lets
- * none through. A video several channels share is never judged
+ * AI filter (pending without one) - not by the cached uploads, which lag right after a resume. A paused or unset
+ * filter lets none through. A video several channels share is never judged
  */
 function judgeResumedChannelVideos({ contents, state }: {
   contents: readonly unknown[];
@@ -133,8 +133,9 @@ function judgeResumedChannelVideos({ contents, state }: {
       return [];
     }
 
-    const judge = createVideoJudge({
+    const judge = createModeJudge({
       filter: subscription.followFilter,
+      mode: SubscriptionMode.follow,
       aiVerdicts: state.aiVerdicts,
       isAiEnabled: state.isAiEnabled
     });

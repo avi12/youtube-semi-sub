@@ -5,13 +5,18 @@
     type AiJudgeContext,
     createModeJudge,
     FilterKind,
-    isHidingNothing,
+    isFilterInert,
     MatchState
   } from "@/lib/filter/title-filter";
   import { getChannelInitial } from "@/lib/schemas/channel";
   import type { ChannelVideos } from "@/lib/schemas/feed-video";
   import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
-  import { SUBSCRIPTION_MODE_NAME, SubscriptionMode } from "@/lib/schemas/subscription-mode";
+  import {
+    ANY_TITLE_LABEL,
+    INERT_FILTER_LABEL,
+    SUBSCRIPTION_MODE_NAME,
+    SubscriptionMode
+  } from "@/lib/schemas/subscription-mode";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatHandle, getChannelUrl } from "@/lib/youtube/channel-link";
   import { Button, Icon } from "m3-svelte";
@@ -35,15 +40,14 @@
     onRemove
   }: Props = $props();
 
-  const HIDES_NOTHING_SUMMARY = "Hides nothing yet";
   const MATCH_WORDING = {
     [SubscriptionMode.follow]: {
       matched: "matching",
-      emptyPattern: "Any title"
+      inertSummary: "Adds nothing yet"
     },
     [SubscriptionMode.hide]: {
       matched: "hidden",
-      emptyPattern: "Nothing hidden"
+      inertSummary: "Hides nothing yet"
     }
   } as const;
 
@@ -59,8 +63,8 @@
     })
   );
   const wording = $derived(MATCH_WORDING[mode]);
-  const isHidingNone = $derived(
-    isHidingNothing({
+  const isInert = $derived(
+    isFilterInert({
       filter,
       mode
     })
@@ -76,7 +80,7 @@
       isAiEnabled
     })
   );
-  const isPaused = $derived(filter.kind === FilterKind.aiMatch && !isAiEnabled);
+  const isPaused = $derived(filter?.kind === FilterKind.aiMatch && !isAiEnabled);
   const matchStateById = $derived(
     new Map(videos.map(video => [video.videoId, judge?.(video) ?? MatchState.doesNotMatch]))
   );
@@ -85,8 +89,8 @@
   const pendingCount = $derived(matchStates.filter(matchState => matchState === MatchState.pending).length);
   const initial = $derived(getChannelInitial(subscription.title));
   const matchSummary = $derived.by(() => {
-    if (isHidingNone) {
-      return HIDES_NOTHING_SUMMARY;
+    if (isInert) {
+      return wording.inertSummary;
     }
 
     if (isPaused) {
@@ -177,18 +181,20 @@
       {videos} />
   {:else}
     <div class="channel__summary">
-      {#if filter.kind === FilterKind.aiMatch}
+      {#if filter?.kind === FilterKind.aiMatch}
         <p class={["ai-literal", isPaused && "ai-literal--paused"]}>
           <span class="ai-literal__badge">AI</span>
           <bdi class="ai-literal__description">{filter.description}</bdi>
         </p>
       {:else}
         <code class="filter-literal" dir="ltr">
-          {#if filter.pattern}
+          {#if isInert}
+            <span class="filter-literal__any">{INERT_FILTER_LABEL[mode]}</span>
+          {:else if filter?.pattern}
             {@const { pattern, flags } = filter}
             <span class="filter-literal__pattern">{pattern}</span><span class="filter-literal__flags">{flags}</span>
           {:else}
-            <span class="filter-literal__any">{wording.emptyPattern}</span>
+            <span class="filter-literal__any">{ANY_TITLE_LABEL}</span>
           {/if}
         </code>
       {/if}

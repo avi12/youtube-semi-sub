@@ -1,4 +1,4 @@
-import { DEFAULT_TITLE_FILTER, type TitleFilter } from "@/lib/filter/title-filter";
+import type { TitleFilter } from "@/lib/filter/title-filter";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import { type SemiSubscription, type SemiSubscriptions, withModeFilter } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
@@ -14,7 +14,7 @@ export async function readSemiSubscription(channelId: string) {
 /**
  * The stored entry after a save of one mode's filter: `createdAt`, the subscription state and the other mode's filter
  * survive an edit, and a channel opened from a page that lacks its avatar or handle keeps the ones stored before. A
- * new entry starts subscribed when it is saved in hide mode, with the other filter empty
+ * new entry starts subscribed when it is saved in hide mode, with the other mode's filter unset (`isFilterInert`)
  */
 export function mergeSemiSubscription({ previous, channel, mode, filter, now }: {
   previous: SemiSubscription | undefined;
@@ -26,8 +26,8 @@ export function mergeSemiSubscription({ previous, channel, mode, filter, now }: 
   const base: SemiSubscription = {
     channelId: channel.channelId,
     title: channel.title || previous?.title || "",
-    followFilter: previous?.followFilter ?? { ...DEFAULT_TITLE_FILTER },
-    hideFilter: previous?.hideFilter ?? { ...DEFAULT_TITLE_FILTER },
+    followFilter: previous?.followFilter ?? null,
+    hideFilter: previous?.hideFilter ?? null,
     createdAt: previous?.createdAt ?? now,
     isSubscribed: previous?.isSubscribed ?? mode === SubscriptionMode.hide
   };

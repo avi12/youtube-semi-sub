@@ -93,7 +93,7 @@
 
   const subscriptionList = $derived(listByTitle(subscriptions));
   const aiFilterCount = $derived(
-    subscriptionList.filter(subscription => getActiveFilter(subscription).kind === FilterKind.aiMatch).length
+    subscriptionList.filter(subscription => getActiveFilter(subscription)?.kind === FilterKind.aiMatch).length
   );
   const filterInput = $derived({
     subscriptions,

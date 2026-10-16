@@ -106,13 +106,12 @@
     readSemiSubscription(channel.channelId).then(stored => {
       storedSubscription = stored;
 
-      if (stored && !isFilterEdited) {
-        filter = {
-          ...getModeFilter({
-            subscription: stored,
-            mode
-          })
-        };
+      const storedFilter = stored && getModeFilter({
+        subscription: stored,
+        mode
+      });
+      if (storedFilter && !isFilterEdited) {
+        filter = { ...storedFilter };
       }
     }).catch(() => {}).finally(() => {
       isStoredSubscriptionRead = true;

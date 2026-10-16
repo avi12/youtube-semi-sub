@@ -140,11 +140,20 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
   });
 }
 
-/** A hide filter left empty hides nothing - where an empty follow filter lets every video through */
-export function isHidingNothing({ filter, mode }: {
-  filter: TitleFilter;
+/**
+ * Whether a mode's filter leaves the feed as YouTube has it - the one place both modes' empty cases are decided. A
+ * filter never set in its mode (null: the channel was saved in the other one) does nothing in either mode, so a
+ * later subscribe or unsubscribe never starts hiding or adding videos nobody picked. An empty pattern the user saved
+ * hides nothing as a hide filter and lets every video through as a follow filter - either way, the whole channel
+ */
+export function isFilterInert({ filter, mode }: {
+  filter: TitleFilter | null;
   mode: SubscriptionMode;
 }) {
+  if (!filter) {
+    return true;
+  }
+
   return mode === SubscriptionMode.hide && filter.kind === FilterKind.regex && filter.pattern === "";
 }
 
@@ -152,14 +161,16 @@ function judgeNoMatch() {
   return MatchState.doesNotMatch;
 }
 
-/** `createVideoJudge` for a mode's filter: an empty hide filter matches no video */
-export function createModeJudge({ filter, mode, ...context }: Parameters<typeof createVideoJudge>[0] & {
+/** `createVideoJudge` for a mode's filter: an inert one (`isFilterInert`) matches no video */
+export function createModeJudge({ filter, mode, ...context }: AiJudgeContext & {
+  filter: TitleFilter | null;
   mode: SubscriptionMode;
 }) {
-  if (isHidingNothing({
+  const isInert = isFilterInert({
     filter,
     mode
-  })) {
+  });
+  if (!filter || isInert) {
     return judgeNoMatch;
   }
 
@@ -181,8 +192,9 @@ export function selectFeedVideos({ subscriptions, videosByChannel, ...context }:
   for (const channelId in subscriptions) {
     const subscription = subscriptions[channelId];
     const isFollowed = subscription && !subscription.isSubscribed;
-    const judge = isFollowed && createVideoJudge({
+    const judge = isFollowed && createModeJudge({
       filter: subscription.followFilter,
+      mode: SubscriptionMode.follow,
       ...context
     });
     if (!judge) {

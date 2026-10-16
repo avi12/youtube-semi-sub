@@ -1,10 +1,4 @@
-import {
-  DEFAULT_TITLE_FILTER,
-  isHidingNothing,
-  legacyRegexFilterSchema,
-  type TitleFilter,
-  titleFilterSchema
-} from "@/lib/filter/title-filter";
+import { isFilterInert, legacyRegexFilterSchema, type TitleFilter, titleFilterSchema } from "@/lib/filter/title-filter";
 import { channelIdSchema, channelInfoSchema } from "@/lib/schemas/channel";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";
@@ -20,10 +14,10 @@ const semiSubscriptionV3Schema = semiSubscriptionV2Schema.extend({
 type SemiSubscriptionV3 = z.infer<typeof semiSubscriptionV3Schema>;
 
 const semiSubscriptionSchema = semiSubscriptionV2Schema.omit({ filter: true }).extend({
-  /** Picks the videos added to the feed while the user isn't subscribed */
-  followFilter: titleFilterSchema,
-  /** Picks the videos hidden from the feed while the user is subscribed - an empty one hides nothing */
-  hideFilter: titleFilterSchema,
+  /** Picks the videos added to the feed while the user isn't subscribed; null until one is saved in that mode */
+  followFilter: titleFilterSchema.nullable(),
+  /** Picks the videos hidden from the feed while the user is subscribed; null until one is saved in that mode */
+  hideFilter: titleFilterSchema.nullable(),
   /** Subscribed on YouTube, which switches the channel to hiding. Both filters are kept either way */
   isSubscribed: z.boolean()
 });
@@ -68,7 +62,7 @@ const semiSubscriptionsV3Schema = z.record(channelIdSchema, semiSubscriptionV3Sc
 
 /**
  * Storage v4 gives every channel a mode: the filter becomes the follow filter, a halt becomes a subscription, and the
- * new hide filter starts empty - so a subscribed channel hides nothing, as a halted one let nothing through
+ * new hide filter starts unset - so a subscribed channel hides nothing, as a halted one let nothing through
  */
 export function migrateSemiSubscriptionsToV4(stored: unknown) {
   const parsed = semiSubscriptionsV3Schema.safeParse(stored);
@@ -81,9 +75,7 @@ export function migrateSemiSubscriptionsToV4(stored: unknown) {
     migrated[channelId] = {
       ...subscription,
       followFilter: filter,
-      hideFilter: {
-        ...DEFAULT_TITLE_FILTER
-      },
+      hideFilter: null,
       isSubscribed: isHalted
     };
   }
@@ -115,13 +107,13 @@ export function getActiveFilter(subscription: Pick<SemiSubscription, "followFilt
 }
 
 /**
- * Whether the background keeps the channel's uploads current: a followed channel always, a subscribed one only while
- * its hide filter hides something - the uploads are what it is judged against, Shorts included
+ * Whether the background keeps the channel's uploads current: while its current mode's filter adds or hides
+ * something - the uploads are what it is judged against, Shorts included
  */
-export function isUploadsWatched(subscription: Pick<SemiSubscription, "hideFilter" | "isSubscribed">) {
-  return !subscription.isSubscribed || !isHidingNothing({
-    filter: subscription.hideFilter,
-    mode: SubscriptionMode.hide
+export function isUploadsWatched(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
+  return !isFilterInert({
+    filter: getActiveFilter(subscription),
+    mode: getSubscriptionMode(subscription)
   });
 }
 

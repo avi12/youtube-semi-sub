@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { FilterKind, isHidingNothing } from "@/lib/filter/title-filter";
+  import { FilterKind, isFilterInert } from "@/lib/filter/title-filter";
   import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
-  import { SUBSCRIPTION_MODE_NAME } from "@/lib/schemas/subscription-mode";
+  import { ANY_TITLE_LABEL, INERT_FILTER_LABEL, SUBSCRIPTION_MODE_NAME } from "@/lib/schemas/subscription-mode";
 
   const { subscription, isAiEnabled }: {
     subscription: SemiSubscription;
@@ -15,8 +15,8 @@
       mode
     })
   );
-  const isHidingNone = $derived(
-    isHidingNothing({
+  const isInert = $derived(
+    isFilterInert({
       filter,
       mode
     })
@@ -24,7 +24,7 @@
 </script>
 
 <span class="yss-filter-literal__mode">{SUBSCRIPTION_MODE_NAME[mode]}</span>
-{#if filter.kind === FilterKind.aiMatch}
+{#if filter?.kind === FilterKind.aiMatch}
   <span class={["yss-filter-literal", "yss-filter-literal--ai", !isAiEnabled && "yss-filter-literal--paused"]}>
     <span class="yss-filter-literal__badge">AI</span>
     <bdi>{filter.description}</bdi>
@@ -32,10 +32,10 @@
       <span class="yss-filter-literal__paused">paused</span>
     {/if}
   </span>
-{:else if isHidingNone}
-  <span class="yss-filter-literal yss-filter-literal--any">Nothing hidden</span>
-{:else if filter.pattern}
+{:else if isInert}
+  <span class="yss-filter-literal yss-filter-literal--any">{INERT_FILTER_LABEL[mode]}</span>
+{:else if filter?.pattern}
   <code class="yss-filter-literal" dir="ltr">/{filter.pattern}/{filter.flags}</code>
 {:else}
-  <span class="yss-filter-literal yss-filter-literal--any">Any title</span>
+  <span class="yss-filter-literal yss-filter-literal--any">{ANY_TITLE_LABEL}</span>
 {/if}

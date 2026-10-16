@@ -88,7 +88,7 @@ describe("the semi-subscriptions migration", () => {
     fakeBrowser.reset();
   });
 
-  it("gives a v3 store a mode per channel: a halted channel reads as subscribed, with an empty hide filter", async () => {
+  it("gives a v3 store a mode per channel: a halted channel reads as subscribed, with no hide filter set", async () => {
     const filter = {
       kind: "regex",
       pattern: "review",
@@ -114,11 +114,7 @@ describe("the semi-subscriptions migration", () => {
         channelId: CHANNEL_ID,
         title: "Marques Brownlee",
         followFilter: filter,
-        hideFilter: {
-          kind: "regex",
-          pattern: "",
-          flags: "i"
-        },
+        hideFilter: null,
         createdAt: CHECKED_AT,
         isSubscribed: true
       }

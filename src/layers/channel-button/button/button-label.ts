@@ -1,4 +1,4 @@
-import { isHidingNothing } from "@/lib/filter/title-filter";
+import { isFilterInert } from "@/lib/filter/title-filter";
 import { getModeFilter, type SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 
@@ -28,7 +28,7 @@ const BUTTON_TEXT = {
 } as const;
 
 /**
- * The words on a channel's button, wherever one opens its dialog: active - semi-subscribed while following, hiding
+ * The words on a channel's button, wherever one opens its dialog: active - adding videos while following, hiding
  * something while subscribed - it gets the filter glyph and the past tense
  */
 export function describeChannelButton({ channelTitle, subscription, mode }: {
@@ -38,7 +38,7 @@ export function describeChannelButton({ channelTitle, subscription, mode }: {
   mode: SubscriptionMode;
 }) {
   const text = BUTTON_TEXT[mode];
-  const isActive = !!subscription && !isHidingNothing({
+  const isActive = !!subscription && !isFilterInert({
     filter: getModeFilter({
       subscription,
       mode

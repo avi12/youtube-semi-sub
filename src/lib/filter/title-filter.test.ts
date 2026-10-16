@@ -6,6 +6,7 @@ import {
   DEFAULT_TITLE_FILTER,
   FilterKind,
   getTitleFilterError,
+  isFilterInert,
   isTitleFilterValid,
   selectFeedVideos,
   selectHiddenVideoIds,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
@@ -37,7 +39,7 @@ function createVideo({ videoId, channelId, title, publishedAt }: Pick<FeedVideo,
   return video;
 }
 
-function createSubscriptions(filter: TitleFilter) {
+function createSubscriptions(filter: TitleFilter | null) {
   const subscriptions: SemiSubscriptions = {
     [CHANNEL_ID]: {
       channelId: CHANNEL_ID,
@@ -134,6 +136,49 @@ describe("isTitleFilterValid", () => {
   });
 });
 
+describe("isFilterInert", () => {
+  it("leaves the feed alone in either mode while the filter was never set", () => {
+    expect(
+      isFilterInert({
+        filter: null,
+        mode: SubscriptionMode.follow
+      })
+    ).toBe(true);
+    expect(
+      isFilterInert({
+        filter: null,
+        mode: SubscriptionMode.hide
+      })
+    ).toBe(true);
+  });
+
+  it("reads an empty pattern as the whole channel: hiding nothing, and following every video", () => {
+    expect(
+      isFilterInert({
+        filter: DEFAULT_TITLE_FILTER,
+        mode: SubscriptionMode.hide
+      })
+    ).toBe(true);
+    expect(
+      isFilterInert({
+        filter: DEFAULT_TITLE_FILTER,
+        mode: SubscriptionMode.follow
+      })
+    ).toBe(false);
+  });
+
+  it("acts on a pattern or an AI description in either mode", () => {
+    for (const mode of [SubscriptionMode.follow, SubscriptionMode.hide]) {
+      expect(
+        isFilterInert({
+          filter: AI_FILTER,
+          mode
+        })
+      ).toBe(false);
+    }
+  });
+});
+
 describe("selectFeedVideos", () => {
   const videos = [
     createVideo({
@@ -180,6 +225,17 @@ describe("selectFeedVideos", () => {
       ...noAi
     });
     expect(selected).toHaveLength(videos.length);
+  });
+
+  it("adds nothing while the follow filter was never set - a channel first saved while subscribed", () => {
+    const selected = selectFeedVideos({
+      subscriptions: createSubscriptions(null),
+      videosByChannel: {
+        [CHANNEL_ID]: videos
+      },
+      ...noAi
+    });
+    expect(selected).toEqual([]);
   });
 
   it("adds nothing from a channel the user is subscribed to", () => {
@@ -309,7 +365,7 @@ describe("selectHiddenVideoIds", () => {
     [CHANNEL_ID]: videos
   };
 
-  function subscribedWith(hideFilter: TitleFilter) {
+  function subscribedWith(hideFilter: TitleFilter | null) {
     const subscriptions: SemiSubscriptions = {
       [CHANNEL_ID]: {
         channelId: CHANNEL_ID,
@@ -342,6 +398,17 @@ describe("selectHiddenVideoIds", () => {
     expect(
       selectHiddenVideoIds({
         subscriptions: subscribedWith(DEFAULT_TITLE_FILTER),
+        videosByChannel,
+        aiVerdicts: {},
+        isAiEnabled: false
+      })
+    ).toEqual([]);
+  });
+
+  it("hides nothing while the hide filter was never set", () => {
+    expect(
+      selectHiddenVideoIds({
+        subscriptions: subscribedWith(null),
         videosByChannel,
         aiVerdicts: {},
         isAiEnabled: false

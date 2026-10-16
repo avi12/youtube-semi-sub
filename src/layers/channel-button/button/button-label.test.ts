@@ -37,6 +37,18 @@ describe("describeChannelButton", () => {
     ).toBe("Semi-subscribed");
   });
 
+  it("still offers to semi-subscribe while no follow filter was ever set - one first saved while subscribed", () => {
+    expect(
+      labelFor({
+        subscription: {
+          ...SUBSCRIPTION,
+          followFilter: null
+        },
+        mode: SubscriptionMode.follow
+      })
+    ).toBe("Semi-subscribe");
+  });
+
   it("reads Filter on a subscribed channel, and Filtered once its hide filter hides something", () => {
     expect(
       labelFor({
