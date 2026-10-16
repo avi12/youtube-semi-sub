@@ -20,3 +20,6 @@ export const DELETE_ICON = createSymbol("M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3
 export const OPEN_IN_NEW_ICON = createSymbol("M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h7v2H5v14h14v-7h2v7q0 .825-.587 1.413T19 21zm4.7-5.3l-1.4-1.4L17.6 5H14V3h7v7h-2V6.4z");
 // Material Symbols "auto_awesome": AI match
 export const AI_MATCH_ICON = createSymbol("M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25zm-7.5.5L9 4L6.5 9.5L1 12l5.5 2.5L9 20l2.5-5.5L17 12zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25z");
+
+/** The popup's loading indicators, sized like the icons they stand in for */
+export const LOADING_INDICATOR_SIZE = 20;

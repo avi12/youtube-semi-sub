@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { aiMatchSetup, turnOffAiMatch, turnOnAiMatch } from "./ai-match-setup.svelte";
+  import { aiMatchSetup, toDownloadPercent, turnOffAiMatch, turnOnAiMatch } from "./ai-match-setup.svelte";
   import { AiEngine, AiUnavailableReason, isAiEngineAvailable } from "@/lib/ai/ai-status";
   import { pluralize } from "@/lib/utils/pluralize";
   import { LITERT_MODEL_SIZE_LABEL } from "#ai-match";
+  import { LOADING_INDICATOR_SIZE } from "#popup/icons";
   import { AI_MATCH_ICON } from "#popup/icons";
   import {
     Button,
@@ -21,9 +22,6 @@
 
   const { isAiEnabled, aiFilterCount }: Props = $props();
 
-  const PERCENT = 100;
-  const LOADING_INDICATOR_SIZE = 20;
-
   const UNAVAILABLE_REASONS = {
     [AiUnavailableReason.noWebGpu]: "Not available here - this browser has no built-in AI, and no WebGPU to run a model of its own",
     [AiUnavailableReason.outdatedBrowser]: "Not available here - update your browser to run the on-device model"
@@ -32,7 +30,7 @@
   const status = $derived(aiMatchSetup.status);
   const download = $derived(aiMatchSetup.download);
   const isAvailable = $derived(isAiEngineAvailable(status));
-  const downloadPercent = $derived(Math.round((download?.fraction ?? 0) * PERCENT));
+  const downloadPercent = $derived(toDownloadPercent(download?.fraction ?? 0));
   const supportingText = $derived.by(() => {
     if (!status) {
       return "Checking what this browser can run";

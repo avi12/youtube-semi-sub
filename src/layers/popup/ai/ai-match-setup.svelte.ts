@@ -16,7 +16,14 @@ export const aiMatchSetup = $state<{
   isFailed: false
 });
 
+const PERCENT = 100;
+
 let builtInDownload: AbortController | null = null;
+
+/** A download's progress as the popup shows it, a whole percentage */
+export function toDownloadPercent(fraction: number) {
+  return Math.round(fraction * PERCENT);
+}
 
 export async function refreshAiStatus() {
   const status = await sendMessage(MessageType.getAiStatus).catch(() => null);

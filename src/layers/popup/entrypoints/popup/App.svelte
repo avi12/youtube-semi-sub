@@ -18,7 +18,7 @@
   import AiMatchCard from "#popup/ai/AiMatchCard.svelte";
   import ChannelRow from "#popup/ChannelRow.svelte";
   import EmptyState from "#popup/EmptyState.svelte";
-  import { REFRESH_ICON } from "#popup/icons";
+  import { LOADING_INDICATOR_SIZE, REFRESH_ICON } from "#popup/icons";
   import {
     Button,
     Icon,
@@ -37,7 +37,6 @@
   const { initialState }: Props = $props();
 
   const UNDO_SNACKBAR_TIMEOUT_MS = 10_000;
-  const LOADING_INDICATOR_SIZE = 20;
   const isMotionAllowed = !prefersReducedMotion();
 
   let storedState = $state.raw(untrack(() => initialState));

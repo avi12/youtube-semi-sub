@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { aiMatchSetup, turnOffAiMatch, turnOnAiMatch } from "./ai-match-setup.svelte";
+  import { aiMatchSetup, toDownloadPercent, turnOffAiMatch, turnOnAiMatch } from "./ai-match-setup.svelte";
   import { isAiEngineAvailable } from "@/lib/ai/ai-status";
   import { Button } from "m3-svelte";
 
@@ -9,8 +9,6 @@
 
   const { isAiEnabled }: Props = $props();
 
-  const PERCENT = 100;
-
   const download = $derived(aiMatchSetup.download);
 </script>
 
@@ -19,7 +17,7 @@
   <output class="progress">
     Downloading
     {#if download.fraction !== null}
-      {Math.round(download.fraction * PERCENT)}%
+      {toDownloadPercent(download.fraction)}%
     {/if}
   </output>
   <Button onclick={() => turnOffAiMatch()} size="s" variant="text">Cancel</Button>
