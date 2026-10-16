@@ -14,6 +14,14 @@ export function listSemiSubscriptions(state: PageState | null) {
   return listByTitle(state.subscriptions);
 }
 
+/**
+ * The channels that get an entry of ours beside YouTube's own subscriptions (the sidebar guide, m's avatar strip): the
+ * followed ones. A subscribed channel is already listed by YouTube itself
+ */
+export function listFollowedSubscriptions(subscriptions: readonly SemiSubscription[]) {
+  return subscriptions.filter(subscription => !subscription.isSubscribed);
+}
+
 export function getChannelPath(channel: Pick<ChannelInfo, "channelId" | "handle">) {
   return new URL(getChannelUrl(channel)).pathname;
 }

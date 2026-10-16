@@ -87,6 +87,9 @@ const subscriptionsHeaderItemSchema = z.looseObject({
 /** Ours carry no `guideEntryId` (see `buildSemiGuideEntry`), so only YouTube's own subscriptions match */
 const subscribedChannelEntrySchema = guideEntryWithIdSchema(channelIdSchema);
 
+/** A rendered entry's `data` for one of YouTube's own subscriptions */
+const subscribedChannelEntryDataSchema = subscribedChannelEntrySchema.shape.guideEntryRenderer;
+
 /** The Subscriptions flyout the mini guide builds once from the section's channels and caches on the header entry */
 const cachedFlyoutHeaderItemSchema = z.looseObject({
   guideCollapsibleSectionEntryRenderer: z.looseObject({
@@ -161,6 +164,12 @@ function buildSemiSection(entries: unknown[]) {
 export function readSemiGuideEntryChannelId(entryData: unknown) {
   const parsed = semiGuideEntryDataSchema.safeParse(entryData);
   return parsed.success ? parsed.data[SEMI_ENTRY_CHANNEL_ID_KEY] : null;
+}
+
+/** The channel a rendered guide entry of YouTube's own subscriptions stands for, else null */
+export function readSubscribedGuideEntryChannelId(entryData: unknown) {
+  const parsed = subscribedChannelEntryDataSchema.safeParse(entryData);
+  return parsed.success ? parsed.data.entryData.guideEntryData.guideEntryId : null;
 }
 
 function isSemiGuideEntryItem(item: unknown) {

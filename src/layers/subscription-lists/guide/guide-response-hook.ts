@@ -2,7 +2,7 @@ import { buildSemiGuideEntry, patchGuideResponse, readGuideSubscriptions } from 
 import { getPageState } from "@/lib/page/page-state";
 import { parseJson } from "@/lib/utils/json";
 import { applySubscriptionSnapshot } from "#channel-button";
-import { listSemiSubscriptions } from "#subscription-lists/semi-channels";
+import { listFollowedSubscriptions, listSemiSubscriptions } from "#subscription-lists/semi-channels";
 
 // www.youtube.com fetches the sidebar from /youtubei/v1/guide (and re-fetches it when it expires) and reads the body
 // with text(). Patching the body puts the semi-subscribed channels into the very first render of the guide and of
@@ -16,7 +16,7 @@ function isGuideResponse(response: Response) {
 }
 
 function readSemiGuideEntries() {
-  return listSemiSubscriptions(getPageState()).map(buildSemiGuideEntry);
+  return listFollowedSubscriptions(listSemiSubscriptions(getPageState())).map(buildSemiGuideEntry);
 }
 
 /** A body that fails to patch is handed on exactly as YouTube sent it */

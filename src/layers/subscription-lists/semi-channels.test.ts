@@ -1,4 +1,4 @@
-import { getChannelPath, listSemiSubscriptions, toChannelInfo } from "./semi-channels";
+import { getChannelPath, listFollowedSubscriptions, listSemiSubscriptions, toChannelInfo } from "./semi-channels";
 import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -80,5 +80,19 @@ describe("toChannelInfo", () => {
       handle: "@Alpha",
       avatarUrl: undefined
     });
+  });
+});
+
+describe("listFollowedSubscriptions", () => {
+  it("leaves out the channels YouTube already lists, the ones the user is subscribed to", () => {
+    expect(
+      listFollowedSubscriptions([
+        ZED,
+        {
+          ...ALPHA,
+          isSubscribed: true
+        }
+      ])
+    ).toEqual([ZED]);
   });
 });

@@ -3,6 +3,7 @@ import {
   guideDataSchema,
   patchGuideItems,
   readSemiGuideEntryChannelId,
+  readSubscribedGuideEntryChannelId,
   withoutCachedSubscriptionsFlyout
 } from "./guide-data";
 import GuideEntryAction from "./GuideEntryAction.svelte";
@@ -10,10 +11,12 @@ import { onPageState } from "@/lib/page/page-state";
 import { createFrameScheduler, observeSubtree, waitForElement, whenDocumentParsed } from "@/lib/utils/dom";
 import { isPolymerElement, type PolymerElement } from "@/lib/youtube/page/polymer";
 import { listsView } from "#subscription-lists/lists-view.svelte";
+import { listFollowedSubscriptions } from "#subscription-lists/semi-channels";
 import { mount, unmount } from "svelte";
 
 // www.youtube.com sidebar: the guide data is written through YouTube's own model, so the entries render, navigate
-// and highlight natively. Only the manage button on each semi-subscribed entry is our own markup
+// and highlight natively. Only the manage button on each semi-subscribed entry is our own markup - on our entry for a
+// followed channel, on YouTube's own entry for a subscribed one
 
 const APP_SELECTOR = "ytd-app";
 const GUIDE_DRAWER_SELECTOR = "tp-yt-app-drawer#guide";
@@ -99,8 +102,16 @@ function syncMiniGuideData(entries: unknown[]) {
   }
 }
 
+/** The semi-subscribed channel an entry stands for: ours, or YouTube's own for a channel in hide mode */
 function readEntryChannelId(elEntry: Element) {
-  return isPolymerElement(elEntry) ? readSemiGuideEntryChannelId(elEntry.data) : null;
+  if (!isPolymerElement(elEntry)) {
+    return null;
+  }
+
+  const subscribedChannelId = readSubscribedGuideEntryChannelId(elEntry.data);
+  const isHidingChannel = listsView.subscriptions
+    .some(subscription => subscription.channelId === subscribedChannelId && subscription.isSubscribed);
+  return isHidingChannel ? subscribedChannelId : readSemiGuideEntryChannelId(elEntry.data);
 }
 
 /** Polymer recycles entry elements between items, so a button follows the entry's current data, not the element */
@@ -139,7 +150,7 @@ function syncEntryActions() {
 }
 
 function syncGuide() {
-  const entries = listsView.subscriptions.map(buildSemiGuideEntry);
+  const entries = listFollowedSubscriptions(listsView.subscriptions).map(buildSemiGuideEntry);
   syncGuideData(entries);
   syncMiniGuideData(entries);
   syncEntryActions();

@@ -4,6 +4,7 @@ import {
   patchGuideResponse,
   readGuideSubscriptions,
   readSemiGuideEntryChannelId,
+  readSubscribedGuideEntryChannelId,
   withoutCachedSubscriptionsFlyout
 } from "./guide-data";
 import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
@@ -400,5 +401,20 @@ describe("readGuideSubscriptions", () => {
 
   it("says nothing signed out", () => {
     expect(readGuideSubscriptions(signedOutGuide)).toBeNull();
+  });
+});
+
+describe("readSubscribedGuideEntryChannelId", () => {
+  it("reads the channel of YouTube's own subscription entry, and nothing from ours", () => {
+    expect(
+      readSubscribedGuideEntryChannelId({
+        entryData: {
+          guideEntryData: {
+            guideEntryId: HANDLE_CHANNEL.channelId
+          }
+        }
+      })
+    ).toBe(HANDLE_CHANNEL.channelId);
+    expect(readSubscribedGuideEntryChannelId(buildSemiGuideEntry(HANDLE_CHANNEL).guideEntryRenderer)).toBeNull();
   });
 });
