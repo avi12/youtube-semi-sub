@@ -1,9 +1,10 @@
 import { AI_BATCH_SIZE } from "./prompt";
+import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
 import { feedVideoSchema } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
 
 /** One prompt's worth: the filter's description and up to `AI_BATCH_SIZE` videos, numbered 1..N in the prompt */
-const videoBatchSchema = z.object({
+export const videoBatchSchema = z.object({
   description: z.string(),
   videos: z.array(feedVideoSchema)
 });
@@ -31,7 +32,7 @@ function splitIntoBatches<Item>(items: Item[]) {
  */
 export async function classifyVideos({ description, videos, judge, onVerdicts, shouldContinue }: VideoBatch & {
   judge: BatchJudge;
-  onVerdicts: (verdicts: Record<string, boolean>) => Promise<void>;
+  onVerdicts: (verdicts: VideoVerdicts) => Promise<void>;
   shouldContinue: () => Promise<boolean>;
 }) {
   for (const batchVideos of splitIntoBatches(videos)) {
@@ -43,7 +44,7 @@ export async function classifyVideos({ description, videos, judge, onVerdicts, s
       description,
       videos: batchVideos
     });
-    const verdicts: Record<string, boolean> = {};
+    const verdicts: VideoVerdicts = {};
     for (const [id, isMatch] of verdictsById) {
       const video = batchVideos[id - 1];
       if (video) {

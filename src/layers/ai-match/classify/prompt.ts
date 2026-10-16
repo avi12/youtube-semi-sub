@@ -44,7 +44,7 @@ const SYSTEM_PROMPT = [
 ].join(" ");
 
 /** The text the model reads about one video - the uploader's words, quoted as JSON so they stay data */
-const promptVideoSchema = z.object({
+export const promptVideoSchema = z.object({
   id: z.int(),
   title: z.string(),
   description: z.string().optional()

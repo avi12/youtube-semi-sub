@@ -1,8 +1,9 @@
 import { AiEngine } from "@/lib/ai/ai-status";
 import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
+import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
 import { FilterKind } from "@/lib/filter/title-filter";
 import type { ClassifyRequest } from "@/lib/messaging/extension-messaging";
-import { feedVideoSchema, sortNewestFirst } from "@/lib/schemas/feed-video";
+import { sortNewestFirst } from "@/lib/schemas/feed-video";
 import { getActiveFilter } from "@/lib/schemas/semi-subscription";
 import type { StoredState } from "@/lib/schemas/stored-state";
 import {
@@ -15,7 +16,7 @@ import {
 import { z } from "@/lib/zod";
 import { readAiStatus } from "#ai-match/background/read-ai-status";
 import { createBuiltInJudge } from "#ai-match/classify/built-in-judge";
-import { type BatchJudge, classifyVideos } from "#ai-match/classify/classifier";
+import { type BatchJudge, classifyVideos, videoBatchSchema } from "#ai-match/classify/classifier";
 import { createLiteRtJudge } from "#ai-match/classify/litert-judge";
 import { buildPrefaceMessages } from "#ai-match/classify/prompt";
 import { inferLocally } from "#ai-match/engine/litert/litert-client";
@@ -25,10 +26,8 @@ import { openBuiltInSession } from "#ai-match/engine/prompt-api";
 const MAX_QUEUED_REQUESTS = 8;
 
 /** Every video one filter still has to judge, under the key its verdicts are stored by */
-const classificationJobSchema = z.object({
-  key: z.string(),
-  description: z.string(),
-  videos: z.array(feedVideoSchema)
+const classificationJobSchema = videoBatchSchema.extend({
+  key: z.string()
 });
 type ClassificationJob = z.infer<typeof classificationJobSchema>;
 
@@ -98,7 +97,7 @@ async function openReadyJudge() {
 
 function storeVerdicts({ key, verdicts }: {
   key: string;
-  verdicts: Record<string, boolean>;
+  verdicts: VideoVerdicts;
 }) {
   return mutateStorageItem({
     item: aiVerdictsItem,

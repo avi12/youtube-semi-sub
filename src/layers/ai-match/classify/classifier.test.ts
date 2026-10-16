@@ -1,6 +1,7 @@
 import { createBuiltInJudge } from "./built-in-judge";
 import { classifyVideos } from "./classifier";
 import { AI_BATCH_SIZE } from "./prompt";
+import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { answerFromPrompt, createFakeBase, createSessionMock } from "#ai-match/classify/fixtures/fake-prompt-session";
 import type { PromptSession } from "#ai-match/engine/prompt-api";
@@ -27,7 +28,7 @@ function createVideo(i: number) {
 const VIDEOS = Array.from({ length: VIDEO_COUNT }, (_, i) => createVideo(i));
 
 async function collectVerdicts(judge: ReturnType<typeof createBuiltInJudge>) {
-  const batches: Record<string, boolean>[] = [];
+  const batches: VideoVerdicts[] = [];
   await classifyVideos({
     description: DESCRIPTION,
     videos: VIDEOS,

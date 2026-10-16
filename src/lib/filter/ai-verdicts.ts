@@ -4,8 +4,12 @@ import { type ChannelVideosCache, videoIdSchema } from "@/lib/schemas/feed-video
 import type { SemiSubscription, SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
 
-/** What the model said about each video, per AI filter key (`getAiFilterKey`): true lets the video into the feed */
-export const aiVerdictsSchema = z.record(z.string(), z.record(videoIdSchema, z.boolean()));
+/** What the model said about each video under one AI filter: true when the video fits the description */
+const videoVerdictsSchema = z.record(videoIdSchema, z.boolean());
+export type VideoVerdicts = z.infer<typeof videoVerdictsSchema>;
+
+/** The verdicts per AI filter key (`getAiFilterKey`) */
+export const aiVerdictsSchema = z.record(z.string(), videoVerdictsSchema);
 export type AiVerdicts = z.infer<typeof aiVerdictsSchema>;
 
 /** The keys of a channel's AI filters - in either mode, so switching modes back and forth keeps their verdicts */
@@ -58,7 +62,7 @@ export function pruneAiVerdicts({ aiVerdicts, subscriptions, channelVideos }: {
       continue;
     }
 
-    const keptVerdicts: Record<string, boolean> = {};
+    const keptVerdicts: VideoVerdicts = {};
     for (const videoId in verdicts) {
       const verdict = verdicts[videoId];
       const isKept = verdict !== undefined && videoIds.has(videoId);

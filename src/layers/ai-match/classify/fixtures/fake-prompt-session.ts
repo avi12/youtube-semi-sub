@@ -1,4 +1,5 @@
 import { parseJson } from "@/lib/utils/json";
+import { promptVideoSchema } from "#ai-match/classify/prompt";
 import type { PromptSession } from "#ai-match/engine/prompt-api";
 import { vi } from "vitest";
 
@@ -8,12 +9,11 @@ const MATCHING_TITLE_PREFIX = "Review";
 export function answerFromPrompt(input: string) {
   const verdicts = [];
   for (const line of input.split("\n")) {
-    const video = parseJson(line);
-    const isVideoLine = typeof video === "object" && video !== null && "id" in video && "title" in video;
-    if (isVideoLine) {
+    const parsed = promptVideoSchema.safeParse(parseJson(line));
+    if (parsed.success) {
       verdicts.push({
-        id: video.id,
-        match: String(video.title).startsWith(MATCHING_TITLE_PREFIX)
+        id: parsed.data.id,
+        match: parsed.data.title.startsWith(MATCHING_TITLE_PREFIX)
       });
     }
   }
