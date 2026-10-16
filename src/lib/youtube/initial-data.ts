@@ -8,10 +8,11 @@ const INITIAL_DATA_PATTERN = new RegExp(String.raw`(var ${INITIAL_DATA_GLOBAL} =
 /** The embedded JSON and where it starts in `html`, or null when the page embeds none */
 export function findInitialDataJson(html: string) {
   const match = INITIAL_DATA_PATTERN.exec(html);
-  const [, declaration = "", json = ""] = match ?? [];
   if (!match) {
     return null;
   }
+
+  const [, declaration = "", json = ""] = match;
 
   return {
     json,
