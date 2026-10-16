@@ -43,7 +43,7 @@ function buildState(isExtensionEnabled: boolean) {
       [ZED.channelId]: ZED,
       [ALPHA.channelId]: ALPHA
     },
-    feedVideos: [],
+    followedUploads: [],
     hiddenVideoIds: []
   };
   return state;

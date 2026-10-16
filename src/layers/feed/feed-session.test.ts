@@ -10,6 +10,7 @@ import {
   shortsShelf,
   videoId
 } from "#feed/fixtures/feed-fixtures";
+import { rendererFromGridItem } from "#feed/items/feed-items";
 import {
   beforeEach,
   describe,
@@ -19,6 +20,24 @@ import {
 } from "vitest";
 
 type FeedSession = typeof import("#feed/feed-session");
+
+/** The titles the channels' own tabs show, by video id - what a loaded native renderer would carry */
+const nativeTitles = new Map<string, string>();
+
+vi.mock("#feed/channel-natives", async importOriginal => ({
+  ...await importOriginal<typeof import("#feed/channel-natives")>(),
+  findNativeRenderer({ videoId: id }: { videoId: string }) {
+    const title = nativeTitles.get(id);
+    return title === undefined ? null : rendererFromGridItem(
+      desktopFeedItem({
+        index: Number(id.slice(-6)),
+        published: PUBLISHED,
+        channelId: CHANNEL_ID,
+        title
+      })
+    );
+  }
+}));
 
 const OTHER_CHANNEL_ID = "UCalreadysubscribedchan2";
 const PUBLISHED = "2 hours ago";
@@ -36,12 +55,12 @@ let session: FeedSession;
 
 function pageState({
   isSubscribed,
-  feedVideos,
+  followedUploads,
   filter = KEEP_FILTER,
   hideFilter = DEFAULT_TITLE_FILTER,
   isAiEnabled = false,
   aiVerdicts = {}
-}: Pick<PageState, "feedVideos"> & Partial<Pick<PageState, "isAiEnabled" | "aiVerdicts">> & {
+}: Pick<PageState, "followedUploads"> & Partial<Pick<PageState, "isAiEnabled" | "aiVerdicts">> & {
   isSubscribed: boolean;
   filter?: TitleFilter;
   hideFilter?: TitleFilter;
@@ -61,7 +80,7 @@ function pageState({
         isSubscribed
       }
     },
-    feedVideos,
+    followedUploads,
     hiddenVideoIds: []
   };
   return state;
@@ -80,12 +99,16 @@ function semiChannelItem({ index, title }: {
 }
 
 /** The cached upload the filter passed; its tile's title doesn't say so, only the cache does */
-const CACHED_PASSING_VIDEO = feedVideo({
-  index: 1,
-  hours: 2
-});
+const CACHED_PASSING_VIDEO = {
+  ...feedVideo({
+    index: 1,
+    hours: 2
+  }),
+  title: "Keep: the cached title passes"
+};
 
 beforeEach(async () => {
+  nativeTitles.clear();
   vi.resetModules();
   session = await import("#feed/feed-session");
 });
@@ -95,7 +118,7 @@ describe("a semi-subscription switched to hiding by an official subscription", (
     session.trackSubscriptionTransitions(
       pageState({
         isSubscribed: false,
-        feedVideos: [CACHED_PASSING_VIDEO]
+        followedUploads: [CACHED_PASSING_VIDEO]
       })
     );
     session.recordFeedChange({
@@ -105,7 +128,7 @@ describe("a semi-subscription switched to hiding by an official subscription", (
 
     const subscribed = pageState({
       isSubscribed: true,
-      feedVideos: []
+      followedUploads: []
     });
     session.trackSubscriptionTransitions(subscribed);
     expect(
@@ -118,18 +141,18 @@ describe("a semi-subscription switched to hiding by an official subscription", (
 });
 
 describe("a semi-subscription switched back to following by an official unsubscribe", () => {
-  function resume(overrides: Omit<Parameters<typeof pageState>[0], "isSubscribed" | "feedVideos"> = {}) {
+  function resume(overrides: Omit<Parameters<typeof pageState>[0], "isSubscribed" | "followedUploads"> = {}) {
     session.trackSubscriptionTransitions(
       pageState({
         ...overrides,
         isSubscribed: true,
-        feedVideos: []
+        followedUploads: []
       })
     );
     const resumed = pageState({
       ...overrides,
       isSubscribed: false,
-      feedVideos: [CACHED_PASSING_VIDEO]
+      followedUploads: [CACHED_PASSING_VIDEO]
     });
     session.trackSubscriptionTransitions(resumed);
     return resumed;
@@ -182,7 +205,7 @@ describe("a semi-subscription switched back to following by an official unsubscr
 
     const editedFilter = pageState({
       isSubscribed: false,
-      feedVideos: [],
+      followedUploads: [],
       filter: {
         ...KEEP_FILTER,
         pattern: "something else"
@@ -201,7 +224,7 @@ describe("a semi-subscription switched back to following by an official unsubscr
     resume();
     const subscribed = pageState({
       isSubscribed: true,
-      feedVideos: []
+      followedUploads: []
     });
     session.trackSubscriptionTransitions(subscribed);
     expect(session.hasResumedChannels()).toBe(false);
@@ -245,17 +268,20 @@ describe("a semi-subscription switched back to following by an official unsubscr
 });
 
 describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", () => {
-  const SHORT = feedVideo({
-    index: 60,
-    hours: 2,
-    isShort: true
-  });
+  const SHORT = {
+    ...feedVideo({
+      index: 60,
+      hours: 2,
+      isShort: true
+    }),
+    title: "Keep this Short"
+  };
 
-  function subscribeAndUnsubscribe(resumedFeedVideos: PageState["feedVideos"]) {
+  function subscribeAndUnsubscribe(resumedFeedVideos: PageState["followedUploads"]) {
     session.trackSubscriptionTransitions(
       pageState({
         isSubscribed: false,
-        feedVideos: [SHORT]
+        followedUploads: [SHORT]
       })
     );
     session.recordFeedChange({
@@ -264,7 +290,7 @@ describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", (
     });
     const subscribed = pageState({
       isSubscribed: true,
-      feedVideos: []
+      followedUploads: []
     });
     session.trackSubscriptionTransitions(subscribed);
     const removedWhileSubscribed = session.findRemovedVideoIds({
@@ -273,7 +299,7 @@ describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", (
     });
     const resumed = pageState({
       isSubscribed: false,
-      feedVideos: resumedFeedVideos
+      followedUploads: resumedFeedVideos
     });
     session.trackSubscriptionTransitions(resumed);
     return {
@@ -304,7 +330,7 @@ describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", (
 
     const editedFilter = pageState({
       isSubscribed: false,
-      feedVideos: [],
+      followedUploads: [],
       filter: {
         ...KEEP_FILTER,
         pattern: "something else"
@@ -320,6 +346,67 @@ describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", (
   });
 });
 
+describe("a title YouTube tests against another", () => {
+  it("follows a video by the title its tile will show, not the cached one", () => {
+    const cachedPassing = {
+      ...feedVideo({
+        index: 7,
+        hours: 1
+      }),
+      title: "Keep: the cached title"
+    };
+    const cachedFailing = feedVideo({
+      index: 8,
+      hours: 2
+    });
+    nativeTitles.set(cachedPassing.videoId, "A title the filter rejects");
+    nativeTitles.set(cachedFailing.videoId, "Keep: the title shown");
+    const state = pageState({
+      isSubscribed: false,
+      followedUploads: [cachedPassing, cachedFailing]
+    });
+    const plan = session.planForPageState({
+      contents: [
+        desktopFeedItem({
+          index: 3,
+          published: "1 day ago"
+        })
+      ],
+      state,
+      removedVideoIds: new Set()
+    });
+    expect(plan.insertedVideos.map(video => [video.videoId, video.title])).toEqual([
+      [cachedFailing.videoId, "Keep: the title shown"]
+    ]);
+  });
+
+  it("keeps a tile whose shown title the hide filter rejects, though its cached title matched", () => {
+    const state: PageState = {
+      ...pageState({
+        isSubscribed: true,
+        followedUploads: [],
+        hideFilter: {
+          kind: FilterKind.regex,
+          pattern: "^hide",
+          flags: "i"
+        }
+      }),
+      hiddenVideoIds: [videoId(1), videoId(2)]
+    };
+    expect(
+      session.findHiddenVideoIds({
+        contents: [
+          semiChannelItem({
+            index: 1,
+            title: "A title the hide filter rejects"
+          })
+        ],
+        state
+      })
+    ).toEqual(new Set([videoId(2)]));
+  });
+});
+
 describe("findHiddenVideoIds", () => {
   const HIDE_FILTER: TitleFilter = {
     kind: FilterKind.regex,
@@ -330,7 +417,7 @@ describe("findHiddenVideoIds", () => {
   function hidingState(overrides: Partial<Pick<PageState, "hiddenVideoIds" | "isExtensionEnabled">> = {}) {
     const state = pageState({
       isSubscribed: true,
-      feedVideos: []
+      followedUploads: []
     });
     const hiding: PageState = {
       ...state,
@@ -464,7 +551,7 @@ describe("hiding in the live feed", () => {
   it("takes a hidden video out of the feed", () => {
     const state = pageState({
       isSubscribed: true,
-      feedVideos: [],
+      followedUploads: [],
       hideFilter: HIDE_FILTER
     });
     expect(
@@ -484,7 +571,7 @@ describe("hiding in the live feed", () => {
   it("reports an edited hide filter or a switched mode once, and nothing for a first state or other changes", () => {
     const subscribed = pageState({
       isSubscribed: true,
-      feedVideos: []
+      followedUploads: []
     });
     session.trackHideSettings(subscribed);
     expect(session.takeHideSettingsChange()).toBe(false);
@@ -500,7 +587,7 @@ describe("hiding in the live feed", () => {
     session.trackHideSettings(
       pageState({
         isSubscribed: true,
-        feedVideos: [],
+        followedUploads: [],
         hideFilter: HIDE_FILTER
       })
     );
@@ -510,7 +597,7 @@ describe("hiding in the live feed", () => {
     session.trackHideSettings(
       pageState({
         isSubscribed: false,
-        feedVideos: [],
+        followedUploads: [],
         hideFilter: HIDE_FILTER
       })
     );

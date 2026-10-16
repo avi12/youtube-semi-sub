@@ -22,7 +22,7 @@ let lastTileChannelId: string | null = null;
 
 function channelIdOfTile(elTile: HTMLElement) {
   const videoId = videoIdFromTile(elTile);
-  const video = getPageState()?.feedVideos.find(feedVideo => feedVideo.videoId === videoId);
+  const video = getPageState()?.followedUploads.find(upload => upload.videoId === videoId);
   return video?.channelId ?? null;
 }
 

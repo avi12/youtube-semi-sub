@@ -214,15 +214,15 @@ export function publishedTextsFromGridItem(item: unknown) {
   return texts.filter(Boolean);
 }
 
-export function titleFromGridItem(item: unknown) {
-  const video = rendererFromGridItem(item);
-  if (!video) {
-    return null;
-  }
-
+export function titleFromRenderer(video: VideoRenderer) {
   return video.kind === RendererKind.lockupViewModel
     ? video.renderer.metadata?.lockupMetadataViewModel?.title?.content ?? null
     : readText(video.renderer.title) || null;
+}
+
+export function titleFromGridItem(item: unknown) {
+  const video = rendererFromGridItem(item);
+  return video ? titleFromRenderer(video) : null;
 }
 
 export function thumbnailUrlFromGridItem(item: unknown) {

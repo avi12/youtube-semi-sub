@@ -1,8 +1,8 @@
 import { findLoadedAvatarUrl, findNativeRenderer, findNativeShort, loadChannelNatives } from "./channel-natives";
-import { createModeJudge, MatchState } from "@/lib/filter/title-filter";
+import { createModeJudge, MatchState, selectFeedVideos } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
-import type { FeedVideo } from "@/lib/schemas/feed-video";
+import type { FeedVideo, VideosByChannel } from "@/lib/schemas/feed-video";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { settleBefore } from "@/lib/utils/promise";
 import { composeFeedContents, planFeed } from "#feed/compose/feed-compose";
@@ -11,6 +11,7 @@ import {
   channelIdsFromGridItem,
   shelfItemsFromGridItem,
   titleFromGridItem,
+  titleFromRenderer,
   videoIdFromGridItem,
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
@@ -32,12 +33,38 @@ let previousHideSettingsKey: string | null = null;
 /** What hides videos changed since the feed last caught up with it */
 let isHideSettingsChanged = false;
 
+/** A followed upload with the title its tile will show: the native renderer's, once loaded, else the cached one */
+function withShownTitle(video: FeedVideo) {
+  const native = video.isShort ? null : findNativeRenderer(video);
+  const nativeShort = video.isShort ? findNativeShort(video) : null;
+  const shownTitle = native ? titleFromRenderer(native) : nativeShort?.overlayMetadata?.primaryText?.content;
+  return shownTitle ? {
+    ...video,
+    title: shownTitle
+  } : video;
+}
+
+/** The followed channels' videos their follow filter passes, newest first, each judged by the title it will show */
+function selectPageFeedVideos({ followedUploads, ...state }: PageState) {
+  const videosByChannel: VideosByChannel = {};
+  for (const video of followedUploads.map(withShownTitle)) {
+    videosByChannel[video.channelId] = [...videosByChannel[video.channelId] ?? [], video];
+  }
+  return selectFeedVideos({
+    subscriptions: state.subscriptions,
+    videosByChannel,
+    aiVerdicts: state.aiVerdicts,
+    isAiEnabled: state.isAiEnabled
+  });
+}
+
 function desiredFeedVideos(state: PageState) {
   if (!state.isExtensionEnabled) {
     return [];
   }
 
-  return isShortsInjectionAllowed() ? state.feedVideos : state.feedVideos.filter(video => !video.isShort);
+  const feedVideos = selectPageFeedVideos(state);
+  return isShortsInjectionAllowed() ? feedVideos : feedVideos.filter(video => !video.isShort);
 }
 
 export function recordFeedChange({ insertedIds, removedIds }: Pick<
@@ -81,7 +108,7 @@ export function trackSubscriptionTransitions(state: PageState) {
 
     resumedChannelIds.delete(channelId);
     const handedOverShortIds = new Set<string>();
-    for (const video of previous?.feedVideos ?? []) {
+    for (const video of previous?.followedUploads ?? []) {
       const isHandedOver = video.channelId === channelId && insertedVideoIds.delete(video.videoId);
       if (isHandedOver && video.isShort) {
         handedOverShortIds.add(video.videoId);
@@ -155,25 +182,25 @@ function judgeResumedChannelVideos({ contents, state }: {
 }
 
 /**
- * Whether a subscribed channel's hide filter hides this feed item: an upload the cache knows as the channel's own and
- * hidden, or a tile linking to the channel - as its uploader or a collaborator - whose title or verdict the filter
- * matches. A Short names no channel, so only the cache knows it
+ * Whether a subscribed channel's hide filter hides a feed item, judged by the title the item shows - a YouTube title
+ * test can make it differ from the cached one - for every channel it links to, uploader or collaborator. Null for an
+ * item that names no channel, such as a Short: only the cached uploads know whose it is
  */
-function createHiddenItemCheck(state: PageState) {
-  const cachedHiddenIds = new Set(state.hiddenVideoIds);
-  return function isHiddenItem({ item, videoId }: {
+function createShownTitleHideCheck(state: PageState) {
+  return function isHiddenByShownTitle({ item, videoId }: {
     item: unknown;
     videoId: string;
   }) {
-    if (cachedHiddenIds.has(videoId)) {
-      return true;
+    const channelIds = channelIdsFromGridItem(item);
+    if (channelIds.size === 0) {
+      return null;
     }
 
     const video = {
       videoId,
       title: titleFromGridItem(item) ?? ""
     };
-    return [...channelIdsFromGridItem(item)].some(channelId => {
+    return [...channelIds].some(channelId => {
       const subscription = state.subscriptions[channelId];
       const judge = subscription?.isSubscribed && createModeJudge({
         filter: subscription.hideFilter,
@@ -188,7 +215,8 @@ function createHiddenItemCheck(state: PageState) {
 
 /**
  * The videos subscribed channels' hide filters hide - none while switched off: every cached upload they hide, since a
- * page may lack one an earlier page put in the grid, plus the feed items, in the band or a shelf, they hide
+ * page may lack one an earlier page put in the grid, then each feed item that names its channel, in the band or a
+ * shelf, judged again by the title it shows
  */
 export function findHiddenVideoIds({ contents, state }: {
   contents: readonly unknown[];
@@ -199,16 +227,21 @@ export function findHiddenVideoIds({ contents, state }: {
   }
 
   const hiddenIds = new Set(state.hiddenVideoIds);
-
-  const isHiddenItem = createHiddenItemCheck(state);
+  const isHiddenByShownTitle = createShownTitleHideCheck(state);
   for (const item of contents.flatMap(gridItem => [gridItem, ...shelfItemsFromGridItem(gridItem)])) {
     const videoId = videoIdFromShelfItem(item);
-    const isHidden = !!videoId && isHiddenItem({
+    const isHidden = videoId && isHiddenByShownTitle({
       item,
       videoId
     });
+    if (!videoId || isHidden === null) {
+      continue;
+    }
+
     if (isHidden) {
       hiddenIds.add(videoId);
+    } else {
+      hiddenIds.delete(videoId);
     }
   }
   return hiddenIds;

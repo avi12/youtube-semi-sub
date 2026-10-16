@@ -178,9 +178,18 @@ beforeEach(() => {
     isAnimationsEnabled: true,
     isAiEnabled: false,
     aiVerdicts: {},
-    subscriptions: {},
+    subscriptions: {
+      [CHANNEL_ID]: {
+        channelId: CHANNEL_ID,
+        title: "Semi Channel",
+        followFilter: DEFAULT_TITLE_FILTER,
+        hideFilter: null,
+        createdAt: 0,
+        isSubscribed: false
+      }
+    },
     hiddenVideoIds: [],
-    feedVideos: [
+    followedUploads: [
       feedVideo({
         index: 50,
         hours: 3,
@@ -415,6 +424,7 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
       ...aiState,
       hiddenVideoIds,
       subscriptions: {
+        ...pageState.current.subscriptions,
         [OTHER_CHANNEL_ID]: {
           channelId: OTHER_CHANNEL_ID,
           title: "Subscribed Channel",

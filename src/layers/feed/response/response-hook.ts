@@ -75,8 +75,8 @@ function stateForPage({ state, isLaterPage }: {
   const isShelfFilledOnLaterPages = getYouTubeSite() === YouTubeSite.mobile;
   const pageState: PageState = {
     ...state,
-    feedVideos: isShelfFilledOnLaterPages
-      ? state.feedVideos.filter(video => video.isShort && !shelvedShortIds.has(video.videoId))
+    followedUploads: isShelfFilledOnLaterPages
+      ? state.followedUploads.filter(video => video.isShort && !shelvedShortIds.has(video.videoId))
       : []
   };
   return pageState;
@@ -86,7 +86,7 @@ function recordShelvedShorts({ insertedIds, state }: {
   insertedIds: readonly string[];
   state: PageState;
 }) {
-  const shortIds = new Set(state.feedVideos.filter(video => video.isShort).map(video => video.videoId));
+  const shortIds = new Set(state.followedUploads.filter(video => video.isShort).map(video => video.videoId));
   for (const videoId of insertedIds) {
     if (shortIds.has(videoId)) {
       shelvedShortIds.add(videoId);
@@ -124,7 +124,7 @@ function patchFeedDataNow({ data, isInserting }: {
     contents: page.contents,
     state: isInserting ? pageState : {
       ...pageState,
-      feedVideos: []
+      followedUploads: []
     },
     removedVideoIds: hiddenIds
   });

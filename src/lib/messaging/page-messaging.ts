@@ -15,8 +15,11 @@ const pageStateSchema = storedStateSchema
     aiVerdicts: true
   })
   .extend({
-    /** The followed channels' videos that pass their follow filter, newest first */
-    feedVideos: z.array(feedVideoSchema),
+    /**
+     * Every cached upload of the followed channels, unfiltered: the page judges each by the title its tile will show,
+     * which a YouTube title test can make differ from the cached one
+     */
+    followedUploads: z.array(feedVideoSchema),
     /** The subscribed channels' cached uploads their hide filter hides - Shorts included, which name no channel */
     hiddenVideoIds: z.array(videoIdSchema)
   });

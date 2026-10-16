@@ -1,4 +1,4 @@
-import { selectFeedVideos, selectHiddenVideoIds } from "@/lib/filter/title-filter";
+import { selectHiddenVideoIds } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
 import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
@@ -32,7 +32,10 @@ async function readPageState() {
     isAiEnabled,
     subscriptions,
     aiVerdicts,
-    feedVideos: selectFeedVideos(filterInput),
+    followedUploads: Object.values(subscriptions).flatMap(subscription => {
+      const isFollowed = subscription && !subscription.isSubscribed;
+      return isFollowed ? filterInput.videosByChannel[subscription.channelId] ?? [] : [];
+    }),
     hiddenVideoIds: selectHiddenVideoIds(filterInput)
   };
   return state;
