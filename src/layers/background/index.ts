@@ -1,9 +1,7 @@
 import { collectAiFilterKeys } from "@/lib/filter/ai-verdicts";
 import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
-import { channelIdSchema } from "@/lib/schemas/channel";
 import { isUploadsWatched, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { semiSubscriptionsItem } from "@/lib/storage";
-import { z } from "@/lib/zod";
 import { classifyPendingVideos, startAiMatch } from "#ai-match";
 import {
   pruneChannelCaches,
@@ -16,11 +14,6 @@ import { browser } from "#imports";
 
 const REFRESH_ALARM_NAME = "refresh-channels";
 const REFRESH_PERIOD_MINUTES = 15;
-const INVALID_CHANNEL_ID_ERROR = "Invalid channel id";
-
-const refreshChannelDataSchema = z.object({
-  channelId: channelIdSchema
-});
 
 async function createRefreshAlarm() {
   await browser.alarms.create(REFRESH_ALARM_NAME, {
@@ -114,14 +107,7 @@ export function startBackground() {
     }).catch(console.error);
   });
 
-  onMessage(MessageType.refreshChannel, async ({ data }) => {
-    const parsed = refreshChannelDataSchema.safeParse(data);
-    if (!parsed.success) {
-      throw new Error(INVALID_CHANNEL_ID_ERROR);
-    }
-
-    return await refreshChannel(parsed.data.channelId);
-  });
+  onMessage(MessageType.refreshChannel, ({ channelId }) => refreshChannel(channelId));
 
   onMessage(MessageType.refreshAllChannels, async () => {
     const isRefreshed = await refreshAllChannels({

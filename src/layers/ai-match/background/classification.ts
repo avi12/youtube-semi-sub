@@ -1,7 +1,8 @@
 import { AiEngine } from "@/lib/ai/ai-status";
 import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
-import { aiFilterSchema, FilterKind } from "@/lib/filter/title-filter";
-import { feedVideoSchema, MAX_CACHED_VIDEOS_PER_CHANNEL, sortNewestFirst } from "@/lib/schemas/feed-video";
+import { FilterKind } from "@/lib/filter/title-filter";
+import type { ClassifyRequest } from "@/lib/messaging/extension-messaging";
+import { feedVideoSchema, sortNewestFirst } from "@/lib/schemas/feed-video";
 import { getActiveFilter } from "@/lib/schemas/semi-subscription";
 import type { StoredState } from "@/lib/schemas/stored-state";
 import {
@@ -22,13 +23,6 @@ import { openBuiltInSession } from "#ai-match/engine/prompt-api";
 
 /** Editor requests kept while the model isn't ready yet - older ones are previews the user has moved on from */
 const MAX_QUEUED_REQUESTS = 8;
-
-/** The editor's ask: judge these videos (at most a channel's cached uploads) against this filter */
-export const classifyRequestSchema = z.object({
-  filter: aiFilterSchema,
-  videos: z.array(feedVideoSchema).max(MAX_CACHED_VIDEOS_PER_CHANNEL)
-});
-type ClassifyRequest = z.infer<typeof classifyRequestSchema>;
 
 /** Every video one filter still has to judge, under the key its verdicts are stored by */
 const classificationJobSchema = z.object({

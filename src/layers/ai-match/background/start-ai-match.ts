@@ -1,7 +1,7 @@
-import { AiEngine, modelDownloadChangeSchema } from "@/lib/ai/ai-status";
+import { AiEngine } from "@/lib/ai/ai-status";
 import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
 import { channelVideosItem, isAiEnabledItem, semiSubscriptionsItem } from "@/lib/storage";
-import { classifyPendingVideos, classifyRequestSchema } from "#ai-match/background/classification";
+import { classifyPendingVideos } from "#ai-match/background/classification";
 import { readAiStatus } from "#ai-match/background/read-ai-status";
 import {
   deleteLocalModel,
@@ -10,8 +10,6 @@ import {
 } from "#ai-match/engine/litert/litert-client";
 import { isLiteRtModelCached } from "#ai-match/engine/litert/litert-model";
 import { browser } from "#imports";
-
-const INVALID_CLASSIFY_REQUEST_ERROR = "Invalid classification request";
 
 /** Fire and forget: a pass reports its own errors and the triggers don't wait on it */
 function scheduleClassification() {
@@ -68,20 +66,15 @@ export function startAiMatch() {
   onMessage(MessageType.downloadAiModel, () => downloadRequestedModel());
   onMessage(MessageType.openAiSettings, () => openAiSettings());
 
-  onMessage(MessageType.classifyVideos, ({ data }) => {
-    const parsed = classifyRequestSchema.safeParse(data);
-    if (!parsed.success) {
-      throw new Error(INVALID_CLASSIFY_REQUEST_ERROR);
-    }
-
+  onMessage(MessageType.classifyVideos, request => {
     // Answered at once: the preview watches the verdict cache rather than waiting on this message
-    void classifyPendingVideos(parsed.data);
+    void classifyPendingVideos(request);
   });
 
   // Chromium's offscreen page announces the end of a download, which also wakes a worker that stopped meanwhile
-  onMessage(MessageType.aiModelDownloadChanged, async ({ data }) => {
-    const parsed = modelDownloadChangeSchema.safeParse(data);
-    if (parsed.success && parsed.data.fraction === null) {
+  onMessage(MessageType.aiModelDownloadChanged, async ({ fraction }) => {
+    const isDownloadEnded = fraction === null;
+    if (isDownloadEnded) {
       await handleLocalModelDownloadEnded();
     }
   });

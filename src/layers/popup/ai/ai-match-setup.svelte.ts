@@ -1,4 +1,4 @@
-import { AiEngine, type AiStatus, modelDownloadChangeSchema } from "@/lib/ai/ai-status";
+import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
 import { MessageType, onMessage, sendMessage } from "@/lib/messaging/extension-messaging";
 import { isAiEnabledItem } from "@/lib/storage";
 import { downloadBuiltInModel } from "#ai-match";
@@ -31,13 +31,7 @@ export async function refreshAiStatus() {
 
 /** The local model's progress, broadcast by the page downloading it; null means it ended */
 export function followModelDownload() {
-  return onMessage(MessageType.aiModelDownloadChanged, ({ data }) => {
-    const parsed = modelDownloadChangeSchema.safeParse(data);
-    if (!parsed.success) {
-      return;
-    }
-
-    const { fraction } = parsed.data;
+  return onMessage(MessageType.aiModelDownloadChanged, ({ fraction }) => {
     if (fraction !== null) {
       aiMatchSetup.download = { fraction };
       return;

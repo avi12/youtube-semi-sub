@@ -53,7 +53,7 @@ const aiEngineChoiceSchema = z.discriminatedUnion("engine", [
 export type AiEngineChoice = z.infer<typeof aiEngineChoiceSchema>;
 
 /** What the background reports to the popup and the editor: the engine this browser uses, and whether it's ready */
-const aiStatusSchema = z.discriminatedUnion("engine", [builtInStatusSchema, liteRtStatusSchema, unavailableStatusSchema]);
+export const aiStatusSchema = z.discriminatedUnion("engine", [builtInStatusSchema, liteRtStatusSchema, unavailableStatusSchema]);
 export type AiStatus = z.infer<typeof aiStatusSchema>;
 
 /** Broadcast by the page downloading the local model: its progress, then null once the download ended */
