@@ -1,6 +1,6 @@
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type FeedVideo, sortNewestFirst, type VideosByChannel } from "@/lib/schemas/feed-video";
-import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import type { SemiSubscription, SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import type { StoredState } from "@/lib/schemas/stored-state";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";
@@ -168,6 +168,18 @@ export function isFilterInert({ filter, mode }: {
   return mode === SubscriptionMode.hide && filter.kind === FilterKind.regex && filter.pattern === "";
 }
 
+/**
+ * Whether a follow filter also restricts the channel while the user is subscribed - the Allow list keeps filtering:
+ * only what it lets through stays. An empty pattern lets every video through, so it restricts nothing
+ */
+export function isAllowListRestricting(filter: TitleFilter | null) {
+  if (!filter) {
+    return false;
+  }
+
+  return filter.kind !== FilterKind.regex || filter.pattern !== "";
+}
+
 function judgeNoMatch() {
   return MatchState.doesNotMatch;
 }
@@ -222,9 +234,47 @@ export function selectFeedVideos({ subscriptions, videosByChannel, ...context }:
 }
 
 /**
- * The other place the feed is filtered: the cached uploads each subscribed channel's hide filter hides. Only a
- * definite match hides a video - one still waiting for its AI verdict stays, and so does everything while the filter
- * is paused
+ * What hides a video of a subscribed channel - the one place both lists are applied: the Block list hides a definite
+ * match, the Allow list a definite non-match. Null when the channel isn't subscribed or neither list can judge (an
+ * AI filter while AI match is off, a pattern that doesn't compile)
+ */
+export function createSubscribedHideCheck({ subscription, ...context }: AiJudgeContext & {
+  subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">;
+}) {
+  if (!subscription.isSubscribed) {
+    return null;
+  }
+
+  const isBlockListInert = isFilterInert({
+    filter: subscription.hideFilter,
+    mode: SubscriptionMode.hide
+  });
+  const blockJudge = isBlockListInert ?
+    null :
+    createModeJudge({
+      filter: subscription.hideFilter,
+      mode: SubscriptionMode.hide,
+      ...context
+    });
+  const { followFilter } = subscription;
+  const allowJudge = followFilter && isAllowListRestricting(followFilter) ?
+    createVideoJudge({
+      filter: followFilter,
+      ...context
+    }) :
+    null;
+  if (!blockJudge && !allowJudge) {
+    return null;
+  }
+
+  return function isHidden(video: JudgedVideo) {
+    return blockJudge?.(video) === MatchState.matches || allowJudge?.(video) === MatchState.doesNotMatch;
+  };
+}
+
+/**
+ * The other place the feed is filtered: the cached uploads each subscribed channel's lists hide. Only a definite
+ * verdict hides a video - one still waiting for its AI verdict stays, and so does everything while a filter is paused
  */
 export function selectHiddenVideoIds({ subscriptions, videosByChannel, ...context }: Parameters<
   typeof selectFeedVideos
@@ -232,17 +282,16 @@ export function selectHiddenVideoIds({ subscriptions, videosByChannel, ...contex
   const hiddenIds = new Set<string>();
   for (const channelId in subscriptions) {
     const subscription = subscriptions[channelId];
-    const judge = subscription?.isSubscribed && createModeJudge({
-      filter: subscription.hideFilter,
-      mode: SubscriptionMode.hide,
+    const isHidden = subscription && createSubscribedHideCheck({
+      subscription,
       ...context
     });
-    if (!judge) {
+    if (!isHidden) {
       continue;
     }
 
     for (const video of videosByChannel[channelId] ?? []) {
-      if (judge(video) === MatchState.matches) {
+      if (isHidden(video)) {
         hiddenIds.add(video.videoId);
       }
     }

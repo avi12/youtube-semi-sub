@@ -123,7 +123,7 @@ describe("collectClassificationJobs", () => {
 });
 
 describe("collectClassificationJobs across modes", () => {
-  it("judges a subscribed channel by its hide filter, and leaves its follow filter until they unsubscribe", () => {
+  it("judges a subscribed channel by its hide filter and by its allow list", () => {
     const jobs = collectClassificationJobs({
       requests: [],
       subscriptions: {
@@ -144,6 +144,6 @@ describe("collectClassificationJobs across modes", () => {
       },
       aiVerdicts: {}
     });
-    expect(jobs.map(job => job.key)).toEqual([getAiFilterKey(TUTORIALS)]);
+    expect(jobs.map(job => job.key)).toEqual([getAiFilterKey(TUTORIALS), getAiFilterKey(REVIEWS)]);
   });
 });

@@ -1,5 +1,5 @@
 import { isFilterInert } from "@/lib/filter/title-filter";
-import { getModeFilter, type SemiSubscription } from "@/lib/schemas/semi-subscription";
+import { getModeFilter, isAllowListHiding, type SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 
 // Short and native-looking beside YouTube's own Subscribe/Subscribed, and named the same in both modes; only its
@@ -32,13 +32,16 @@ export function describeChannelButton({ channelTitle, subscription, mode }: {
   mode: SubscriptionMode;
 }) {
   const text = ACCESSIBILITY_TEXT[mode];
-  const isActive = !!subscription && !isFilterInert({
-    filter: getModeFilter({
-      subscription,
+  const isActive = !!subscription && (
+    !isFilterInert({
+      filter: getModeFilter({
+        subscription,
+        mode
+      }),
       mode
-    }),
-    mode
-  });
+    }) ||
+    mode === SubscriptionMode.hide && isAllowListHiding(subscription)
+  );
   if (!isActive) {
     return {
       isActive,

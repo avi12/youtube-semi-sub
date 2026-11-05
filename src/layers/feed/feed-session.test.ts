@@ -56,7 +56,7 @@ let session: FeedSession;
 function pageState({
   isSubscribed,
   followedUploads,
-  filter = KEEP_FILTER,
+  filter = isSubscribed ? DEFAULT_TITLE_FILTER : KEEP_FILTER,
   hideFilter = DEFAULT_TITLE_FILTER,
   isAiEnabled = false,
   aiVerdicts = {}

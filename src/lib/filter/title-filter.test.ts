@@ -3,11 +3,13 @@ import type { AiVerdicts } from "@/lib/filter/ai-verdicts";
 import {
   type AiFilter,
   compileTitleFilter,
+  createSubscribedHideCheck,
   DEFAULT_TITLE_FILTER,
   FilterKind,
   getTitleFilterError,
   isFilterInert,
   isTitleFilterValid,
+  type RegexFilter,
   selectFeedVideos,
   selectHiddenVideoIds,
   type TitleFilter
@@ -460,5 +462,66 @@ describe("selectHiddenVideoIds", () => {
         isAiEnabled: false
       })
     ).toEqual([]);
+  });
+});
+
+describe("createSubscribedHideCheck", () => {
+  const context = {
+    aiVerdicts: {},
+    isAiEnabled: false
+  };
+  const tutorials: RegexFilter = {
+    kind: FilterKind.regex,
+    pattern: "tutorial",
+    flags: "i"
+  };
+
+  it("hides what a subscribed channel's Allow list does not let through", () => {
+    const isHidden = createSubscribedHideCheck({
+      subscription: {
+        followFilter: tutorials,
+        hideFilter: null,
+        isSubscribed: true
+      },
+      ...context
+    });
+    expect(
+      isHidden?.({
+        videoId: "a",
+        title: "A tutorial"
+      })
+    ).toBe(false);
+    expect(
+      isHidden?.({
+        videoId: "b",
+        title: "Vlog"
+      })
+    ).toBe(true);
+  });
+
+  it("does nothing for a channel the user isn't subscribed to", () => {
+    expect(
+      createSubscribedHideCheck({
+        subscription: {
+          followFilter: tutorials,
+          hideFilter: null,
+          isSubscribed: false
+        },
+        ...context
+      })
+    ).toBeNull();
+  });
+
+  it("restricts nothing with an empty Allow list", () => {
+    expect(
+      createSubscribedHideCheck({
+        subscription: {
+          followFilter: DEFAULT_TITLE_FILTER,
+          hideFilter: null,
+          isSubscribed: true
+        },
+        ...context
+      })
+    ).toBeNull();
   });
 });

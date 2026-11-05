@@ -215,17 +215,27 @@ describe("isUploadsWatched", () => {
     ).toBe(false);
     expect(
       isUploadsWatched({
-        followFilter: filter,
+        followFilter: DEFAULT_TITLE_FILTER,
         hideFilter: null,
         isSubscribed: true
       })
     ).toBe(false);
     expect(
       isUploadsWatched({
-        followFilter: filter,
+        followFilter: null,
         hideFilter: DEFAULT_TITLE_FILTER,
         isSubscribed: true
       })
     ).toBe(false);
+  });
+
+  it("watches a subscribed channel whose Allow list keeps filtering it", () => {
+    expect(
+      isUploadsWatched({
+        followFilter: filter,
+        hideFilter: null,
+        isSubscribed: true
+      })
+    ).toBe(true);
   });
 });

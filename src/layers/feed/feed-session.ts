@@ -1,5 +1,5 @@
 import { findLoadedAvatarUrl, findNativeRenderer, findNativeShort, loadChannelNatives } from "./channel-natives";
-import { createModeJudge, MatchState, selectFeedVideos } from "@/lib/filter/title-filter";
+import { createModeJudge, createSubscribedHideCheck, MatchState, selectFeedVideos } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import type { FeedVideo, VideosByChannel } from "@/lib/schemas/feed-video";
@@ -122,7 +122,12 @@ export function trackSubscriptionTransitions(state: PageState) {
 function readHideSettingsKey({ isExtensionEnabled, subscriptions }: PageState) {
   const channelSettings = Object.entries(subscriptions)
     .toSorted(([left], [right]) => left.localeCompare(right))
-    .map(([channelId, { isSubscribed, hideFilter }]) => [channelId, isSubscribed, hideFilter]);
+    .map(([channelId, { isSubscribed, hideFilter, followFilter }]) => [
+      channelId,
+      isSubscribed,
+      hideFilter,
+      followFilter
+    ]);
   return JSON.stringify([isExtensionEnabled, channelSettings]);
 }
 
@@ -202,13 +207,12 @@ function createShownTitleHideCheck(state: PageState) {
     };
     return [...channelIds].some(channelId => {
       const subscription = state.subscriptions[channelId];
-      const judge = subscription?.isSubscribed && createModeJudge({
-        filter: subscription.hideFilter,
-        mode: SubscriptionMode.hide,
+      const isHidden = subscription && createSubscribedHideCheck({
+        subscription,
         aiVerdicts: state.aiVerdicts,
         isAiEnabled: state.isAiEnabled
       });
-      return !!judge && judge(video) === MatchState.matches;
+      return !!isHidden && isHidden(video);
     });
   };
 }

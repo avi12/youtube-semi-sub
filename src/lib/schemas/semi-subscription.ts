@@ -1,4 +1,10 @@
-import { isFilterInert, legacyRegexFilterSchema, type TitleFilter, titleFilterSchema } from "@/lib/filter/title-filter";
+import {
+  isAllowListRestricting,
+  isFilterInert,
+  legacyRegexFilterSchema,
+  type TitleFilter,
+  titleFilterSchema
+} from "@/lib/filter/title-filter";
 import { channelIdSchema, channelInfoSchema } from "@/lib/schemas/channel";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";
@@ -111,10 +117,26 @@ export function getActiveFilter(subscription: Pick<SemiSubscription, "followFilt
  * something - the uploads are what it is judged against, Shorts included
  */
 export function isUploadsWatched(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
-  return !isFilterInert({
+  const isActiveFilterWorking = !isFilterInert({
     filter: getActiveFilter(subscription),
     mode: getSubscriptionMode(subscription)
   });
+  return isActiveFilterWorking || isAllowListHiding(subscription);
+}
+
+/** A subscribed channel whose Allow list keeps filtering it - the follow filter hides what it doesn't let through */
+export function isAllowListHiding({ isSubscribed, followFilter }: Pick<SemiSubscription, "followFilter" | "isSubscribed">) {
+  return isSubscribed && isAllowListRestricting(followFilter);
+}
+
+/** Every filter that judges a channel's videos: the current mode's, and the Allow list while it keeps filtering */
+export function getJudgingFilters(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
+  const filters = [getActiveFilter(subscription)];
+  if (isAllowListHiding(subscription)) {
+    filters.push(subscription.followFilter);
+  }
+
+  return filters.filter(filter => filter !== null);
 }
 
 /** The subscription with one mode's filter replaced */
