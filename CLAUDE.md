@@ -121,7 +121,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - Informal tone
 
 # Linting
-After each modification, run:
+After each modification - every bug fix included, before reporting it done - run the whole list below, not only the checks that look relevant:
 - `pnpm lint` (oxlint `--fix` pass, `eslint --fix`, then oxlint as the gate) - oxlint owns logic and type-aware rules, ESLint owns style
 - `pnpm stylelint`
 - `pnpm svelte:check`
