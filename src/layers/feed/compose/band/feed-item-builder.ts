@@ -13,7 +13,7 @@ import { readText } from "@/lib/youtube/schemas/text";
 import { buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
 import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
 import { labelFromFormatted, rendererFromGridItem } from "#feed/items/feed-items";
-import type { VideoRenderer } from "#feed/items/feed-schemas";
+import { VERIFIED_ICON_NAME, type VideoRenderer } from "#feed/items/feed-schemas";
 
 // Builds a feed tile for a semi-subscribed video in the renderer the feed already uses (a sibling item is the
 // template). The channel's own Videos-tab renderer ("native") supplies duration, views and menu when known; the
@@ -22,6 +22,29 @@ import type { VideoRenderer } from "#feed/items/feed-schemas";
 const DEFAULT_BADGE_STYLE = "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT";
 const DEFAULT_AVATAR_SIZE = "AVATAR_SIZE_M";
 const AVATAR_PIXELS = 68;
+
+const VERIFIED_LABEL = "Verified";
+const VERIFIED_ICON = {
+  name: VERIFIED_ICON_NAME,
+  height: 14,
+  width: 14,
+  accessibilityLabel: VERIFIED_LABEL,
+  marginEndToken: {
+    spacing: 2
+  }
+};
+const VERIFIED_OWNER_BADGE = {
+  metadataBadgeRenderer: {
+    icon: {
+      iconType: "CHECK_CIRCLE_THICK"
+    },
+    style: "BADGE_STYLE_TYPE_VERIFIED",
+    tooltip: VERIFIED_LABEL,
+    accessibilityData: {
+      label: VERIFIED_LABEL
+    }
+  }
+};
 
 function channelCommand(channel: ChannelInfo) {
   const canonicalBaseUrl = channel.handle ? `/${formatHandle(channel.handle)}` : undefined;
@@ -177,7 +200,17 @@ function withChannelRow({ rows, templateRows, channel }: {
   const [firstRow, ...otherRows] = rows ?? [];
   const channelPart = {
     text: {
-      content: channel.title
+      content: channel.title,
+      commandRuns: [{
+        startIndex: 0,
+        length: channel.title.length,
+        onTap: {
+          innertubeCommand: channelCommand(channel)
+        }
+      }]
+    },
+    ...channel.isVerified && {
+      icon: VERIFIED_ICON
     }
   };
   if (isChannelOnOwnRow) {
@@ -273,6 +306,9 @@ function buildContextRenderer({ video, channel, native, details, publishedText }
         text: channel.title,
         navigationEndpoint: channelCommand(channel)
       }]
+    },
+    ...channel.isVerified && {
+      ownerBadges: [VERIFIED_OWNER_BADGE]
     },
     publishedTimeText: classic?.publishedTimeText ?? { runs: [{ text: publishedText }] },
     ...channel.avatarUrl && {

@@ -9,7 +9,8 @@ export const channelInfoSchema = z.object({
   channelId: channelIdSchema,
   title: z.string(),
   handle: z.string().optional(),
-  avatarUrl: z.url().optional()
+  avatarUrl: z.url().optional(),
+  isVerified: z.boolean().optional()
 });
 export type ChannelInfo = z.infer<typeof channelInfoSchema>;
 

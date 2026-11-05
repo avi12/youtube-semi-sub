@@ -4,7 +4,12 @@ import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/page/innertube";
 import { shortsLockupSchema } from "@/lib/youtube/schemas/renderers";
 import { z } from "@/lib/zod";
 import { rendererFromGridItem, shortsLockupFromItem, videoIdFromShelfItem } from "#feed/items/feed-items";
-import { browseResponseSchema, type VideoRenderer, videoRendererSchema } from "#feed/items/feed-schemas";
+import {
+  browseResponseSchema,
+  isVerifiedChannelHeader,
+  type VideoRenderer,
+  videoRendererSchema
+} from "#feed/items/feed-schemas";
 
 // A channel's Videos tab - or Shorts tab, for a Short - fetched with the page's own client so its renderers match what
 // this client renders (lockupViewModel on www, compactVideoRenderer on m, shortsLockupViewModel for Shorts). Cached per
@@ -30,6 +35,7 @@ type TabRequest = z.infer<typeof tabRequestSchema>;
 
 const channelNativesSchema = z.object({
   avatarUrl: z.string().nullable(),
+  isVerified: z.boolean(),
   renderersByVideoId: z.map(z.string(), videoRendererSchema),
   shortsByVideoId: z.map(z.string(), shortsLockupSchema)
 });
@@ -58,10 +64,11 @@ function parseChannelNatives(response: unknown) {
     return null;
   }
 
-  const { contents, metadata } = parsed.data;
+  const { contents, metadata, header } = parsed.data;
   const tabs = contents.twoColumnBrowseResultsRenderer?.tabs ?? contents.singleColumnBrowseResultsRenderer?.tabs ?? [];
   const natives: ChannelNatives = {
     avatarUrl: metadata?.channelMetadataRenderer?.avatar?.thumbnails?.at(-1)?.url ?? null,
+    isVerified: isVerifiedChannelHeader(header),
     renderersByVideoId: new Map<string, VideoRenderer>(),
     shortsByVideoId: new Map()
   };
@@ -159,4 +166,11 @@ export function findLoadedAvatarUrl(channelId: string) {
     tab
   }));
   return loaded.find(natives => natives?.avatarUrl)?.avatarUrl ?? null;
+}
+
+export function findLoadedIsVerified(channelId: string) {
+  return Object.values(ChannelTab).some(tab => findLoadedNatives({
+    channelId,
+    tab
+  })?.isVerified);
 }

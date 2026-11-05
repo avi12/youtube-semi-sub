@@ -1,4 +1,10 @@
-import { findLoadedAvatarUrl, findNativeRenderer, findNativeShort, loadChannelNatives } from "./channel-natives";
+import {
+  findLoadedAvatarUrl,
+  findLoadedIsVerified,
+  findNativeRenderer,
+  findNativeShort,
+  loadChannelNatives
+} from "./channel-natives";
 import { createModeJudge, createSubscribedHideCheck, MatchState, selectFeedVideos } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
@@ -320,7 +326,8 @@ export function composeForPageState({ contents, state, removedVideoIds }: Parame
     locale: pageLocale(),
     findNative: findNativeRenderer,
     findNativeShort,
-    findAvatarUrl: findLoadedAvatarUrl
+    findAvatarUrl: findLoadedAvatarUrl,
+    findIsVerified: findLoadedIsVerified
   });
 }
 

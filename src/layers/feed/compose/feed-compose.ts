@@ -73,13 +73,15 @@ export function composeFeedContents({
   locale,
   findNative,
   findNativeShort,
-  findAvatarUrl
+  findAvatarUrl,
+  findIsVerified
 }: Parameters<typeof planFeed>[0] & {
   subscriptions: SemiSubscriptions;
   locale: string;
   findNative: (video: FeedVideo) => VideoRenderer | null;
   findNativeShort: (video: FeedVideo) => ShortsLockup | null;
   findAvatarUrl: (channelId: string) => string | null;
+  findIsVerified: (channelId: string) => boolean;
 }) {
   const plan = planFeed({
     contents,
@@ -97,7 +99,8 @@ export function composeFeedContents({
       channelId: video.channelId,
       title: subscription?.title ?? video.channelTitle,
       handle: subscription?.handle,
-      avatarUrl: subscription?.avatarUrl ?? findAvatarUrl(video.channelId) ?? undefined
+      avatarUrl: subscription?.avatarUrl ?? findAvatarUrl(video.channelId) ?? undefined,
+      isVerified: findIsVerified(video.channelId)
     };
     return channel;
   }

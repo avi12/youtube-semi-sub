@@ -71,7 +71,8 @@ function compose({ videos, removedVideoIds = new Set(), contents = feedContents(
       ? rendererFromContent({ lockupViewModel: desktopChannelTabLockup(50) })
       : null,
     findNativeShort: () => null,
-    findAvatarUrl: () => "https://yt3.googleusercontent.com/semi=s900"
+    findAvatarUrl: () => "https://yt3.googleusercontent.com/semi=s900",
+    findIsVerified: () => false
   });
 }
 
