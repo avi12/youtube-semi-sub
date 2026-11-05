@@ -5,6 +5,7 @@
   import { isAiModelReady } from "@/lib/ai/ai-status";
   import { DEFAULT_TITLE_FILTER, isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
+  import { focusPlayer } from "@/lib/page/focus-player";
   import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -128,6 +129,7 @@
 
   onMount(() => {
     elDialog?.showModal();
+    elDialog?.querySelector<HTMLElement>("[data-filter-input]")?.focus();
     loadVideos().catch(() => {});
     readSemiSubscription(channel.channelId).then(stored => {
       storedSubscription = stored;
@@ -150,8 +152,11 @@
   class="dialog"
   aria-describedby={descriptionId}
   aria-labelledby={titleId}
+  closedby="any"
   data-theme={isDarkTheme ? "dark" : "light"}
   onclose={() => {
+    focusPlayer();
+
     if (!toastMessage) {
       onDone();
     }
