@@ -8,6 +8,7 @@ export enum ButtonViewModelStyle {
 }
 
 export enum ButtonViewModelType {
+  filled = "BUTTON_VIEW_MODEL_TYPE_FILLED",
   tonal = "BUTTON_VIEW_MODEL_TYPE_TONAL"
 }
 

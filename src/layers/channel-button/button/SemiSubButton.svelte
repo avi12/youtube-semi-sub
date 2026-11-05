@@ -1,5 +1,6 @@
 <script lang="ts">
   import { describeChannelButton } from "./button-label";
+  import { type CollaboratorChoice, openCollaboratorsPopup } from "./collaborators-popup";
   import type { NativeButtonClasses } from "./native-button-classes";
   import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
   import { getPageState, onPageState } from "@/lib/page/page-state";
@@ -13,10 +14,13 @@
     ButtonViewModelType
   } from "@/lib/youtube/page/button-view-model";
   import { YouTubeSite } from "@/lib/youtube/site";
+  import { getObservedOfficialSubscription } from "#channel-button/official-subscription";
   import { BUTTON_ROOT_ATTRIBUTE, type ButtonPlacement } from "#channel-button/page/page-anchor";
 
   interface Props {
     channel: ChannelInfo;
+    /** The channels of a collaboration: the button then opens their picker instead of one channel's dialog */
+    collaborators: (ChannelInfo & { isSubscribed?: boolean })[];
     site: YouTubeSite;
     placement: ButtonPlacement;
     /** Copied from the native action this button sits next to, so YouTube's own spacing applies */
@@ -30,6 +34,7 @@
 
   const {
     channel,
+    collaborators,
     site,
     placement,
     wrapperClass,
@@ -52,6 +57,7 @@
 
   /** The channel's mode as the page shows it: the Subscribe button outranks the stored state, which follows it */
   const mode = $derived(getSubscriptionMode({ isSubscribed: isOfficiallySubscribed }));
+  const isCollaboration = $derived(collaborators.length > 0);
   const description = $derived(
     describeChannelButton({
       channelTitle: channel.title,
@@ -59,9 +65,15 @@
       mode
     })
   );
-  const isActive = $derived(description.isActive);
+  const isActive = $derived(description.isActive && !isCollaboration);
   const label = $derived(description.label);
-  const accessibilityText = $derived(description.accessibilityText);
+  const accessibilityText = $derived.by(() => {
+    if (isCollaboration) {
+      return "Semi-subscribe to the channels of this video";
+    }
+
+    return description.accessibilityText;
+  });
   const isVisible = $derived(!!pageState?.isExtensionEnabled);
   const nativeButtonClass = $derived.by(() => {
     if (isActive) {
@@ -100,7 +112,28 @@
     return elRoot?.isConnected ?? false;
   }
 
+  function describeCollaborator(collaborator: (typeof collaborators)[number]): CollaboratorChoice {
+    const isSubscribed = getObservedOfficialSubscription(collaborator.channelId) ?? collaborator.isSubscribed;
+    const { isActive: isCollaboratorActive, ...words } = describeChannelButton({
+      channelTitle: collaborator.title,
+      subscription: pageState?.subscriptions[collaborator.channelId],
+      mode: getSubscriptionMode({ isSubscribed: isSubscribed ?? false })
+    });
+    return {
+      ...collaborator,
+      isSubscribed,
+      ...words,
+      isActive: isCollaboratorActive
+    };
+  }
+
   function openDialog() {
+    const isPickerOpen = isCollaboration
+      && openCollaboratorsPopup($state.snapshot(collaborators).map(describeCollaborator));
+    if (isPickerOpen) {
+      return;
+    }
+
     pageMessenger.sendMessage(PageMessage.openSemiSubDialog, {
       ...$state.snapshot(channel),
       isSubscribed: isOfficiallySubscribed

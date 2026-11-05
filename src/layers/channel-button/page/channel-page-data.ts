@@ -16,6 +16,8 @@ const WATCH_PATH_PATTERN = new RegExp(`^/(?:watch$|live/${VIDEO_ID_SOURCE}$)`);
 const CHANNEL_PATH_PATTERN = new RegExp(`^/(?:@[^/]+|channel/${CHANNEL_ID_SOURCE}|c/[^/]+|user/[^/]+)(?:/|$)`);
 const CHANNEL_ID_IN_TEXT_PATTERN = new RegExp(CHANNEL_ID_SOURCE);
 const HANDLE_PATH_PATTERN = /^\/(@[^/]+)/;
+const HANDLE_IN_TEXT_PATTERN = /@[\w.-]+/;
+const COLLABORATOR_LIST_KEY = "listItems";
 const PROTOCOL_RELATIVE_PREFIX = "//";
 const PREFERRED_AVATAR_SIZE = 88;
 const MAX_SEARCH_DEPTH = 40;
@@ -52,6 +54,36 @@ const ownerRendererSchema = z.looseObject({
     browseEndpoint: browseEndpointSchema
   })
 });
+
+/** One row of the "Collaborators" list a collaboration's Subscribe button opens */
+const collaboratorItemSchema = z.looseObject({
+  listItemViewModel: z.looseObject({
+    title: z.looseObject({
+      content: z.string(),
+      commandRuns: z.tuple([
+        z.looseObject({
+          onTap: z.looseObject({
+            innertubeCommand: z.looseObject({
+              browseEndpoint: browseEndpointSchema
+            })
+          })
+        })
+      ], z.unknown())
+    }),
+    subtitle: z.looseObject({
+      content: z.string()
+    }).optional(),
+    leadingAccessory: z.looseObject({
+      avatarViewModel: z.looseObject({
+        image: z.looseObject({
+          sources: z.array(thumbnailSchema)
+        })
+      })
+    }).optional()
+  })
+});
+
+const collaboratorListSchema = z.array(collaboratorItemSchema).min(1);
 
 const channelMetadataSchema = z.looseObject({
   metadata: z.looseObject({
@@ -112,7 +144,9 @@ export const pageChannelSchema = z.object({
   videoId: z.string().optional(),
   isOwnedByViewer: z.boolean(),
   hasSubscribeControl: z.boolean(),
-  officialSubscription: z.boolean().optional()
+  officialSubscription: z.boolean().optional(),
+  /** Every channel of a collaboration, uploader included; empty for a video with one channel */
+  collaborators: z.array(channelInfoSchema.extend({ isSubscribed: z.boolean().optional() }))
 });
 export type PageChannel = z.infer<typeof pageChannelSchema>;
 
@@ -239,6 +273,42 @@ function readOfficialSubscription({ response, searchRoot, channelId }: {
   return renderer.success ? renderer.data.subscribed : undefined;
 }
 
+function readCollaborators({ response, searchRoot }: {
+  response: unknown;
+  searchRoot: unknown;
+}) {
+  const parsedList = collaboratorListSchema.safeParse(
+    findValueByKey({
+      root: searchRoot,
+      keys: [COLLABORATOR_LIST_KEY],
+      isMatch: candidate => collaboratorListSchema.safeParse(candidate).success
+    })
+  );
+  if (!parsedList.success) {
+    return [];
+  }
+
+  const subscribedByChannel = readSubscriptionEntities(response);
+  const collaborators: PageChannel["collaborators"] = [];
+  for (const { listItemViewModel: item } of parsedList.data) {
+    const [{ onTap }] = item.title.commandRuns;
+    const channelId = onTap.innertubeCommand.browseEndpoint.browseId;
+    const channel = toChannelInfo({
+      channelId,
+      title: item.title.content,
+      handle: item.subtitle?.content.match(HANDLE_IN_TEXT_PATTERN)?.[0],
+      avatarUrl: pickAvatarUrl(item.leadingAccessory?.avatarViewModel.image.sources)
+    });
+    if (channel) {
+      collaborators.push({
+        ...channel,
+        isSubscribed: subscribedByChannel.get(channelId)
+      });
+    }
+  }
+  return collaborators;
+}
+
 function toChannelInfo(candidate: ChannelInfo) {
   const parsed = channelInfoSchema.safeParse(candidate);
   if (parsed.success) {
@@ -295,6 +365,14 @@ function readWatchChannel({ response, playerResponse }: PageData) {
       response,
       searchRoot: contents,
       channelId
+    }),
+    collaborators: readCollaborators({
+      response,
+      searchRoot: findValueByKey({
+        root: contents,
+        keys: OWNER_RENDERER_KEYS,
+        isMatch: isRecord
+      })
     })
   };
   return pageChannel;
@@ -339,7 +417,8 @@ function readChannelPageChannel(response: unknown) {
       response,
       searchRoot: header,
       channelId: channel.channelId
-    })
+    }),
+    collaborators: []
   };
   return pageChannel;
 }

@@ -96,7 +96,8 @@ function resolveTarget(kind: PageKind) {
   });
   const isControlForOtherChannel = !!anchor?.elSubscribe && !readSubscribeControl({
     elSubscribe: anchor.elSubscribe,
-    channelId: pageChannel.channel.channelId
+    channelId: pageChannel.channel.channelId,
+    isCollaboration: pageChannel.collaborators.length > 0
   }).isForChannel;
   if (!anchor || isControlForOtherChannel) {
     return Unresolved.pending;
@@ -114,7 +115,8 @@ function readIsOfficiallySubscribed({ pageChannel, anchor }: Target) {
   const { channelId } = pageChannel.channel;
   const control = anchor.elSubscribe && readSubscribeControl({
     elSubscribe: anchor.elSubscribe,
-    channelId
+    channelId,
+    isCollaboration: pageChannel.collaborators.length > 0
   });
   const liveSubscription = control?.isLive ? control.isSubscribed : undefined;
   if (liveSubscription !== undefined) {
@@ -134,6 +136,7 @@ function mountButton(target: Target) {
 
   const props = $state({
     channel: pageChannel.channel,
+    collaborators: pageChannel.collaborators,
     site: getYouTubeSite(),
     placement: anchor.placement,
     wrapperClass: anchor.wrapperClass,

@@ -130,7 +130,8 @@ describe("readPageChannel", () => {
       videoId: "dQw4w9WgXcQ",
       isOwnedByViewer: false,
       hasSubscribeControl: true,
-      officialSubscription: false
+      officialSubscription: false,
+      collaborators: []
     });
   });
 
@@ -154,7 +155,8 @@ describe("readPageChannel", () => {
       videoId: undefined,
       isOwnedByViewer: false,
       hasSubscribeControl: false,
-      officialSubscription: undefined
+      officialSubscription: undefined,
+      collaborators: []
     });
   });
 
@@ -220,6 +222,110 @@ describe("readPageChannel", () => {
       channelId: MKBHD_ID,
       title: "Marques Brownlee"
     });
+  });
+
+  it("lists every channel of a collaboration from the owner row's dialog", () => {
+    function collaborator({ channelId, name, subtitle }: {
+      channelId: string;
+      name: string;
+      subtitle: string;
+    }) {
+      return {
+        listItemViewModel: {
+          title: {
+            content: name,
+            commandRuns: [{
+              onTap: {
+                innertubeCommand: {
+                  browseEndpoint: {
+                    browseId: channelId
+                  }
+                }
+              }
+            }]
+          },
+          subtitle: {
+            content: subtitle
+          },
+          leadingAccessory: {
+            avatarViewModel: {
+              image: {
+                sources: [{ url: "https://yt3.ggpht.com/avatar=s88-c-k-c0x00ffffff-no-rj" }]
+              }
+            }
+          }
+        }
+      };
+    }
+    const pageData = {
+      response: {
+        contents: {
+          videoOwnerRenderer: {
+            title: {
+              runs: [{ text: "Marques Brownlee" }]
+            },
+            navigationEndpoint: {
+              browseEndpoint: {
+                browseId: MKBHD_ID
+              },
+              showDialogCommand: {
+                panelLoadingStrategy: {
+                  inlineContent: {
+                    dialogViewModel: {
+                      customContent: {
+                        listViewModel: {
+                          listItems: [
+                            collaborator({
+                              channelId: MKBHD_ID,
+                              name: "Marques Brownlee",
+                              subtitle: "@mkbhd • 21.4M subscribers"
+                            }),
+                            collaborator({
+                              channelId: OTHER_CHANNEL_ID,
+                              name: "Auto Focus",
+                              subtitle: "@AutoFocus • 1.29M subscribers"
+                            })
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      playerResponse: {
+        videoDetails: {
+          videoId: "scwlR0QHGOk",
+          channelId: MKBHD_ID,
+          author: "Marques Brownlee"
+        }
+      }
+    };
+    const collaborators = readPageChannel({
+      pageData,
+      kind: PageKind.watch
+    })?.collaborators;
+    expect(
+      collaborators?.map(({ channelId, title, handle }) => ({
+        channelId,
+        title,
+        handle
+      }))
+    ).toEqual([
+      {
+        channelId: MKBHD_ID,
+        title: "Marques Brownlee",
+        handle: "@mkbhd"
+      },
+      {
+        channelId: OTHER_CHANNEL_ID,
+        title: "Auto Focus",
+        handle: "@AutoFocus"
+      }
+    ]);
   });
 
   it("keeps the channel when its avatar URL is malformed", () => {

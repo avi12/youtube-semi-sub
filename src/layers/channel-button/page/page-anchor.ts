@@ -169,9 +169,11 @@ function readMobileRendererSubscription({ elSubscribe, dataSubscribed }: {
  * What YouTube's own Subscribe control shows. `isForChannel` is false while a reused control still holds the previous
  * page's channel; `isLive` marks the renderers, whose state tracks YouTube's entity store
  */
-export function readSubscribeControl({ elSubscribe, channelId }: {
+export function readSubscribeControl({ elSubscribe, channelId, isCollaboration }: {
   elSubscribe: HTMLElement;
   channelId: string;
+  /** A collaboration's control opens a list of channels, so its data names none */
+  isCollaboration: boolean;
 }) {
   const parsed = subscribeControlDataSchema.safeParse(elSubscribe);
   const controlData = parsed.success ? parsed.data.data : null;
@@ -185,7 +187,7 @@ export function readSubscribeControl({ elSubscribe, channelId }: {
     };
   }
 
-  const isForChannel = controlData?.channelId === channelId;
+  const isForChannel = isCollaboration || controlData?.channelId === channelId;
   if (elSubscribe.tagName === SubscribeControlTag.desktopRenderer) {
     return {
       isForChannel,
