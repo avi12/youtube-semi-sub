@@ -19,3 +19,16 @@ const feedVideoSlotSchema = feedSlotBaseSchema.extend({
 
 const feedSlotSchema = z.union([feedItemSlotSchema, feedVideoSlotSchema]);
 export type FeedSlot = z.infer<typeof feedSlotSchema>;
+
+/** Which side of its anchor item a placed video stands on */
+export enum AnchorSide {
+  after = "after",
+  before = "before"
+}
+
+/** The band item a placed video stands next to: the one before it, or the one after it at the band's start */
+const placementAnchorSchema = z.object({
+  videoId: z.string(),
+  side: z.enum(AnchorSide)
+});
+export type PlacementAnchor = z.infer<typeof placementAnchorSchema>;

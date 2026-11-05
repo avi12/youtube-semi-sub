@@ -13,12 +13,13 @@ import type { VideoRenderer } from "#feed/items/feed-schemas";
  * Where the semi-subscribed `videos` go - regular videos into the Latest band, Shorts into the feed's Shorts shelf when
  * it has one - and which of `removedVideoIds` leave either
  */
-export function planFeed({ contents, videos, now, removedVideoIds }: Parameters<typeof planFeedBand>[0]) {
+export function planFeed({ contents, videos, now, removedVideoIds, anchors }: Parameters<typeof planFeedBand>[0]) {
   const band = planFeedBand({
     contents,
     videos,
     now,
-    removedVideoIds
+    removedVideoIds,
+    anchors
   });
   const shelf = planShortsShelf({
     contents,
@@ -69,6 +70,7 @@ export function composeFeedContents({
   videos,
   subscriptions,
   removedVideoIds,
+  anchors,
   now,
   locale,
   findNative,
@@ -87,7 +89,8 @@ export function composeFeedContents({
     contents,
     videos,
     now,
-    removedVideoIds
+    removedVideoIds,
+    anchors
   });
   if (!plan.isChanged) {
     return null;

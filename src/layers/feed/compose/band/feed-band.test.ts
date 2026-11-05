@@ -1,5 +1,6 @@
 import { findInlineRuns, planFeedBand, reflowBandIntoRuns } from "./feed-band";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { AnchorSide } from "#feed/compose/feed-slot";
 import {
   contextRendererItem,
   continuationItem,
@@ -93,6 +94,66 @@ describe("planFeedBand", () => {
     expect(slotIds(slots)).toEqual([videoId(1), videoId(50), videoId(2), videoId(3), videoId(4)]);
     expect(insertedVideos.map(video => video.videoId)).toEqual([videoId(50)]);
     expect(isChanged).toBe(true);
+  });
+
+  it("keeps a video behind the item it was first placed behind when that item's time text changes", () => {
+    const video = feedVideo({
+      index: 50,
+      hours: 2
+    });
+    const first = plan({
+      videos: [video]
+    });
+    expect(first.placements.get(video.videoId)).toEqual({
+      videoId: videoId(1),
+      side: AnchorSide.after
+    });
+    const flippedContents = [
+      desktopFeedItem({
+        index: 1,
+        published: "1 hour ago"
+      }),
+      desktopFeedItem({
+        index: 2,
+        published: "1 hour ago"
+      })
+    ];
+    const { slots } = planFeedBand({
+      contents: flippedContents,
+      videos: [video],
+      now: NOW,
+      removedVideoIds: NO_REMOVALS,
+      anchors: first.placements
+    });
+    expect(slotIds(slots)).toEqual([videoId(1), video.videoId, videoId(2)]);
+  });
+
+  it("moves a video placed at the band's start along with the item after it when a newer one arrives above", () => {
+    const video = feedVideo({
+      index: 50,
+      hours: 0.5
+    });
+    const first = plan({
+      videos: [video]
+    });
+    expect(first.placements.get(video.videoId)).toEqual({
+      videoId: videoId(1),
+      side: AnchorSide.before
+    });
+    const { slots } = planFeedBand({
+      contents: [
+        desktopFeedItem({
+          index: 60,
+          published: "1 minute ago"
+        }),
+        ...feedContents()
+      ],
+      videos: [video],
+      now: NOW,
+      removedVideoIds: NO_REMOVALS,
+      anchors: first.placements
+    });
+    expect(slotIds(slots)).toEqual([videoId(60), video.videoId, videoId(1), videoId(2), videoId(3), videoId(4)]);
   });
 
   it("orders several videos newest first among the band", () => {

@@ -6,12 +6,14 @@ import {
   desktopFeedItem,
   feedVideo,
   mobileShortsShelf,
+  NOW,
   richItem,
   shortsShelf,
   videoId
 } from "#feed/fixtures/feed-fixtures";
 import { rendererFromGridItem } from "#feed/items/feed-items";
 import {
+  afterEach,
   beforeEach,
   describe,
   expect,
@@ -108,9 +110,15 @@ const CACHED_PASSING_VIDEO = {
 };
 
 beforeEach(async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(NOW);
   nativeTitles.clear();
   vi.resetModules();
   session = await import("#feed/feed-session");
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("a semi-subscription switched to hiding by an official subscription", () => {

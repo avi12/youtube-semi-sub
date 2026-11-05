@@ -12,6 +12,7 @@ import type { FeedVideo, VideosByChannel } from "@/lib/schemas/feed-video";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { settleBefore } from "@/lib/utils/promise";
 import { composeFeedContents, planFeed } from "#feed/compose/feed-compose";
+import type { PlacementAnchor } from "#feed/compose/feed-slot";
 import {
   channelIdFromGridItem,
   channelIdsFromGridItem,
@@ -30,6 +31,8 @@ import { isShortsInjectionAllowed } from "#feed/live/ytaf";
 const PREFETCH_VIDEO_LIMIT = 20;
 
 const insertedVideoIds = new Set<string>();
+/** The feed item each inserted video was first placed beside, so a refetched feed never moves it */
+const placementAnchors = new Map<string, PlacementAnchor>();
 /** Channels the user unsubscribed from - back to following - while their unfiltered videos may still show */
 const resumedChannelIds = new Set<string>();
 /** Per subscribed channel, the Shorts this session had inserted when subscribing handed them over to YouTube */
@@ -308,16 +311,29 @@ export function planForPageState({ contents, state, removedVideoIds }: {
   state: PageState;
   removedVideoIds: ReadonlySet<string>;
 }) {
-  return planFeed({
+  const plan = planFeed({
     contents,
     videos: desiredFeedVideos(state),
     now: Date.now(),
-    removedVideoIds
+    removedVideoIds,
+    anchors: placementAnchors
   });
+  for (const [videoId, anchor] of plan.band.placements) {
+    if (!placementAnchors.has(videoId)) {
+      placementAnchors.set(videoId, anchor);
+    }
+  }
+  return plan;
 }
 
 export function composeForPageState({ contents, state, removedVideoIds }: Parameters<typeof planForPageState>[0]) {
+  planForPageState({
+    contents,
+    state,
+    removedVideoIds
+  });
   return composeFeedContents({
+    anchors: placementAnchors,
     contents,
     videos: desiredFeedVideos(state),
     subscriptions: state.subscriptions,

@@ -2,7 +2,7 @@ import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 import { MILLISECONDS_PER_DAY } from "@/lib/utils/time";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { z } from "@/lib/zod";
-import type { FeedItemSlot, FeedSlot } from "#feed/compose/feed-slot";
+import { AnchorSide, type FeedItemSlot, type FeedSlot, type PlacementAnchor } from "#feed/compose/feed-slot";
 import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 
 // The feed's root contents mix section markers (shelves) with root-level video items. The root videos form the
@@ -94,13 +94,18 @@ function createLoadedSpanCheck({ times, now }: {
  * Plans the band with `videos` inserted at time-correct positions and `removedVideoIds` taken out.
  * A video goes before the first band item older than it, within the loaded span (`createLoadedSpanCheck`); when no
  * item's time can be read, the inserted videos lead the band. Shorts never join the band - they belong in the
- * Shorts shelf, which is held to the same span
+ * Shorts shelf, which is held to the same span.
+ * A relative time is only an hour wide, so the same video would land left or right of its neighbours as the feed is
+ * fetched again: once placed, a video stays next to the feed item it was first placed beside (`anchors`) - behind
+ * the item before it, or at the band's start ahead of the item after it, so newer videos arriving above push it along
+ * with its neighbours - as long as that item is still there. `placements` reports where each inserted video went
  */
-export function planFeedBand({ contents, videos, now, removedVideoIds }: {
+export function planFeedBand({ contents, videos, now, removedVideoIds, anchors = new Map() }: {
   contents: readonly unknown[];
   videos: readonly FeedVideo[];
   now: number;
   removedVideoIds: ReadonlySet<string>;
+  anchors?: ReadonlyMap<string, PlacementAnchor>;
 }) {
   const runs = findInlineRuns(contents);
   const fullBand = extractBand({
@@ -126,6 +131,7 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
       runs,
       slots: band,
       insertedVideos: [],
+      placements: new Map<string, PlacementAnchor>(),
       removedIds,
       isChanged: false,
       isWithinLoadedSpan
@@ -143,19 +149,58 @@ export function planFeedBand({ contents, videos, now, removedVideoIds }: {
     videoId: video.videoId,
     video
   }));
-  const slots: FeedSlot[] = isTimeKnown ? [] : pending.splice(0);
-  for (const [i, slot] of band.entries()) {
-    const time = times[i];
-    while (time && pending[0] && pending[0].video.publishedAt > time.approximateTime) {
-      slots.push(...pending.splice(0, 1));
-    }
-    slots.push(slot);
+  const bandIds = new Set(band.map(slot => slot.videoId));
+  // gaps[i] holds the videos placed before band item i, the last one those after the whole band
+  const gaps: (typeof pending)[] = Array.from({ length: band.length + 1 }, () => []);
+  const stillAnchored = pending.filter(({ videoId }) => bandIds.has(anchors.get(videoId)?.videoId ?? ""));
+  for (const entry of stillAnchored) {
+    const anchor = anchors.get(entry.videoId);
+    const iAnchor = band.findIndex(slot => slot.videoId === anchor?.videoId);
+    gaps[anchor?.side === AnchorSide.before ? iAnchor : iAnchor + 1]?.push(entry);
   }
-  slots.push(...pending);
+
+  const free = pending.filter(entry => !stillAnchored.includes(entry));
+  if (!isTimeKnown) {
+    gaps[0]?.push(...free.splice(0));
+  }
+
+  for (const [i] of band.entries()) {
+    const time = times[i];
+    while (time && free[0] && free[0].video.publishedAt > time.approximateTime) {
+      gaps[i]?.push(...free.splice(0, 1));
+    }
+  }
+  gaps.at(-1)?.push(...free);
+
+  const slots: FeedSlot[] = [];
+  const placements = new Map<string, PlacementAnchor>();
+  for (const [i, gap] of gaps.entries()) {
+    const previous = band[i - 1];
+    const next = band[i];
+    const anchor = previous ? {
+      videoId: previous.videoId,
+      side: AnchorSide.after
+    } : next && {
+      videoId: next.videoId,
+      side: AnchorSide.before
+    };
+    for (const entry of gap.toSorted((first, second) => second.video.publishedAt - first.video.publishedAt)) {
+      slots.push(entry);
+
+      if (anchor) {
+        placements.set(entry.videoId, anchor);
+      }
+    }
+
+    if (next) {
+      slots.push(next);
+    }
+  }
 
   return {
     runs,
     slots,
+    placements,
     insertedVideos,
     removedIds,
     isChanged: insertedVideos.length > 0 || removedIds.length > 0,
