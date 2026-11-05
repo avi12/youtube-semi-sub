@@ -41,6 +41,11 @@
     }
   } as const;
 
+  const MODE_LIST_NAME = {
+    [SubscriptionMode.follow]: "Allow list",
+    [SubscriptionMode.hide]: "Block list"
+  } as const satisfies Record<SubscriptionMode, string>;
+
   const CLOSE_ICON_PATH = "m12.71 12 8.15 8.15-.71.71L12 12.71l-8.15 8.15-.71-.71L11.29 12 3.15 3.85l.71-.71L12 11.29l8.15-8.15.71.71L12.71 12z";
 
   const id = $props.id();
@@ -65,12 +70,19 @@
   const isEditing = $derived(storedSubscription !== null);
   const canSave = $derived(isStoredSubscriptionRead && isFilterValid && !isSaving);
   /** What the page shows outranks what is stored, which follows it a moment later */
-  const mode = $derived(
+  const activeMode = $derived(
     getSubscriptionMode({
       isSubscribed: isSubscribed ?? storedSubscription?.isSubscribed ?? false
     })
   );
+  let pickedMode = $state<SubscriptionMode | null>(null);
+  const mode = $derived(pickedMode ?? activeMode);
+  const isModeActive = $derived(mode === activeMode);
   const modeText = $derived(MODE_TEXT[mode]);
+  const INACTIVE_NOTE = {
+    [SubscriptionMode.follow]: "while you're subscribed it hides the videos it doesn't let through, and it adds the ones it does once you unsubscribe",
+    [SubscriptionMode.hide]: "this filter applies once you subscribe"
+  } as const satisfies Record<SubscriptionMode, string>;
   const submitLabel = $derived.by(() => {
     if (isEditing) {
       return "Save";
@@ -97,6 +109,16 @@
     } finally {
       isLoadingVideos = false;
     }
+  }
+
+  function pickMode(picked: SubscriptionMode) {
+    pickedMode = picked;
+    isFilterEdited = false;
+    const storedFilter = storedSubscription && getModeFilter({
+      subscription: storedSubscription,
+      mode: picked
+    });
+    filter = { ...(storedFilter ?? DEFAULT_TITLE_FILTER) };
   }
 
   function closeWithToast(message: ToastMessage) {
@@ -186,7 +208,28 @@
         </span>
       </section>
 
-      <p id={descriptionId} class="dialog__description">{modeText.description}</p>
+      <fieldset class="modes">
+        <legend class="modes__legend">List type</legend>
+        {#each Object.values(SubscriptionMode) as option (option)}
+          <label class="modes__option">
+            <input
+              name="{id}-mode"
+              class="modes__input"
+              checked={mode === option}
+              onchange={() => pickMode(option)}
+              type="radio"
+              value={option} />
+            <span class="modes__label">{MODE_LIST_NAME[option]}</span>
+          </label>
+        {/each}
+      </fieldset>
+
+      <p id={descriptionId} class="dialog__description">
+        {modeText.description}
+        {#if !isModeActive}
+          <span class="dialog__inactive">- {INACTIVE_NOTE[mode]}</span>
+        {/if}
+      </p>
 
       {#if isLoadFailed}
         <p class="notice" role="alert">
@@ -402,6 +445,55 @@
   .dialog__description {
     margin: 0;
     color: var(--text-secondary);
+  }
+
+  .dialog__inactive {
+    color: var(--text);
+  }
+
+  .modes {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .modes__legend {
+    margin-block-end: 8px;
+    padding: 0;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+
+  .modes__option {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    align-items: center;
+    padding-block: 8px;
+    padding-inline: 12px;
+    border: 1px solid var(--outline);
+    border-radius: 12px;
+    cursor: pointer;
+
+    &:has(:checked) {
+      border-color: var(--accent);
+      background: var(--additive);
+    }
+
+    &:has(:focus-visible) {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  }
+
+  .modes__input {
+    accent-color: var(--accent);
+  }
+
+  .modes__label {
+    font-weight: 500;
   }
 
   .dialog__footer {
