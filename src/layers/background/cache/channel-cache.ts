@@ -2,7 +2,7 @@ import { mapWithConcurrency } from "./concurrency";
 import { isVideoListUnchanged, mergeChannelVideos } from "./merge-channel-videos";
 import { countAiVerdicts, pruneAiVerdicts } from "@/lib/filter/ai-verdicts";
 import type { ChannelVideosCache } from "@/lib/schemas/feed-video";
-import { isUploadsWatched, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { isUploadsLengthFiltered, isUploadsWatched, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import {
   aiVerdictsItem,
   channelCheckedAtItem,
@@ -12,7 +12,7 @@ import {
   type StorageItem
 } from "@/lib/storage";
 import { MILLISECONDS_PER_MINUTE } from "@/lib/utils/time";
-import { type ChannelUploads, fetchChannelUploads } from "#background/uploads/channel-uploads";
+import { type ChannelUploads, fetchChannelUploads, withDurations } from "#background/uploads/channel-uploads";
 
 const MIN_REFRESH_INTERVAL_MS = 5 * MILLISECONDS_PER_MINUTE;
 const MAX_CONCURRENT_FETCHES = 4;
@@ -150,13 +150,32 @@ async function filterDueChannels(channelIds: string[]) {
   return channelIds.filter(channelId => now - (checkedAtByChannel[channelId] ?? 0) >= MIN_REFRESH_INTERVAL_MS);
 }
 
+/** A channel's uploads, with lengths looked up when a filter reads them or an editor asks (`isLengthNeeded`) */
+async function fetchUploadsForCache({ channelId, isLengthNeeded }: {
+  channelId: string;
+  isLengthNeeded: boolean;
+}) {
+  const uploads = await fetchChannelUploads(channelId);
+  const subscription = (await semiSubscriptionsItem.getValue())[channelId];
+  const isLengthRead = isLengthNeeded || !!subscription && isUploadsLengthFiltered(subscription);
+  if (!uploads || !isLengthRead) {
+    return uploads;
+  }
+
+  return await withDurations({
+    uploads,
+    knownVideos: (await channelVideosItem.getValue())[channelId]?.videos ?? []
+  });
+}
+
 /**
  * Fetches the given semi-subscribed channels and caches what changed; unless forced, recently fetched ones are skipped.
  * Resolves to false when not a single due channel could be fetched (offline, or YouTube is down)
  */
-export async function refreshChannels({ channelIds, isForced }: {
+export async function refreshChannels({ channelIds, isForced, isLengthNeeded = false }: {
   channelIds: string[];
   isForced: boolean;
+  isLengthNeeded?: boolean;
 }) {
   const dueChannelIds = isForced ? channelIds : await filterDueChannels(channelIds);
   if (dueChannelIds.length === 0) {
@@ -166,7 +185,10 @@ export async function refreshChannels({ channelIds, isForced }: {
   const results = await mapWithConcurrency({
     items: dueChannelIds,
     limit: MAX_CONCURRENT_FETCHES,
-    task: fetchChannelUploads
+    task: channelId => fetchUploadsForCache({
+      channelId,
+      isLengthNeeded
+    })
   });
   const uploadsList = results.filter(uploads => uploads !== null);
   // Read after the fetches, so a channel removed meanwhile is not cached
@@ -192,11 +214,17 @@ export async function refreshAllChannels({ isForced }: Pick<Parameters<typeof re
   });
 }
 
-/** A channel's uploads, unfiltered. Only a semi-subscribed channel is cached - the dialog previews others first */
+/**
+ * A channel's uploads, unfiltered, with their lengths - an editor asks, and may add a length condition. Only a
+ * semi-subscribed channel is cached - the dialog previews others first
+ */
 export async function refreshChannel(channelId: string) {
   const isSubscribed = Object.hasOwn(await semiSubscriptionsItem.getValue(), channelId);
   if (!isSubscribed) {
-    const uploads = await fetchChannelUploads(channelId);
+    const uploads = await fetchUploadsForCache({
+      channelId,
+      isLengthNeeded: true
+    });
     if (!uploads) {
       throw new Error(UPLOADS_UNAVAILABLE_ERROR);
     }
@@ -207,7 +235,8 @@ export async function refreshChannel(channelId: string) {
   // A failed refetch still serves what is cached
   await refreshChannels({
     channelIds: [channelId],
-    isForced: true
+    isForced: true,
+    isLengthNeeded: true
   });
   const cache = await channelVideosItem.getValue();
   const videos = cache[channelId]?.videos;

@@ -1,6 +1,7 @@
 import {
   isAllowListRestricting,
   isFilterInert,
+  isLengthFiltered,
   legacyRegexFilterSchema,
   titleFilterSchema,
   type VideoFilter,
@@ -138,6 +139,11 @@ export function getJudgingFilters(subscription: Pick<SemiSubscription, "followFi
   }
 
   return filters.filter(filter => filter !== null);
+}
+
+/** Whether a filter judging the channel reads lengths, so its uploads need them looked up */
+export function isUploadsLengthFiltered(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
+  return getJudgingFilters(subscription).some(isLengthFiltered);
 }
 
 /** The subscription with one mode's filter replaced */

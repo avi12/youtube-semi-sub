@@ -1,7 +1,7 @@
 import { fetchRssUploads } from "./rss-feed";
 import { fetchVideosTabUploads } from "./videos-tab-uploads";
 import { channelIdSchema } from "@/lib/schemas/channel";
-import { feedVideoSchema } from "@/lib/schemas/feed-video";
+import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
 
 export enum UploadsSource {
@@ -43,6 +43,56 @@ async function fetchFromNetwork(channelId: string) {
     videos: tabVideos
   };
   return uploads;
+}
+
+export function withKnownDurations({ videos, durationById }: {
+  videos: FeedVideo[];
+  durationById: ReadonlyMap<string, number>;
+}) {
+  return videos.map(video => {
+    const durationSeconds = video.durationSeconds ?? durationById.get(video.videoId);
+    return durationSeconds === undefined ? video : {
+      ...video,
+      durationSeconds
+    };
+  });
+}
+
+export function collectDurations(videos: readonly FeedVideo[]) {
+  const durationById = new Map<string, number>();
+  for (const { videoId, durationSeconds } of videos) {
+    if (durationSeconds !== undefined) {
+      durationById.set(videoId, durationSeconds);
+    }
+  }
+  return durationById;
+}
+
+/**
+ * RSS tells no lengths, the Videos tab does: the uploads with every length already known (`knownVideos`) filled in,
+ * and the Videos tab fetched only while a regular video still lacks one. Shorts never get one - the tab leaves them out
+ */
+export async function withDurations({ uploads, knownVideos }: {
+  uploads: ChannelUploads;
+  knownVideos: readonly FeedVideo[];
+}) {
+  const videos = withKnownDurations({
+    videos: uploads.videos,
+    durationById: collectDurations(knownVideos)
+  });
+  const isLengthMissing = videos.some(video => !video.isShort && video.durationSeconds === undefined);
+  const isTabFetchUseful = isLengthMissing && uploads.source === UploadsSource.rss;
+  const tabVideos = isTabFetchUseful ? await fetchVideosTabUploads(uploads.channelId) : null;
+  const filled: ChannelUploads = {
+    ...uploads,
+    videos: tabVideos ?
+      withKnownDurations({
+        videos,
+        durationById: collectDurations(tabVideos)
+      }) :
+      videos
+  };
+  return filled;
 }
 
 /** RSS first, the Videos tab when RSS fails; concurrent calls for one channel share a single request */

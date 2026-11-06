@@ -1,6 +1,6 @@
 import { collectAiFilterKeys } from "@/lib/filter/ai-verdicts";
 import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
-import { isUploadsWatched, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { isUploadsLengthFiltered, isUploadsWatched, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { semiSubscriptionsItem } from "@/lib/storage";
 import { classifyPendingVideos, startAiMatch } from "#ai-match";
 import {
@@ -65,13 +65,16 @@ async function handleSubscriptionsChange({ subscriptions, previousSubscriptions 
     await pruneChannelCaches();
   }
 
-  // Fetched as soon as their uploads matter: a new channel, an unsubscribe, a hide filter that starts hiding
+  // Fetched as soon as their uploads matter: a new channel, an unsubscribe, a hide filter that starts hiding, a filter
+  // that starts reading lengths
   await refreshChannels({
     channelIds: Object.values(subscriptions)
       .filter(subscription => {
         const previous = previousSubscriptions[subscription.channelId];
         const wasWatched = !!previous && isUploadsWatched(previous);
-        return isUploadsWatched(subscription) && !wasWatched;
+        const wasLengthFiltered = !!previous && isUploadsLengthFiltered(previous);
+        const isNewlyWatched = isUploadsWatched(subscription) && !wasWatched;
+        return isNewlyWatched || isUploadsLengthFiltered(subscription) && !wasLengthFiltered;
       })
       .map(({ channelId }) => channelId),
     isForced: true

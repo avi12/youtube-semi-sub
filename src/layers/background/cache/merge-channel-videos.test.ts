@@ -81,6 +81,21 @@ describe("mergeChannelVideos", () => {
     });
   });
 
+  it("keeps the lengths the cache has when RSS, which tells none, refetches a video", () => {
+    const merged = mergeChannelVideos({
+      previous: [{
+        ...kept,
+        durationSeconds: 754
+      }],
+      uploads: {
+        channelId: CHANNEL_ID,
+        source: UploadsSource.rss,
+        videos: [kept]
+      }
+    });
+    expect(merged[0]?.durationSeconds).toBe(754);
+  });
+
   it("keeps the cache when a fetch comes back empty", () => {
     const previous = [kept];
     expect(

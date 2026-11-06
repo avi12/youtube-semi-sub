@@ -98,6 +98,9 @@ describe("parseVideosTab", () => {
                 },
                 publishedTimeText: {
                   simpleText: "Streamed 2 days ago"
+                },
+                lengthText: {
+                  simpleText: "1:02:03"
                 }
               }
             }
@@ -118,9 +121,9 @@ describe("parseVideosTab", () => {
       ]),
       now: NOW
     });
-    expect(videos?.map(video => [video.title, video.publishedAt])).toEqual([
-      ["Part one", NOW - 2 * DAY_MS],
-      ["Live now", NOW]
+    expect(videos?.map(video => [video.title, video.publishedAt, video.durationSeconds])).toEqual([
+      ["Part one", NOW - 2 * DAY_MS, 3723],
+      ["Live now", NOW, undefined]
     ]);
   });
 

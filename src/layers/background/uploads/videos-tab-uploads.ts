@@ -14,6 +14,7 @@ import {
 } from "@/lib/youtube/schemas/renderers";
 import { readText } from "@/lib/youtube/schemas/text";
 import { YOUTUBE_ORIGIN } from "@/lib/youtube/site";
+import { durationFromClassicRenderer, durationFromLockup } from "@/lib/youtube/video-duration";
 import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
 import { z } from "@/lib/zod";
 
@@ -42,7 +43,9 @@ const gridUploadSchema = z.object({
   videoId: z.string(),
   title: z.string(),
   /** Every text that may carry the relative publish time, most precise first */
-  timeTexts: z.array(z.string())
+  timeTexts: z.array(z.string()),
+  /** Null for a live or upcoming video, which has no length yet */
+  durationSeconds: z.number().nullable()
 });
 type GridUpload = z.infer<typeof gridUploadSchema>;
 
@@ -62,7 +65,8 @@ function readLockup(lockup: Lockup) {
   const upload: GridUpload = {
     videoId: lockup.contentId,
     title,
-    timeTexts
+    timeTexts,
+    durationSeconds: durationFromLockup(lockup)
   };
   return upload;
 }
@@ -75,7 +79,8 @@ function readVideoRenderer(renderer: ClassicRenderer) {
   const upload: GridUpload = {
     videoId: renderer.videoId,
     title: readText(renderer.title),
-    timeTexts: renderer.publishedTimeText ? [readText(renderer.publishedTimeText)] : []
+    timeTexts: renderer.publishedTimeText ? [readText(renderer.publishedTimeText)] : [],
+    durationSeconds: durationFromClassicRenderer(renderer)
   };
   return upload;
 }
@@ -155,7 +160,10 @@ export function parseVideosTab({ response, now }: {
         now
       }),
       thumbnailUrl: buildVideoThumbnailUrl(upload.videoId),
-      isShort: false
+      isShort: false,
+      ...upload.durationSeconds !== null && {
+        durationSeconds: upload.durationSeconds
+      }
     });
     if (video.success) {
       videos.push(video.data);

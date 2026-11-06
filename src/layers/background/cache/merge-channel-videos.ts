@@ -4,7 +4,12 @@ import {
   MAX_CACHED_VIDEOS_PER_CHANNEL,
   sortNewestFirst
 } from "@/lib/schemas/feed-video";
-import { type ChannelUploads, UploadsSource } from "#background/uploads/channel-uploads";
+import {
+  type ChannelUploads,
+  collectDurations,
+  UploadsSource,
+  withKnownDurations
+} from "#background/uploads/channel-uploads";
 
 const FEED_VIDEO_KEYS = feedVideoSchema.keyof().options;
 
@@ -53,7 +58,8 @@ function stabilizeApproximateVideos({ videos, previous }: {
     return knownVideo
       ? {
         ...knownVideo,
-        title: video.title
+        title: video.title,
+        durationSeconds: video.durationSeconds ?? knownVideo.durationSeconds
       }
       : video;
   });
@@ -74,7 +80,11 @@ export function mergeChannelVideos({ previous, uploads }: {
 
   const isExact = uploads.source === UploadsSource.rss;
   const fetchedVideos = isExact
-    ? uploads.videos
+    // A refetch that didn't look lengths up keeps the ones the cache has
+    ? withKnownDurations({
+      videos: uploads.videos,
+      durationById: collectDurations(previous)
+    })
     : stabilizeApproximateVideos({
       videos: uploads.videos,
       previous
