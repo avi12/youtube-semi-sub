@@ -46,6 +46,11 @@
     [SubscriptionMode.follow]: "Allow list",
     [SubscriptionMode.hide]: "Block list"
   } as const satisfies Record<SubscriptionMode, string>;
+  /** What each list does to a video its filter matches - the one thing that tells them apart */
+  const MODE_LIST_EFFECT = {
+    [SubscriptionMode.follow]: "Only matching videos show",
+    [SubscriptionMode.hide]: "Matching videos are hidden"
+  } as const satisfies Record<SubscriptionMode, string>;
 
   const CLOSE_ICON_PATH = "m12.71 12 8.15 8.15-.71.71L12 12.71l-8.15 8.15-.71-.71L11.29 12 3.15 3.85l.71-.71L12 11.29l8.15-8.15.71.71L12.71 12z";
 
@@ -224,7 +229,10 @@
               onchange={() => pickMode(option)}
               type="radio"
               value={option} />
-            <span class="modes__label">{MODE_LIST_NAME[option]}</span>
+            <span class="modes__text">
+              <span class="modes__label">{MODE_LIST_NAME[option]}</span>
+              <span class="modes__effect">{MODE_LIST_EFFECT[option]}</span>
+            </span>
           </label>
         {/each}
       </fieldset>
@@ -497,8 +505,18 @@
     accent-color: var(--accent);
   }
 
+  .modes__text {
+    display: flex;
+    flex-direction: column;
+  }
+
   .modes__label {
     font-weight: 500;
+  }
+
+  .modes__effect {
+    color: var(--text-secondary);
+    font-size: 12px;
   }
 
   .dialog__footer {
