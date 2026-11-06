@@ -11,6 +11,7 @@ import {
   ShelfRendererKind
 } from "@/lib/youtube/schemas/renderers";
 import { type FormattedText, readText } from "@/lib/youtube/schemas/text";
+import { durationFromClassicRenderer, durationFromLockup } from "@/lib/youtube/video-duration";
 import { z } from "@/lib/zod";
 
 // Read-only accessors over raw grid items (`{ richItemRenderer: { content } }`) and their renderers
@@ -218,6 +219,19 @@ export function titleFromRenderer(video: VideoRenderer) {
   return video.kind === RendererKind.lockupViewModel
     ? video.renderer.metadata?.lockupMetadataViewModel?.title?.content ?? null
     : readText(video.renderer.title) || null;
+}
+
+/** The length the renderer's thumbnail badge shows; undefined for a live or upcoming video */
+export function durationFromRenderer(video: VideoRenderer) {
+  const durationSeconds = video.kind === RendererKind.lockupViewModel
+    ? durationFromLockup(video.renderer)
+    : durationFromClassicRenderer(video.renderer);
+  return durationSeconds ?? undefined;
+}
+
+export function durationFromGridItem(item: unknown) {
+  const video = rendererFromGridItem(item);
+  return video ? durationFromRenderer(video) : undefined;
 }
 
 export function titleFromGridItem(item: unknown) {

@@ -9,6 +9,7 @@ import { createModeJudge, createSubscribedHideCheck, MatchState, selectFeedVideo
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import type { FeedVideo, VideosByChannel } from "@/lib/schemas/feed-video";
+import { isUploadsLengthFiltered } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { settleBefore } from "@/lib/utils/promise";
 import { composeFeedContents, planFeed } from "#feed/compose/feed-compose";
@@ -16,6 +17,8 @@ import type { PlacementAnchor } from "#feed/compose/feed-slot";
 import {
   channelIdFromGridItem,
   channelIdsFromGridItem,
+  durationFromGridItem,
+  durationFromRenderer,
   shelfItemsFromGridItem,
   titleFromGridItem,
   titleFromRenderer,
@@ -42,15 +45,22 @@ let previousHideSettingsKey: string | null = null;
 /** What hides videos changed since the feed last caught up with it */
 let isHideSettingsChanged = false;
 
-/** A followed upload with the title its tile will show: the native renderer's, once loaded, else the cached one */
+/**
+ * A followed upload with the title its tile will show: the native renderer's, once loaded, else the cached one - and
+ * the native's length when the cache has none
+ */
 function withShownTitle(video: FeedVideo) {
   const native = video.isShort ? null : findNativeRenderer(video);
   const nativeShort = video.isShort ? findNativeShort(video) : null;
   const shownTitle = native ? titleFromRenderer(native) : nativeShort?.overlayMetadata?.primaryText?.content;
-  return shownTitle ? {
+  const durationSeconds = video.durationSeconds ?? (native ? durationFromRenderer(native) : undefined);
+  return {
     ...video,
-    title: shownTitle
-  } : video;
+    title: shownTitle ?? video.title,
+    ...durationSeconds !== undefined && {
+      durationSeconds
+    }
+  };
 }
 
 /** The followed channels' videos their follow filter passes, newest first, each judged by the title it will show */
@@ -185,7 +195,8 @@ function judgeResumedChannelVideos({ contents, state }: {
     const matchState = judge ?
       judge({
         videoId,
-        title: titleFromGridItem(item) ?? ""
+        title: titleFromGridItem(item) ?? "",
+        durationSeconds: durationFromGridItem(item)
       }) :
       MatchState.doesNotMatch;
     return [{
@@ -198,7 +209,8 @@ function judgeResumedChannelVideos({ contents, state }: {
 /**
  * Whether a subscribed channel's hide filter hides a feed item, judged by the title the item shows - a YouTube title
  * test can make it differ from the cached one - for every channel it links to, uploader or collaborator. Null for an
- * item that names no channel, such as a Short: only the cached uploads know whose it is
+ * item that names no channel, such as a Short: only the cached uploads know whose it is - and for an item that shows
+ * no length while a filter reads lengths, which the cached uploads know too
  */
 function createShownTitleHideCheck(state: PageState) {
   return function isHiddenByShownTitle({ item, videoId }: {
@@ -212,8 +224,17 @@ function createShownTitleHideCheck(state: PageState) {
 
     const video = {
       videoId,
-      title: titleFromGridItem(item) ?? ""
+      title: titleFromGridItem(item) ?? "",
+      durationSeconds: durationFromGridItem(item)
     };
+    const isLengthUnknown = video.durationSeconds === undefined && [...channelIds].some(channelId => {
+      const subscription = state.subscriptions[channelId];
+      return !!subscription && isUploadsLengthFiltered(subscription);
+    });
+    if (isLengthUnknown) {
+      return null;
+    }
+
     return [...channelIds].some(channelId => {
       const subscription = state.subscriptions[channelId];
       const isHidden = subscription && createSubscribedHideCheck({
