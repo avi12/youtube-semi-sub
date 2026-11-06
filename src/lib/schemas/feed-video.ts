@@ -17,7 +17,9 @@ export const feedVideoSchema = z.object({
   /** A Short belongs in the feed's Shorts shelf, never among its regular videos */
   isShort: z.boolean(),
   /** RSS only, cleaned up and cut to `VIDEO_DESCRIPTION_MAX_LENGTH` - what AI match reads besides the title */
-  description: z.string().max(VIDEO_DESCRIPTION_MAX_LENGTH).optional()
+  description: z.string().max(VIDEO_DESCRIPTION_MAX_LENGTH).optional(),
+  /** From the Videos tab, which RSS lacks - unknown for a Short, a live stream and a video not looked up yet */
+  durationSeconds: z.number().int().nonnegative().optional()
 });
 export type FeedVideo = z.infer<typeof feedVideoSchema>;
 

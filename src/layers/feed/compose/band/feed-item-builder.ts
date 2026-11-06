@@ -10,6 +10,7 @@ import {
   RendererKind
 } from "@/lib/youtube/schemas/renderers";
 import { readText } from "@/lib/youtube/schemas/text";
+import { findLockupDurationBadge } from "@/lib/youtube/video-duration";
 import { buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
 import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
 import { labelFromFormatted, rendererFromGridItem } from "#feed/items/feed-items";
@@ -73,8 +74,7 @@ function detailsFromNative(native: VideoRenderer | null) {
 
   const { renderer } = native;
   const thumbnail = renderer.contentImage?.thumbnailViewModel;
-  const badges = thumbnail?.overlays?.flatMap(overlay => overlay.thumbnailBottomOverlayViewModel?.badges ?? []);
-  const badge = badges?.[0]?.thumbnailBadgeViewModel;
+  const badge = findLockupDurationBadge(renderer);
   const rows = renderer.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows ?? [];
   const parts = rows.findLast(row => (row.metadataParts?.length ?? 0) > 0)?.metadataParts ?? [];
   const isViewCountShown = parts.length > 1;
