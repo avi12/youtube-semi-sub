@@ -15,10 +15,32 @@ const subscriptionRequestSchema = z.looseObject({
 
 const subscribedByChannel = new Map<string, boolean>();
 const listeners = new Set<() => void>();
+const MAX_KEPT_SNAPSHOTS = 20;
+/** The server snapshots this tab read, newest first - they name channels the user never semi-subscribed to as well */
+const snapshotReaders: ((channelId: string) => boolean | undefined)[] = [];
 
 /** The latest official subscription state this tab saw change, or undefined when it saw none */
 export function getObservedOfficialSubscription(channelId: string) {
   return subscribedByChannel.get(channelId);
+}
+
+/**
+ * Whether the user is subscribed to a channel on YouTube, as far as this tab knows: what it saw the user do, else the
+ * newest snapshot that names the channel; undefined when none does
+ */
+export function readOfficialSubscription(channelId: string) {
+  const observed = subscribedByChannel.get(channelId);
+  if (observed !== undefined) {
+    return observed;
+  }
+
+  for (const readIsSubscribed of snapshotReaders) {
+    const isSubscribed = readIsSubscribed(channelId);
+    if (isSubscribed !== undefined) {
+      return isSubscribed;
+    }
+  }
+  return undefined;
 }
 
 export function setObservedOfficialSubscription({ channelId, isSubscribed }: OfficialSubscriptionChange) {
@@ -53,6 +75,8 @@ function reportOfficialSubscription(change: OfficialSubscriptionChange) {
  * snapshot
  */
 export function applySubscriptionSnapshot(readIsSubscribed: (channelId: string) => boolean | undefined) {
+  snapshotReaders.unshift(readIsSubscribed);
+  snapshotReaders.splice(MAX_KEPT_SNAPSHOTS);
   whenPageStateKnown(({ subscriptions }) => {
     for (const { channelId, isSubscribed: isStoredSubscribed } of Object.values(subscriptions)) {
       const isSubscribed = readIsSubscribed(channelId);
