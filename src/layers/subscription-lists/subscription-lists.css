@@ -63,6 +63,18 @@
   }
 }
 
+/* The and/or between a filter's conditions */
+.yss-filter-literal__connector {
+  color: var(--yss-text-secondary);
+  font-size: 0.85em;
+  text-transform: uppercase;
+
+  &::before,
+  &::after {
+    content: " ";
+  }
+}
+
 .yss-filter-literal--any,
 .yss-filter-literal--ai {
   font-family: inherit;

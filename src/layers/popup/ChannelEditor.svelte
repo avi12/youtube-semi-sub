@@ -1,6 +1,6 @@
 <script lang="ts">
   import { DELETE_ICON } from "./icons";
-  import { DEFAULT_TITLE_FILTER, isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
+  import { DEFAULT_TITLE_FILTER, isVideoFilterValid, type VideoFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import { getModeFilter, type SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -24,7 +24,7 @@
 
   const { id, subscription, mode, videos, isCached, onClose, onRemove }: Props = $props();
 
-  let draftFilter = $state<TitleFilter>(
+  let draftFilter = $state<VideoFilter>(
     untrack(() => ({
       ...getModeFilter({
         subscription,
@@ -33,7 +33,7 @@
     }))
   );
   let isFetching = $state(false);
-  const isDraftValid = $derived(isTitleFilterValid(draftFilter));
+  const isDraftValid = $derived(isVideoFilterValid(draftFilter));
 
   onMount(async () => {
     if (isCached) {

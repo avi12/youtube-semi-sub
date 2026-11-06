@@ -2,8 +2,9 @@ import {
   isAllowListRestricting,
   isFilterInert,
   legacyRegexFilterSchema,
-  type TitleFilter,
-  titleFilterSchema
+  titleFilterSchema,
+  type VideoFilter,
+  videoFilterSchema
 } from "@/lib/filter/title-filter";
 import { channelIdSchema, channelInfoSchema } from "@/lib/schemas/channel";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
@@ -21,9 +22,9 @@ type SemiSubscriptionV3 = z.infer<typeof semiSubscriptionV3Schema>;
 
 const semiSubscriptionSchema = semiSubscriptionV2Schema.omit({ filter: true }).extend({
   /** Picks the videos added to the feed while the user isn't subscribed; null until one is saved in that mode */
-  followFilter: titleFilterSchema.nullable(),
+  followFilter: videoFilterSchema.nullable(),
   /** Picks the videos hidden from the feed while the user is subscribed; null until one is saved in that mode */
-  hideFilter: titleFilterSchema.nullable(),
+  hideFilter: videoFilterSchema.nullable(),
   /** Subscribed on YouTube, which switches the channel to hiding. Both filters are kept either way */
   isSubscribed: z.boolean()
 });
@@ -143,7 +144,7 @@ export function getJudgingFilters(subscription: Pick<SemiSubscription, "followFi
 export function withModeFilter({ subscription, mode, filter }: {
   subscription: SemiSubscription;
   mode: SubscriptionMode;
-  filter: TitleFilter;
+  filter: VideoFilter;
 }) {
   const updated: SemiSubscription = {
     ...subscription,

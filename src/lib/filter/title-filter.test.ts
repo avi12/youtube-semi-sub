@@ -2,17 +2,22 @@ import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import type { AiVerdicts } from "@/lib/filter/ai-verdicts";
 import {
   type AiFilter,
+  buildVideoFilter,
   compileTitleFilter,
   createSubscribedHideCheck,
+  createVideoJudge,
   DEFAULT_TITLE_FILTER,
   FilterKind,
+  FilterMatch,
   getTitleFilterError,
   isFilterInert,
-  isTitleFilterValid,
+  isVideoFilterValid,
+  MatchState,
   type RegexFilter,
   selectFeedVideos,
   selectHiddenVideoIds,
-  type TitleFilter
+  type TitleFilter,
+  type VideoFilter
 } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
@@ -127,7 +132,7 @@ describe("getTitleFilterError", () => {
   });
 });
 
-describe("isTitleFilterValid", () => {
+describe("isVideoFilterValid", () => {
   it.each([
     [AI_FILTER, true],
     [{
@@ -142,9 +147,245 @@ describe("isTitleFilterValid", () => {
       kind: FilterKind.regex,
       pattern: "(",
       flags: ""
+    }, false],
+    [{
+      kind: FilterKind.length,
+      maxSeconds: 600
+    }, true],
+    [{
+      kind: FilterKind.length
+    }, false],
+    [{
+      kind: FilterKind.length,
+      minSeconds: 600,
+      maxSeconds: 60
+    }, false],
+    [{
+      kind: FilterKind.group,
+      match: FilterMatch.any,
+      conditions: []
     }, false]
-  ] satisfies [TitleFilter, boolean][])("judges %j as valid: %s", (filter, isValid) => {
-    expect(isTitleFilterValid(filter)).toBe(isValid);
+  ] satisfies [VideoFilter, boolean][])("judges %j as valid: %s", (filter, isValid) => {
+    expect(isVideoFilterValid(filter)).toBe(isValid);
+  });
+});
+
+describe("createVideoJudge by length", () => {
+  const UP_TO_TEN_MINUTES: VideoFilter = {
+    kind: FilterKind.length,
+    maxSeconds: 600
+  };
+
+  function judgeLength({ filter = UP_TO_TEN_MINUTES, ...video }: Partial<Pick<FeedVideo, "durationSeconds" | "isShort">> & {
+    filter?: VideoFilter;
+  }) {
+    return createVideoJudge({
+      filter,
+      aiVerdicts: {},
+      isAiEnabled: false
+    })?.({
+      videoId: "aaaaaaaaaaa",
+      title: "Video",
+      ...video
+    });
+  }
+
+  it("matches a video inside the range and rejects one outside it", () => {
+    expect(judgeLength({ durationSeconds: 300 })).toBe(MatchState.matches);
+    expect(judgeLength({ durationSeconds: 601 })).toBe(MatchState.doesNotMatch);
+  });
+
+  it("keeps a video of unknown length pending, unless it is a Short the range covers", () => {
+    expect(judgeLength({})).toBe(MatchState.pending);
+    expect(judgeLength({ isShort: true })).toBe(MatchState.matches);
+    expect(
+      judgeLength({
+        isShort: true,
+        filter: {
+          kind: FilterKind.length,
+          minSeconds: 300
+        }
+      })
+    ).toBe(MatchState.doesNotMatch);
+    expect(
+      judgeLength({
+        isShort: true,
+        filter: {
+          kind: FilterKind.length,
+          maxSeconds: 60
+        }
+      })
+    ).toBe(MatchState.pending);
+  });
+});
+
+describe("createVideoJudge with combined conditions", () => {
+  function createGroup(match: FilterMatch) {
+    const filter: VideoFilter = {
+      kind: FilterKind.group,
+      match,
+      conditions: [{
+        kind: FilterKind.regex,
+        pattern: "review",
+        flags: "i"
+      }, {
+        kind: FilterKind.length,
+        maxSeconds: 600
+      }]
+    };
+    return filter;
+  }
+
+  function judge({ match, title, durationSeconds }: Pick<FeedVideo, "title"> & {
+    match: FilterMatch;
+    durationSeconds?: number;
+  }) {
+    return createVideoJudge({
+      filter: createGroup(match),
+      aiVerdicts: {},
+      isAiEnabled: false
+    })?.({
+      videoId: "aaaaaaaaaaa",
+      title,
+      durationSeconds
+    });
+  }
+
+  it("needs every condition with all", () => {
+    expect(
+      judge({
+        match: FilterMatch.all,
+        title: "Phone review",
+        durationSeconds: 300
+      })
+    ).toBe(MatchState.matches);
+    expect(
+      judge({
+        match: FilterMatch.all,
+        title: "Phone review",
+        durationSeconds: 900
+      })
+    ).toBe(MatchState.doesNotMatch);
+    expect(
+      judge({
+        match: FilterMatch.all,
+        title: "Phone review"
+      })
+    ).toBe(MatchState.pending);
+    expect(
+      judge({
+        match: FilterMatch.all,
+        title: "Vlog"
+      })
+    ).toBe(MatchState.doesNotMatch);
+  });
+
+  it("needs one condition with any", () => {
+    expect(
+      judge({
+        match: FilterMatch.any,
+        title: "Phone review"
+      })
+    ).toBe(MatchState.matches);
+    expect(
+      judge({
+        match: FilterMatch.any,
+        title: "Vlog",
+        durationSeconds: 300
+      })
+    ).toBe(MatchState.matches);
+    expect(
+      judge({
+        match: FilterMatch.any,
+        title: "Vlog",
+        durationSeconds: 900
+      })
+    ).toBe(MatchState.doesNotMatch);
+    expect(
+      judge({
+        match: FilterMatch.any,
+        title: "Vlog"
+      })
+    ).toBe(MatchState.pending);
+  });
+
+  it("leaves out an empty pattern, so a hide filter hides by length alone", () => {
+    const filter: VideoFilter = {
+      kind: FilterKind.group,
+      match: FilterMatch.any,
+      conditions: [DEFAULT_TITLE_FILTER, {
+        kind: FilterKind.length,
+        maxSeconds: 60
+      }]
+    };
+    expect(
+      isFilterInert({
+        filter,
+        mode: SubscriptionMode.hide
+      })
+    ).toBe(false);
+    expect(
+      createVideoJudge({
+        filter,
+        aiVerdicts: {},
+        isAiEnabled: false
+      })?.({
+        videoId: "aaaaaaaaaaa",
+        title: "Anything",
+        durationSeconds: 600
+      })
+    ).toBe(MatchState.doesNotMatch);
+  });
+
+  it("counts a paused AI condition as pending beside a working one", () => {
+    const filter: VideoFilter = {
+      kind: FilterKind.group,
+      match: FilterMatch.any,
+      conditions: [AI_FILTER, {
+        kind: FilterKind.length,
+        maxSeconds: 600
+      }]
+    };
+    const pausedJudge = createVideoJudge({
+      filter,
+      aiVerdicts: {},
+      isAiEnabled: false
+    });
+    expect(
+      pausedJudge?.({
+        videoId: "aaaaaaaaaaa",
+        title: "Vlog",
+        durationSeconds: 300
+      })
+    ).toBe(MatchState.matches);
+    expect(
+      pausedJudge?.({
+        videoId: "aaaaaaaaaaa",
+        title: "Vlog",
+        durationSeconds: 900
+      })
+    ).toBe(MatchState.pending);
+  });
+});
+
+describe("buildVideoFilter", () => {
+  it("stores a single condition bare and groups several", () => {
+    expect(
+      buildVideoFilter({
+        conditions: [AI_FILTER],
+        match: FilterMatch.any
+      })
+    ).toEqual(AI_FILTER);
+    expect(
+      buildVideoFilter({
+        conditions: [AI_FILTER, DEFAULT_TITLE_FILTER],
+        match: FilterMatch.any
+      })
+    ).toEqual({
+      kind: FilterKind.group,
+      match: FilterMatch.any,
+      conditions: [AI_FILTER, DEFAULT_TITLE_FILTER]
+    });
   });
 });
 

@@ -24,10 +24,23 @@ const HIDE_AI_HINTS: PreviewHints = {
   noMatch: "Nothing recent fits, so nothing's hidden"
 };
 
+const FOLLOW_LENGTH_HINTS: PreviewHints = {
+  invalidSummary: "Fix the length to update the preview",
+  invalid: "Fix the length to see what's added to your feed",
+  noMatch: "Nothing recent is that long - try a wider range"
+};
+const HIDE_LENGTH_HINTS: PreviewHints = {
+  invalidSummary: "Fix the length to update the preview",
+  invalid: "Fix the length to see what's hidden from your feed",
+  noMatch: "Nothing recent is that long, so nothing's hidden"
+};
+
 export const MODE_COPY = {
   [SubscriptionMode.follow]: {
     regexLabel: "Title filter",
     aiLabel: "Describe the videos you want",
+    lengthLabel: "Video length",
+    matchLegend: "Add videos that match",
     regexPlaceholder: "tutorial|review",
     aiPlaceholder: "Only phone reviews, not unboxings",
     emptyPatternHint: "Leave it empty to add every video",
@@ -36,11 +49,14 @@ export const MODE_COPY = {
     skippedLabel: "won't be added",
     regexHints: FOLLOW_REGEX_HINTS,
     aiHints: FOLLOW_AI_HINTS,
+    lengthHints: FOLLOW_LENGTH_HINTS,
     pausedAiInvalid: "Turn on AI match to see what's added to your feed"
   },
   [SubscriptionMode.hide]: {
     regexLabel: "Hide titles matching",
     aiLabel: "Describe the videos to hide",
+    lengthLabel: "Hide videos by length",
+    matchLegend: "Hide videos that match",
     regexPlaceholder: "live|reaction",
     aiPlaceholder: "Livestreams and reaction videos, not interviews",
     emptyPatternHint: "Leave it empty to hide nothing",
@@ -49,6 +65,7 @@ export const MODE_COPY = {
     skippedLabel: "stay in your feed",
     regexHints: HIDE_REGEX_HINTS,
     aiHints: HIDE_AI_HINTS,
+    lengthHints: HIDE_LENGTH_HINTS,
     pausedAiInvalid: "Turn on AI match to see what's hidden from your feed"
   }
 } as const satisfies Record<SubscriptionMode, Record<string, string | PreviewHints>>;

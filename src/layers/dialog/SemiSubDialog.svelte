@@ -3,7 +3,7 @@
   import SemiSubSnackbar from "./SemiSubSnackbar.svelte";
   import { ToastMessage } from "./toast-message";
   import { isAiModelReady } from "@/lib/ai/ai-status";
-  import { DEFAULT_TITLE_FILTER, isTitleFilterValid, type TitleFilter } from "@/lib/filter/title-filter";
+  import { DEFAULT_TITLE_FILTER, isVideoFilterValid, type VideoFilter } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { focusPlayer } from "@/lib/page/focus-player";
   import { type ChannelInfo, getChannelInitial } from "@/lib/schemas/channel";
@@ -55,7 +55,7 @@
   const isDarkTheme = isPageDarkTheme();
 
   let elDialog = $state<HTMLDialogElement>();
-  let filter = $state<TitleFilter>({ ...DEFAULT_TITLE_FILTER });
+  let filter = $state<VideoFilter>({ ...DEFAULT_TITLE_FILTER });
   /** Once the user has typed, the stored filter arriving late must not overwrite what they wrote */
   let isFilterEdited = false;
   let storedSubscription = $state<SemiSubscription | null>(null);
@@ -67,7 +67,7 @@
   let isSaveFailed = $state(false);
   let toastMessage = $state<ToastMessage | null>(null);
 
-  const isFilterValid = $derived(isTitleFilterValid(filter));
+  const isFilterValid = $derived(isVideoFilterValid(filter));
   const isEditing = $derived(storedSubscription !== null);
   const canSave = $derived(isStoredSubscriptionRead && isFilterValid && !isSaving);
   /** What the page shows outranks what is stored, which follows it a moment later */

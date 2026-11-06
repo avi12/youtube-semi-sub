@@ -1,22 +1,18 @@
 <script lang="ts">
   import ChannelEditor from "./ChannelEditor.svelte";
   import { EDIT_ICON, OPEN_IN_NEW_ICON } from "./icons";
+  import { AI_LITERAL_PREFIX, describeFilterLiteral, FilterLiteralKind } from "@/lib/filter/filter-literal";
   import {
     type AiJudgeContext,
     createModeJudge,
-    FilterKind,
     isFilterInert,
+    listAiFilters,
     MatchState
   } from "@/lib/filter/title-filter";
   import { getChannelInitial } from "@/lib/schemas/channel";
   import type { ChannelVideos } from "@/lib/schemas/feed-video";
   import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
-  import {
-    ANY_TITLE_LABEL,
-    INERT_FILTER_LABEL,
-    SUBSCRIPTION_MODE_NAME,
-    SubscriptionMode
-  } from "@/lib/schemas/subscription-mode";
+  import { SUBSCRIPTION_MODE_NAME, SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatHandle, getChannelUrl } from "@/lib/youtube/channel-link";
   import { Button, Icon } from "m3-svelte";
@@ -80,7 +76,13 @@
       isAiEnabled
     })
   );
-  const isPaused = $derived(filter?.kind === FilterKind.aiMatch && !isAiEnabled);
+  const isPaused = $derived(judge === null && listAiFilters(filter).length > 0 && !isAiEnabled);
+  const literal = $derived(
+    describeFilterLiteral({
+      subscription,
+      isAiEnabled
+    })
+  );
   const matchStateById = $derived(
     new Map(videos.map(video => [video.videoId, judge?.(video) ?? MatchState.doesNotMatch]))
   );
@@ -181,23 +183,28 @@
       {videos} />
   {:else}
     <div class="channel__summary">
-      {#if filter?.kind === FilterKind.aiMatch}
-        <p class={["ai-literal", isPaused && "ai-literal--paused"]}>
-          <span class="ai-literal__badge">AI</span>
-          <bdi class="ai-literal__description">{filter.description}</bdi>
-        </p>
-      {:else}
-        <code class="filter-literal" dir="ltr">
-          {#if isInert}
-            <span class="filter-literal__any">{INERT_FILTER_LABEL[mode]}</span>
-          {:else if filter?.pattern}
-            {@const { pattern, flags } = filter}
-            <span class="filter-literal__pattern">{pattern}</span><span class="filter-literal__flags">{flags}</span>
-          {:else}
-            <span class="filter-literal__any">{ANY_TITLE_LABEL}</span>
-          {/if}
-        </code>
-      {/if}
+      <ul class="literal">
+        {#each literal.parts as part, i (i)}
+          <li class="literal__part">
+            {#if i > 0}
+              <span class="literal__connector">{literal.connector}</span>
+            {/if}
+            {#if part.kind === FilterLiteralKind.aiMatch}
+              <p class={["ai-literal", part.isPaused && "ai-literal--paused"]}>
+                <span class="ai-literal__badge">{AI_LITERAL_PREFIX}</span>
+                <bdi class="ai-literal__description">{part.text}</bdi>
+              </p>
+            {:else if part.kind === FilterLiteralKind.regex}
+              <code class="filter-literal" dir="ltr">
+                <span class="filter-literal__pattern">{part.text}</span><span class="filter-literal__flags"
+                >{part.flags}</span>
+              </code>
+            {:else}
+              <code class="filter-literal"><span class="filter-literal__any">{part.text}</span></code>
+            {/if}
+          </li>
+        {/each}
+      </ul>
       <p class="matches">
         {#if videosOldestFirst.length > 0}
           <span class="matches__strip" aria-hidden="true">
@@ -312,6 +319,29 @@
     flex-direction: column;
     gap: 8px;
     padding-inline-start: 52px;
+  }
+
+  .literal {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .literal__part {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .literal__connector {
+    color: var(--m3c-on-surface-variant);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
   }
 
   .filter-literal {

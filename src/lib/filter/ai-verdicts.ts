@@ -1,5 +1,5 @@
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { FilterKind } from "@/lib/filter/title-filter";
+import { listAiFilters } from "@/lib/filter/title-filter";
 import { type ChannelVideosCache, videoIdSchema } from "@/lib/schemas/feed-video";
 import type { SemiSubscription, SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
@@ -16,8 +16,8 @@ export type AiVerdicts = z.infer<typeof aiVerdictsSchema>;
 export function collectAiFilterKeys(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter"> | undefined) {
   const keys = new Set<string>();
   for (const filter of [subscription?.followFilter, subscription?.hideFilter]) {
-    if (filter?.kind === FilterKind.aiMatch) {
-      keys.add(getAiFilterKey(filter));
+    for (const aiFilter of listAiFilters(filter ?? null)) {
+      keys.add(getAiFilterKey(aiFilter));
     }
   }
   return keys;

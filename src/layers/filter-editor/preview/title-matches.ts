@@ -1,12 +1,14 @@
 import {
-  type AiFilter,
   type AiJudgeContext,
   compileTitleFilter,
-  createVideoJudge,
+  createModeJudge,
+  FilterKind,
   getTitleFilterError,
-  isFilterInert,
+  isVideoFilterValid,
+  listFilterConditions,
   MatchState,
-  type RegexFilter
+  type RegexFilter,
+  type VideoFilter
 } from "@/lib/filter/title-filter";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
@@ -68,34 +70,6 @@ export function highlightMatches({ title, regex }: {
   return segments;
 }
 
-function previewRegexRow({ video, regex }: {
-  video: FeedVideo;
-  regex: RegExp | null;
-}) {
-  if (!regex) {
-    const unmatchedRow: PreviewRow = {
-      video,
-      matchState: MatchState.doesNotMatch,
-      segments: [{
-        text: video.title,
-        isHighlighted: false
-      }]
-    };
-    return unmatchedRow;
-  }
-
-  const isMatch = regex.test(video.title);
-  const row: PreviewRow = {
-    video,
-    matchState: isMatch ? MatchState.matches : MatchState.doesNotMatch,
-    segments: highlightMatches({
-      title: video.title,
-      regex
-    })
-  };
-  return row;
-}
-
 /** Feed rows are the videos that land (or may still land) in the feed, in upload order; skipped rows never will */
 export function partitionPreviewRows(rows: PreviewRow[]) {
   const feedRows: PreviewRow[] = [];
@@ -125,61 +99,52 @@ export function partitionPreviewRows(rows: PreviewRow[]) {
   };
 }
 
+/** What a preview highlights in each title: the filter's RegExp condition, once it compiles and isn't empty */
+function findHighlightRegex(filter: VideoFilter) {
+  const regexFilter = listFilterConditions(filter).find(condition => condition.kind === FilterKind.regex);
+  return regexFilter?.pattern ? compileTitleFilter(regexFilter) : null;
+}
+
 /**
- * How the filter treats each preview video - the same compiled RegExp the real feed is filtered by. An empty hide
- * filter matches nothing, where an empty follow filter matches every video (`isFilterInert`)
+ * How the filter treats each preview video - the same judge the real feed is filtered by, its RegExp condition's
+ * matches highlighted. A hide filter that lets every video through hides nothing, where such a follow filter adds
+ * every video (`isFilterInert`). Not valid while a condition can't run - a pattern mid-edit, a blank description, AI
+ * match off with nothing else to judge by - then nothing is judged at all
  */
-export function previewTitleFilter({ filter, videos, mode }: {
-  filter: RegexFilter;
+export function previewVideoFilter({ filter, videos, mode, ...context }: AiJudgeContext & {
+  filter: VideoFilter;
   videos: FeedVideo[];
   mode: SubscriptionMode;
 }) {
-  const isMatchingNothing = isFilterInert({
+  const judge = createModeJudge({
     filter,
-    mode
+    mode,
+    ...context
   });
-  const regex = isMatchingNothing ? null : compileTitleFilter(filter);
-  const rows = videos.map(video => previewRegexRow({
-    video,
-    regex
-  }));
-  return {
-    isValid: isMatchingNothing || regex !== null,
-    ...partitionPreviewRows(rows)
-  };
-}
-
-export type TitleFilterPreview = ReturnType<typeof previewTitleFilter>;
-
-/**
- * How an AI filter treats each preview video, by the verdicts `selectFeedVideos` reads: a video without one yet is
- * pending. Not valid while the description is blank or AI match is off - then nothing is judged at all
- */
-export function previewAiFilter({ filter, videos, aiVerdicts, isAiEnabled }: AiJudgeContext & {
-  filter: AiFilter;
-  videos: FeedVideo[];
-}) {
-  const judge = createVideoJudge({
-    filter,
-    aiVerdicts,
-    isAiEnabled
-  });
-  const rows: PreviewRow[] = judge
-    ? videos.map(video => ({
+  const isValid = isVideoFilterValid(filter) && judge !== null;
+  const regex = findHighlightRegex(filter);
+  const rows: PreviewRow[] = isValid ?
+    videos.map(video => ({
       video,
       matchState: judge(video),
-      segments: [{
-        text: video.title,
-        isHighlighted: false
-      }]
-    }))
-    : [];
-  const preview: TitleFilterPreview = {
-    isValid: judge !== null,
+      segments: regex ?
+        highlightMatches({
+          title: video.title,
+          regex
+        }) :
+        [{
+          text: video.title,
+          isHighlighted: false
+        }]
+    })) :
+    [];
+  return {
+    isValid,
     ...partitionPreviewRows(rows)
   };
-  return preview;
 }
+
+export type VideoFilterPreview = ReturnType<typeof previewVideoFilter>;
 
 /** What the preview says when the filter can't run, and when nothing matches - worded per filter kind */
 const previewHintsSchema = z.object({

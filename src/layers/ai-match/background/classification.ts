@@ -1,7 +1,7 @@
 import { AiEngine, isAiModelReady } from "@/lib/ai/ai-status";
 import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
 import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
-import { FilterKind } from "@/lib/filter/title-filter";
+import { listAiFilters } from "@/lib/filter/title-filter";
 import type { ClassifyRequest } from "@/lib/messaging/extension-messaging";
 import { sortNewestFirst } from "@/lib/schemas/feed-video";
 import { getJudgingFilters } from "@/lib/schemas/semi-subscription";
@@ -69,13 +69,11 @@ export function collectClassificationJobs({ requests, subscriptions, channelVide
   for (const channelId in subscriptions) {
     const subscription = subscriptions[channelId];
     const filters = subscription ? getJudgingFilters(subscription) : [];
-    for (const filter of filters) {
-      if (filter.kind === FilterKind.aiMatch) {
-        addVideos({
-          filter,
-          videos: sortNewestFirst(channelVideos[channelId]?.videos ?? [])
-        });
-      }
+    for (const filter of filters.flatMap(listAiFilters)) {
+      addVideos({
+        filter,
+        videos: sortNewestFirst(channelVideos[channelId]?.videos ?? [])
+      });
     }
   }
 

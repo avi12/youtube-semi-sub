@@ -1,17 +1,36 @@
-import {
-  getReadableFilterError,
-  highlightMatches,
-  partitionPreviewRows,
-  previewAiFilter,
-  previewTitleFilter
-} from "./title-matches";
+import { getReadableFilterError, highlightMatches, partitionPreviewRows, previewVideoFilter } from "./title-matches";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, FilterKind, MatchState } from "@/lib/filter/title-filter";
+import {
+  type AiFilter,
+  FilterKind,
+  FilterMatch,
+  MatchState,
+  type RegexFilter
+} from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UC0123456789abcdefghijkl";
+
+function previewTitleFilter({ filter, videos, mode }: Pick<Parameters<typeof previewVideoFilter>[0], "videos" | "mode"> & {
+  filter: RegexFilter;
+}) {
+  return previewVideoFilter({
+    filter,
+    videos,
+    mode,
+    aiVerdicts: {},
+    isAiEnabled: false
+  });
+}
+
+function previewAiFilter(options: Omit<Parameters<typeof previewVideoFilter>[0], "mode">) {
+  return previewVideoFilter({
+    ...options,
+    mode: SubscriptionMode.follow
+  });
+}
 
 function createVideo({ videoId, title }: {
   videoId: string;
@@ -179,7 +198,33 @@ describe("previewTitleFilter", () => {
     });
     expect(preview.isValid).toBe(false);
     expect(preview.feedRows).toHaveLength(0);
-    expect(preview.skippedRows).toHaveLength(videos.length);
+    expect(preview.skippedRows).toHaveLength(0);
+  });
+
+  it("highlights the pattern of a filter combined with a length", () => {
+    const preview = previewVideoFilter({
+      filter: {
+        kind: FilterKind.group,
+        match: FilterMatch.all,
+        conditions: [{
+          kind: FilterKind.regex,
+          pattern: "tutorial",
+          flags: "i"
+        }, {
+          kind: FilterKind.length,
+          maxSeconds: 600
+        }]
+      },
+      videos: videos.map((video, i) => ({
+        ...video,
+        durationSeconds: i === 0 ? 300 : 900
+      })),
+      mode: SubscriptionMode.follow,
+      aiVerdicts: {},
+      isAiEnabled: false
+    });
+    expect(preview.matchCount).toBe(1);
+    expect(preview.feedRows[0]?.segments.some(segment => segment.isHighlighted)).toBe(true);
   });
 });
 

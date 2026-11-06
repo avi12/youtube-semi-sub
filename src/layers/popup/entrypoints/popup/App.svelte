@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FilterKind, selectFeedVideos, selectHiddenVideoIds } from "@/lib/filter/title-filter";
+  import { listAiFilters, selectFeedVideos, selectHiddenVideoIds } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
   import {
@@ -60,7 +60,7 @@
 
   const subscriptionList = $derived(listByTitle(subscriptions));
   const aiFilterCount = $derived(
-    subscriptionList.filter(subscription => getActiveFilter(subscription)?.kind === FilterKind.aiMatch).length
+    subscriptionList.filter(subscription => listAiFilters(getActiveFilter(subscription)).length > 0).length
   );
   const filterInput = $derived({
     subscriptions,

@@ -2,12 +2,13 @@
   import Disclosure from "./Disclosure.svelte";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
+  import { formatDuration } from "@/lib/youtube/video-duration";
   import { popTile, slideTile } from "#filter-editor/preview/tile-motion";
-  import type { PreviewHints, PreviewRow, TitleFilterPreview } from "#filter-editor/preview/title-matches";
+  import type { PreviewHints, PreviewRow, VideoFilterPreview } from "#filter-editor/preview/title-matches";
 
   interface Props {
     /** `isStale`: the filter is mid-edit and invalid, so this is the last valid result */
-    preview: TitleFilterPreview & { isStale: boolean };
+    preview: VideoFilterPreview & { isStale: boolean };
     hints: PreviewHints;
     videoCount: number;
     isLoading: boolean;
@@ -81,6 +82,9 @@
     <span class="video__meta">
       {#if row.video.isShort}
         <span class="video__short">Short</span>
+      {/if}
+      {#if row.video.durationSeconds !== undefined}
+        <span class="video__duration">{formatDuration(row.video.durationSeconds)}</span>
       {/if}
       <time class="video__time" datetime={new Date(row.video.publishedAt).toISOString()}>
         {formatRelativeTime({
@@ -262,9 +266,14 @@
     line-height: 18px;
   }
 
-  .video__time {
+  .video__time,
+  .video__duration {
     color: var(--editor-muted);
     font-size: 12px;
+  }
+
+  .video__duration {
+    font-variant-numeric: tabular-nums;
   }
 
   .video__match {

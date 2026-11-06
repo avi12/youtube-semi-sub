@@ -1,25 +1,44 @@
 <script lang="ts">
   import { MODE_COPY } from "./mode-copy";
   import { AiEngine, type AiStatus, isAiEngineAvailable } from "@/lib/ai/ai-status";
+  import { FILTER_MATCH_CONNECTOR } from "@/lib/filter/filter-literal";
   import {
+    buildVideoFilter,
     DEFAULT_TITLE_FILTER,
     EMPTY_AI_FILTER,
+    type FilterCondition,
     FilterKind,
-    type RegexFilter,
-    type TitleFilter
+    type FilterMatch,
+    FilterMethod,
+    getFilterMatch,
+    isFilterConditionValid,
+    listFilterConditions,
+    TITLE_FILTER_KINDS,
+    type TitleFilter,
+    type VideoFilter
   } from "@/lib/filter/title-filter";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import AiFilterFields from "#filter-editor/components/AiFilterFields.svelte";
   import FilterPreview from "#filter-editor/components/FilterPreview.svelte";
-  import KindSwitch from "#filter-editor/components/KindSwitch.svelte";
+  import LengthFilterFields from "#filter-editor/components/LengthFilterFields.svelte";
+  import MethodPicker from "#filter-editor/components/MethodPicker.svelte";
   import RegexFilterFields from "#filter-editor/components/RegexFilterFields.svelte";
+  import SegmentedSwitch from "#filter-editor/components/SegmentedSwitch.svelte";
+  import {
+    createDefaultCondition,
+    FILTER_MATCH_LABEL,
+    FILTER_MATCHES,
+    getConditionMethod,
+    TITLE_KIND_LABEL,
+    withMethodCondition
+  } from "#filter-editor/filter-methods";
   import { watchAiMatchPreview } from "#filter-editor/preview/ai-match-preview.svelte";
-  import { previewAiFilter, previewTitleFilter, type TitleFilterPreview } from "#filter-editor/preview/title-matches";
-  import type { Snippet } from "svelte";
+  import { previewVideoFilter, type VideoFilterPreview } from "#filter-editor/preview/title-matches";
+  import { type Snippet, untrack } from "svelte";
 
   interface Props {
-    filter: TitleFilter;
+    filter: VideoFilter;
     /** Following picks the videos added to the feed, hiding the ones hidden from it */
     mode: SubscriptionMode;
     /** A sample of the channel's recent uploads to preview the filter on - may be empty */
@@ -35,41 +54,86 @@
   let { filter = $bindable(), mode, videos, isLoading = false, aiSetup }: Props = $props();
 
   const id = $props.id();
-  const inputId = `${id}-filter`;
+  const titleInputId = `${id}-title`;
+  const lengthInputId = `${id}-length`;
 
   const copy = $derived(MODE_COPY[mode]);
+  const conditions = $derived(listFilterConditions(filter));
+  const pickedMethods = $derived(conditions.map(getConditionMethod));
+  const isCombined = $derived(conditions.length > 1);
+  /** Kept while a single condition is left, so picking a second method again brings the same match back */
+  let preferredMatch = $state(untrack(() => getFilterMatch(filter)));
+  const match = $derived(isCombined ? getFilterMatch(filter) : preferredMatch);
 
-  /** Switching kinds keeps what was typed for the other one, so flipping back and forth loses nothing */
-  const parkedFilters: Partial<Record<FilterKind, TitleFilter>> = {};
+  /** Dropping a method or switching kinds keeps what was typed, so flipping back and forth loses nothing */
+  const parkedConditions: Partial<Record<FilterMethod, FilterCondition>> = {};
+  const parkedTitleFilters: Partial<Record<TitleFilter["kind"], TitleFilter>> = {};
 
-  function createEmptyFilter(kind: FilterKind) {
+  function setConditions(nextConditions: FilterCondition[]) {
+    filter = buildVideoFilter({
+      conditions: nextConditions,
+      match
+    });
+  }
+
+  function setCondition({ method, condition }: {
+    method: FilterMethod;
+    condition: FilterCondition | null;
+  }) {
+    setConditions(
+      withMethodCondition({
+        conditions,
+        method,
+        condition
+      })
+    );
+  }
+
+  function setMatch(nextMatch: FilterMatch) {
+    preferredMatch = nextMatch;
+    filter = buildVideoFilter({
+      conditions,
+      match: nextMatch
+    });
+  }
+
+  function pickMethod({ method, isPicked }: {
+    method: FilterMethod;
+    isPicked: boolean;
+  }) {
+    const condition = conditions.find(other => getConditionMethod(other) === method);
+    if (!isPicked && condition) {
+      parkedConditions[method] = condition;
+    }
+
+    setCondition({
+      method,
+      condition: isPicked ? parkedConditions[method] ?? createDefaultCondition(method) : null
+    });
+  }
+
+  function createEmptyTitleFilter(kind: TitleFilter["kind"]) {
     const emptyFilter: TitleFilter = kind === FilterKind.aiMatch ? { ...EMPTY_AI_FILTER } : { ...DEFAULT_TITLE_FILTER };
     return emptyFilter;
   }
 
-  function switchKind(kind: FilterKind) {
-    if (kind === filter.kind) {
+  function switchTitleKind(kind: TitleFilter["kind"]) {
+    const titleFilter = regexFilter ?? aiFilter;
+    if (!titleFilter || kind === titleFilter.kind) {
       return;
     }
 
-    parkedFilters[filter.kind] = filter;
-    filter = parkedFilters[kind] ?? createEmptyFilter(kind);
+    parkedTitleFilters[titleFilter.kind] = titleFilter;
+    setCondition({
+      method: FilterMethod.title,
+      condition: parkedTitleFilters[kind] ?? createEmptyTitleFilter(kind)
+    });
   }
 
-  const aiFilter = $derived.by(() => {
-    if (filter.kind === FilterKind.aiMatch) {
-      return filter;
-    }
-
-    return null;
-  });
-  const regexFilter = $derived.by(() => {
-    if (filter.kind === FilterKind.regex) {
-      return filter;
-    }
-
-    return null;
-  });
+  const aiFilter = $derived(conditions.find(condition => condition.kind === FilterKind.aiMatch) ?? null);
+  const regexFilter = $derived(conditions.find(condition => condition.kind === FilterKind.regex) ?? null);
+  const lengthFilter = $derived(conditions.find(condition => condition.kind === FilterKind.length) ?? null);
+  const titleKind = $derived(aiFilter ? FilterKind.aiMatch : FilterKind.regex);
 
   const aiMatch = watchAiMatchPreview(() => ({
     filter: aiFilter,
@@ -98,20 +162,22 @@
   });
   const isSetupOffered = $derived(aiNotice !== null && isAiEngineAvailable(aiMatch.aiStatus));
 
-  let lastValidRegexPreview: {
+  let lastValidPreview: {
     videos: FeedVideo[];
-    preview: TitleFilterPreview;
+    preview: VideoFilterPreview;
   } | null = null;
 
-  /** While the pattern is mid-edit and invalid, keep showing the last valid result instead of emptying the feed */
-  function buildRegexPreview(currentFilter: RegexFilter) {
-    const currentPreview = previewTitleFilter({
-      filter: currentFilter,
+  /** While a condition is mid-edit and invalid, keep showing the last valid result instead of emptying the feed */
+  const preview = $derived.by(() => {
+    const currentPreview = previewVideoFilter({
+      filter,
       videos,
-      mode
+      mode,
+      aiVerdicts: aiMatch.aiVerdicts,
+      isAiEnabled: aiMatch.isAiEnabled
     });
     if (currentPreview.isValid) {
-      lastValidRegexPreview = {
+      lastValidPreview = {
         videos,
         preview: currentPreview
       };
@@ -121,10 +187,11 @@
       };
     }
 
-    const isLastValidPreviewCurrent = lastValidRegexPreview?.videos === videos;
-    if (lastValidRegexPreview && isLastValidPreviewCurrent) {
+    const isPausedByAi = aiFilter !== null && !aiMatch.isAiEnabled;
+    const isLastValidPreviewCurrent = lastValidPreview?.videos === videos;
+    if (lastValidPreview && isLastValidPreviewCurrent && !isPausedByAi) {
       return {
-        ...lastValidRegexPreview.preview,
+        ...lastValidPreview.preview,
         isStale: true
       };
     }
@@ -133,30 +200,17 @@
       ...currentPreview,
       isStale: false
     };
-  }
-
-  const preview = $derived.by(() => {
-    if (regexFilter) {
-      return buildRegexPreview(regexFilter);
-    }
-
-    if (!aiFilter) {
-      return null;
-    }
-
-    return {
-      ...previewAiFilter({
-        filter: aiFilter,
-        videos,
-        aiVerdicts: aiMatch.aiVerdicts,
-        isAiEnabled: aiMatch.isAiEnabled
-      }),
-      isStale: false
-    };
   });
+  /** Worded after the condition that stops the preview, else after the one most likely to explain no match */
   const hints = $derived.by(() => {
-    if (regexFilter) {
+    const invalidCondition = conditions.find(condition => !isFilterConditionValid(condition));
+    const kind = invalidCondition?.kind ?? aiFilter?.kind ?? regexFilter?.kind ?? FilterKind.length;
+    if (kind === FilterKind.regex) {
       return copy.regexHints;
+    }
+
+    if (kind === FilterKind.length) {
+      return copy.lengthHints;
     }
 
     if (!aiMatch.isAiEnabled) {
@@ -169,37 +223,82 @@
 
     return copy.aiHints;
   });
+  const previewInputId = $derived(regexFilter || aiFilter ? titleInputId : lengthInputId);
 </script>
 
 <div class="filter-editor">
-  <header class="filter-editor__header">
-    <label class="filter-editor__label" for={inputId}>
-      {#if aiFilter}
-        {copy.aiLabel}
-      {:else}
-        {copy.regexLabel}
-      {/if}
-    </label>
-    <KindSwitch kind={filter.kind} onKindChange={switchKind} />
-  </header>
+  <div class="filter-editor__controls">
+    <MethodPicker onPickedChange={pickMethod} {pickedMethods} />
+    {#if isCombined}
+      <div class="filter-editor__match">
+        <span class="filter-editor__match-label" aria-hidden="true">{copy.matchLegend}</span>
+        <SegmentedSwitch
+          labels={FILTER_MATCH_LABEL}
+          legend={copy.matchLegend}
+          onValueChange={setMatch}
+          options={FILTER_MATCHES}
+          value={match} />
+      </div>
+    {/if}
+  </div>
 
-  {#if regexFilter}
-    <RegexFilterFields
-      emptyPatternHint={copy.emptyPatternHint}
-      {inputId}
-      placeholder={copy.regexPlaceholder}
-      bind:filter={() => regexFilter, editedFilter => {
-        filter = editedFilter;
-      }} />
-  {:else if aiFilter}
-    <AiFilterFields
-      hint={copy.aiHint}
-      {inputId}
-      placeholder={copy.aiPlaceholder}
-      bind:filter={() => aiFilter, editedFilter => {
-        filter = editedFilter;
-      }} />
-  {/if}
+  <ol class="conditions">
+    {#each conditions as condition, i (getConditionMethod(condition))}
+      <li class="condition">
+        {#if i > 0}
+          <span class="condition__connector">{FILTER_MATCH_CONNECTOR[match]}</span>
+        {/if}
+        <section class={["condition__card", isCombined && "condition__card--framed"]}>
+          {#if condition.kind === FilterKind.length}
+            <header class="condition__header">
+              <label class="condition__label" for={lengthInputId}>{copy.lengthLabel}</label>
+            </header>
+            <LengthFilterFields
+              inputId={lengthInputId}
+              bind:filter={() => condition, edited => setCondition({
+                method: FilterMethod.length,
+                condition: edited
+              })} />
+          {:else}
+            <header class="condition__header">
+              <label class="condition__label" for={titleInputId}>
+                {#if condition.kind === FilterKind.aiMatch}
+                  {copy.aiLabel}
+                {:else}
+                  {copy.regexLabel}
+                {/if}
+              </label>
+              <SegmentedSwitch
+                labels={TITLE_KIND_LABEL}
+                legend="Match titles with"
+                onValueChange={switchTitleKind}
+                options={TITLE_FILTER_KINDS}
+                value={titleKind} />
+            </header>
+            {#if condition.kind === FilterKind.regex}
+              <RegexFilterFields
+                emptyPatternHint={isCombined ? "Leave it empty to judge by the other filters only" : copy.emptyPatternHint}
+                inputId={titleInputId}
+                placeholder={copy.regexPlaceholder}
+                bind:filter={() => condition, edited => setCondition({
+                  method: FilterMethod.title,
+                  condition: edited
+                })} />
+            {:else}
+              <AiFilterFields
+                hint={copy.aiHint}
+                inputId={titleInputId}
+                placeholder={copy.aiPlaceholder}
+                bind:filter={() => condition, edited => setCondition({
+                  method: FilterMethod.title,
+                  condition: edited
+                })} />
+            {/if}
+          {/if}
+        </section>
+      </li>
+    {/each}
+  </ol>
 
   {#if aiNotice}
     <section class="ai-notice" aria-live="polite">
@@ -215,16 +314,14 @@
     </section>
   {/if}
 
-  {#if preview}
-    <FilterPreview
-      {hints}
-      {inputId}
-      {isLoading}
-      label={copy.previewLabel}
-      {preview}
-      skippedLabel={copy.skippedLabel}
-      videoCount={videos.length} />
-  {/if}
+  <FilterPreview
+    {hints}
+    inputId={previewInputId}
+    {isLoading}
+    label={copy.previewLabel}
+    {preview}
+    skippedLabel={copy.skippedLabel}
+    videoCount={videos.length} />
 </div>
 
 <style>
@@ -252,18 +349,102 @@
       outline-offset: 2px;
       animation: none;
     }
+
+    /* The frame every text field of the editor sits in */
+    & :global(.filter-editor-field) {
+      display: flex;
+      align-items: center;
+      padding-inline: 12px;
+      border: 1px solid var(--editor-border);
+      border-radius: 10px;
+      background: var(--editor-surface);
+
+      @media (prefers-reduced-motion: no-preference) {
+        transition:
+          border-color 120ms var(--editor-ease),
+          box-shadow 120ms var(--editor-ease);
+      }
+
+      &:focus-within {
+        border-color: var(--editor-accent);
+        box-shadow: 0 0 0 1px var(--editor-accent);
+      }
+    }
+
+    & :global(.filter-editor-field:has([aria-invalid="true"])) {
+      border-color: var(--editor-error);
+      box-shadow: 0 0 0 1px var(--editor-error);
+    }
   }
 
-  .filter-editor__header {
+  .filter-editor__controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filter-editor__match {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .filter-editor__match-label {
+    color: var(--editor-muted);
+    font-size: 13px;
+  }
+
+  .conditions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .condition {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .condition__connector {
+    padding-block: 2px;
+    padding-inline: 10px;
+    border-radius: 999px;
+    background: color-mix(in sRGB, var(--editor-accent) 14%, transparent);
+    color: var(--editor-fg);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .condition__card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-self: stretch;
+  }
+
+  .condition__card--framed {
+    padding: 12px;
+    border: 1px solid var(--editor-border);
+    border-radius: 12px;
+  }
+
+  .condition__header {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     justify-content: space-between;
     align-items: center;
-    margin-block-end: -8px;
   }
 
-  .filter-editor__label {
+  .condition__label {
     color: var(--editor-fg);
     font-weight: 600;
     font-size: 13px;

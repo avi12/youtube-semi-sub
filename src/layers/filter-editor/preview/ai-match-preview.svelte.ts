@@ -1,6 +1,6 @@
 import { type AiStatus, isAiEngineAvailable } from "@/lib/ai/ai-status";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, type AiJudgeContext, isTitleFilterValid } from "@/lib/filter/title-filter";
+import { type AiFilter, type AiJudgeContext, isVideoFilterValid } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { aiVerdictsItem, isAiEnabledItem } from "@/lib/storage";
@@ -80,7 +80,7 @@ export function watchAiMatchPreview(readPreview: () => {
 
   $effect(() => {
     const { filter, videos } = readPreview();
-    const isRequestable = filter !== null && isTitleFilterValid(filter) && aiState.isAiEnabled && videos.length > 0;
+    const isRequestable = filter !== null && isVideoFilterValid(filter) && aiState.isAiEnabled && videos.length > 0;
     if (!isRequestable) {
       return;
     }

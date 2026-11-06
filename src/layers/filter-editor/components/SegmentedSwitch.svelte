@@ -1,39 +1,36 @@
-<script lang="ts">
-  import { FilterKind } from "@/lib/filter/title-filter";
-
+<script generics="Value extends string" lang="ts">
   interface Props {
-    kind: FilterKind;
-    onKindChange: (kind: FilterKind) => void;
+    /** Read by screen readers only - the switch sits beside a visible heading */
+    legend: string;
+    options: readonly Value[];
+    labels: Record<Value, string>;
+    value: Value;
+    onValueChange: (value: Value) => void;
   }
 
-  const { kind, onKindChange }: Props = $props();
+  const { legend, options, labels, value, onValueChange }: Props = $props();
 
   const id = $props.id();
-  const KIND_LABELS = {
-    [FilterKind.regex]: "RegExp",
-    [FilterKind.aiMatch]: "AI match"
-  } satisfies Record<FilterKind, string>;
-  const KINDS = Object.values(FilterKind);
 </script>
 
-<fieldset class="kind-switch">
-  <legend class="kind-switch__legend">Filter by</legend>
-  {#each KINDS as option (option)}
-    <label class="kind-switch__option">
+<fieldset class="segmented">
+  <legend class="segmented__legend">{legend}</legend>
+  {#each options as option (option)}
+    <label class="segmented__option">
       <input
-        name="{id}-kind"
-        class="kind-switch__radio"
-        checked={kind === option}
-        onchange={() => onKindChange(option)}
+        name="{id}-option"
+        class="segmented__radio"
+        checked={value === option}
+        onchange={() => onValueChange(option)}
         type="radio"
         value={option} />
-      {KIND_LABELS[option]}
+      {labels[option]}
     </label>
   {/each}
 </fieldset>
 
 <style>
-  .kind-switch {
+  .segmented {
     display: inline-flex;
     margin: 0;
     padding: 2px;
@@ -42,7 +39,7 @@
     background: var(--editor-surface);
   }
 
-  .kind-switch__legend {
+  .segmented__legend {
     position: absolute;
     overflow: hidden;
     block-size: 1px;
@@ -51,7 +48,7 @@
     white-space: nowrap;
   }
 
-  .kind-switch__option {
+  .segmented__option {
     position: relative;
     padding-block: 4px;
     padding-inline: 12px;
@@ -82,7 +79,7 @@
     }
   }
 
-  .kind-switch__radio {
+  .segmented__radio {
     position: absolute;
     opacity: 0%;
     pointer-events: none;

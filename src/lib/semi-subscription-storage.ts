@@ -1,4 +1,4 @@
-import type { TitleFilter } from "@/lib/filter/title-filter";
+import type { VideoFilter } from "@/lib/filter/title-filter";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import { type SemiSubscription, type SemiSubscriptions, withModeFilter } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
@@ -20,7 +20,7 @@ export function mergeSemiSubscription({ previous, channel, mode, filter, now }: 
   previous: SemiSubscription | undefined;
   channel: ChannelInfo;
   mode: SubscriptionMode;
-  filter: TitleFilter;
+  filter: VideoFilter;
   now: number;
 }) {
   const base: SemiSubscription = {

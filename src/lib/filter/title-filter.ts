@@ -8,7 +8,26 @@ import { z } from "@/lib/zod";
 export enum FilterKind {
   regex = "regex",
   /** A plain-language description a model judges per video */
-  aiMatch = "ai"
+  aiMatch = "ai",
+  /** How long a video runs */
+  length = "length",
+  /** Several conditions, all or any of which a video has to meet */
+  group = "group"
+}
+
+/** What a condition judges a video by - a filter holds at most one condition per method */
+export enum FilterMethod {
+  title = "title",
+  length = "length"
+}
+
+/** The ways a title condition can be written */
+export const TITLE_FILTER_KINDS = [FilterKind.regex, FilterKind.aiMatch] as const;
+
+/** How a group's conditions combine */
+export enum FilterMatch {
+  all = "all",
+  any = "any"
 }
 
 /** Tri-state so a filter that judges videos asynchronously can show a video before its verdict arrives */
@@ -17,6 +36,9 @@ export enum MatchState {
   doesNotMatch = "does-not-match",
   pending = "pending"
 }
+
+/** YouTube's cap on a Short, so a Short of unknown length is known to run no longer than this */
+const SHORT_MAX_DURATION_SECONDS = 180;
 
 // `g` and `y` make RegExp.test stateful, `d` only adds indices - none of them mean anything for a title filter
 export const ALLOWED_FILTER_FLAGS = ["i", "m", "s", "u", "v"] as const;
@@ -39,6 +61,43 @@ export type AiFilter = z.infer<typeof aiFilterSchema>;
 export const titleFilterSchema = z.discriminatedUnion("kind", [regexFilterSchema, aiFilterSchema]);
 export type TitleFilter = z.infer<typeof titleFilterSchema>;
 
+const durationBoundSchema = z.number().int().nonnegative();
+
+/** A length range: either bound may be left open */
+const lengthFilterSchema = z.object({
+  kind: z.literal(FilterKind.length),
+  minSeconds: durationBoundSchema.optional(),
+  maxSeconds: durationBoundSchema.optional()
+});
+export type LengthFilter = z.infer<typeof lengthFilterSchema>;
+
+const filterConditionSchema = z.discriminatedUnion("kind", [regexFilterSchema, aiFilterSchema, lengthFilterSchema]);
+export type FilterCondition = z.infer<typeof filterConditionSchema>;
+
+const filterGroupSchema = z.object({
+  kind: z.literal(FilterKind.group),
+  match: z.enum(FilterMatch),
+  conditions: z.array(filterConditionSchema)
+});
+
+/**
+ * What a mode's filter is: one condition, or a group of them. A single condition is stored bare (`buildVideoFilter`),
+ * so a filter of one condition reads the same as before filters could be combined
+ */
+export const videoFilterSchema = z.discriminatedUnion("kind", [
+  regexFilterSchema,
+  aiFilterSchema,
+  lengthFilterSchema,
+  filterGroupSchema
+]);
+export type VideoFilter = z.infer<typeof videoFilterSchema>;
+
+export const FILTER_METHOD_BY_KIND = {
+  [FilterKind.regex]: FilterMethod.title,
+  [FilterKind.aiMatch]: FilterMethod.title,
+  [FilterKind.length]: FilterMethod.length
+} as const satisfies Record<FilterCondition["kind"], FilterMethod>;
+
 /** A filter saved before filters had a `kind`, when every filter was a RegExp, read as today's RegExp filter */
 export const legacyRegexFilterSchema = regexFilterSchema.omit({ kind: true }).transform(filter => {
   const upgraded: RegexFilter = {
@@ -59,6 +118,48 @@ export const EMPTY_AI_FILTER: AiFilter = {
   kind: FilterKind.aiMatch,
   description: ""
 };
+
+const DEFAULT_MAX_LENGTH_SECONDS = 20 * 60;
+
+/** Where the editor starts when a length condition is added */
+export const DEFAULT_LENGTH_FILTER: LengthFilter = {
+  kind: FilterKind.length,
+  maxSeconds: DEFAULT_MAX_LENGTH_SECONDS
+};
+
+export function listFilterConditions(filter: VideoFilter) {
+  const conditions: FilterCondition[] = filter.kind === FilterKind.group ? filter.conditions : [filter];
+  return conditions;
+}
+
+export function getFilterMatch(filter: VideoFilter) {
+  return filter.kind === FilterKind.group ? filter.match : FilterMatch.all;
+}
+
+/** The one way a filter is put together: a single condition stands alone, more are grouped */
+export function buildVideoFilter({ conditions, match }: {
+  conditions: FilterCondition[];
+  match: FilterMatch;
+}) {
+  const [onlyCondition] = conditions;
+  if (onlyCondition && conditions.length === 1) {
+    const filter: VideoFilter = onlyCondition;
+    return filter;
+  }
+
+  const filter: VideoFilter = {
+    kind: FilterKind.group,
+    match,
+    conditions
+  };
+  return filter;
+}
+
+/** A filter's AI conditions - what the model judges for it */
+export function listAiFilters(filter: VideoFilter | null) {
+  const conditions = filter ? listFilterConditions(filter) : [];
+  return conditions.filter(condition => condition.kind === FilterKind.aiMatch);
+}
 
 const UNSUPPORTED_FLAGS_ERROR = `Only the ${ALLOWED_FILTER_FLAGS.join(", ")} flags work in a title filter`;
 
@@ -93,20 +194,41 @@ export function getTitleFilterError(filter: RegexFilter) {
   return compileRegexFilter(filter).error;
 }
 
-/** Whether a draft can be saved: a pattern that compiles, or a description that isn't blank or too long */
-export function isTitleFilterValid(filter: TitleFilter) {
-  if (filter.kind === FilterKind.regex) {
-    return compileTitleFilter(filter) !== null;
+export function isLengthFilterSet({ minSeconds, maxSeconds }: LengthFilter) {
+  return minSeconds !== undefined || maxSeconds !== undefined;
+}
+
+export function isLengthRangeValid({ minSeconds = 0, maxSeconds = Infinity }: LengthFilter) {
+  return minSeconds <= maxSeconds;
+}
+
+export function isFilterConditionValid(condition: FilterCondition) {
+  if (condition.kind === FilterKind.regex) {
+    return compileTitleFilter(condition) !== null;
   }
 
-  return aiFilterSchema.safeParse(filter).success;
+  if (condition.kind === FilterKind.length) {
+    const isSchemaValid = lengthFilterSchema.safeParse(condition).success;
+    return isSchemaValid && isLengthFilterSet(condition) && isLengthRangeValid(condition);
+  }
+
+  return aiFilterSchema.safeParse(condition).success;
+}
+
+/**
+ * Whether a draft can be saved: every condition can run - a pattern that compiles, a description that isn't blank or
+ * too long, a length range with a bound and its shortest no longer than its longest
+ */
+export function isVideoFilterValid(filter: VideoFilter) {
+  const conditions = listFilterConditions(filter);
+  return conditions.length > 0 && conditions.every(isFilterConditionValid);
 }
 
 /** What an AI filter's judge reads besides the filter: the opt-in (off means paused) and the verdict cache */
 export type AiJudgeContext = Pick<StoredState, "aiVerdicts" | "isAiEnabled">;
 
 /** All a judge reads of a video, so a feed tile can be judged as well as a cached upload */
-type JudgedVideo = Pick<FeedVideo, "videoId" | "title">;
+type JudgedVideo = Pick<FeedVideo, "videoId" | "title"> & Partial<Pick<FeedVideo, "durationSeconds" | "isShort">>;
 
 function createRegexJudge(filter: RegexFilter) {
   const regex = compileTitleFilter(filter);
@@ -137,47 +259,147 @@ function createAiJudge({ filter, aiVerdicts, isAiEnabled }: AiJudgeContext & { f
 }
 
 /**
- * How a filter treats each video. Null when it can't judge at all: a pattern that doesn't compile, or an AI filter
- * while AI match is turned off (paused). An AI filter's video without a verdict yet is pending
+ * A video of unknown length is judged by the span it may run: a Short anywhere up to YouTube's cap, anything else (not
+ * looked up yet, or live) any length - so it matches only when that whole span is in range, and is pending while the
+ * range splits it
  */
-export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filter: TitleFilter }) {
-  if (filter.kind === FilterKind.regex) {
-    return createRegexJudge(filter);
+function createLengthJudge({ minSeconds = 0, maxSeconds = Infinity }: LengthFilter) {
+  return function judgeByLength({ durationSeconds, isShort }: JudgedVideo) {
+    const shortest = durationSeconds ?? 0;
+    const longest = durationSeconds ?? (isShort ? SHORT_MAX_DURATION_SECONDS : Infinity);
+    if (shortest >= minSeconds && longest <= maxSeconds) {
+      return MatchState.matches;
+    }
+
+    const isOutOfRange = longest < minSeconds || shortest > maxSeconds;
+    return isOutOfRange ? MatchState.doesNotMatch : MatchState.pending;
+  };
+}
+
+function createConditionJudge({ condition, ...context }: AiJudgeContext & { condition: FilterCondition }) {
+  if (condition.kind === FilterKind.regex) {
+    return createRegexJudge(condition);
+  }
+
+  if (condition.kind === FilterKind.length) {
+    return createLengthJudge(condition);
   }
 
   return createAiJudge({
-    filter,
+    filter: condition,
     ...context
   });
+}
+
+/** A condition that lets every video through - an empty pattern, a length range with no bound - so it is left out */
+function isConditionUnrestricting(condition: FilterCondition) {
+  if (condition.kind === FilterKind.regex) {
+    return condition.pattern === "";
+  }
+
+  if (condition.kind === FilterKind.length) {
+    return !isLengthFilterSet(condition);
+  }
+
+  return false;
+}
+
+function listRestrictingConditions(filter: VideoFilter) {
+  return listFilterConditions(filter).filter(condition => !isConditionUnrestricting(condition));
+}
+
+/** All: one miss decides, any: one match does; short of that, a pending condition keeps the whole pending */
+function combineMatchStates({ matchStates, match }: {
+  matchStates: MatchState[];
+  match: FilterMatch;
+}) {
+  const decisiveState = match === FilterMatch.all ? MatchState.doesNotMatch : MatchState.matches;
+  if (matchStates.includes(decisiveState)) {
+    return decisiveState;
+  }
+
+  if (matchStates.includes(MatchState.pending)) {
+    return MatchState.pending;
+  }
+
+  return match === FilterMatch.all ? MatchState.matches : MatchState.doesNotMatch;
+}
+
+function judgeMatch() {
+  return MatchState.matches;
+}
+
+/**
+ * How a filter treats each video: each condition judged, then combined by the filter's match. A filter whose
+ * conditions all let everything through matches every video. Null when it can't judge at all: a pattern that doesn't
+ * compile, or nothing but AI conditions while AI match is turned off (paused). Beside other conditions a paused one
+ * counts as pending, like an AI condition's video without a verdict yet
+ */
+export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filter: VideoFilter }) {
+  const conditions = listRestrictingConditions(filter);
+  if (conditions.length === 0) {
+    return judgeMatch;
+  }
+
+  const judges = conditions.map(condition => createConditionJudge({
+    condition,
+    ...context
+  }));
+  const isPatternBroken = conditions.some((condition, i) => condition.kind === FilterKind.regex && !judges[i]);
+  const workingJudges = judges.filter(judge => judge !== null);
+  if (isPatternBroken || workingJudges.length === 0) {
+    return null;
+  }
+
+  const isPausedConditionLeft = workingJudges.length < judges.length;
+  const match = getFilterMatch(filter);
+  return function judgeVideo(video: JudgedVideo) {
+    const matchStates = workingJudges.map(judge => judge(video));
+    if (isPausedConditionLeft) {
+      matchStates.push(MatchState.pending);
+    }
+
+    return combineMatchStates({
+      matchStates,
+      match
+    });
+  };
 }
 
 /**
  * Whether a mode's filter leaves the feed as YouTube has it - the one place both modes' empty cases are decided. A
  * filter never set in its mode (null: the channel was saved in the other one) does nothing in either mode, so a
- * later subscribe or unsubscribe never starts hiding or adding videos nobody picked. An empty pattern the user saved
- * hides nothing as a hide filter and lets every video through as a follow filter - either way, the whole channel
+ * later subscribe or unsubscribe never starts hiding or adding videos nobody picked. A filter whose conditions all let
+ * every video through (an empty pattern) hides nothing as a hide filter and lets every video through as a follow
+ * filter - either way, the whole channel
  */
 export function isFilterInert({ filter, mode }: {
-  filter: TitleFilter | null;
+  filter: VideoFilter | null;
   mode: SubscriptionMode;
 }) {
   if (!filter) {
     return true;
   }
 
-  return mode === SubscriptionMode.hide && filter.kind === FilterKind.regex && filter.pattern === "";
+  return mode === SubscriptionMode.hide && listRestrictingConditions(filter).length === 0;
 }
 
 /**
  * Whether a follow filter also restricts the channel while the user is subscribed - the Allow list keeps filtering:
- * only what it lets through stays. An empty pattern lets every video through, so it restricts nothing
+ * only what it lets through stays. A filter that lets every video through restricts nothing
  */
-export function isAllowListRestricting(filter: TitleFilter | null) {
+export function isAllowListRestricting(filter: VideoFilter | null) {
   if (!filter) {
     return false;
   }
 
-  return filter.kind !== FilterKind.regex || filter.pattern !== "";
+  return listRestrictingConditions(filter).length > 0;
+}
+
+/** Whether a filter judges videos by their length, which only the Videos tab tells */
+export function isLengthFiltered(filter: VideoFilter | null) {
+  const conditions = filter ? listRestrictingConditions(filter) : [];
+  return conditions.some(condition => condition.kind === FilterKind.length);
 }
 
 function judgeNoMatch() {
@@ -186,7 +408,7 @@ function judgeNoMatch() {
 
 /** `createVideoJudge` for a mode's filter: an inert one (`isFilterInert`) matches no video */
 export function createModeJudge({ filter, mode, ...context }: AiJudgeContext & {
-  filter: TitleFilter | null;
+  filter: VideoFilter | null;
   mode: SubscriptionMode;
 }) {
   const isInert = isFilterInert({
@@ -274,7 +496,8 @@ export function createSubscribedHideCheck({ subscription, ...context }: AiJudgeC
 
 /**
  * The other place the feed is filtered: the cached uploads each subscribed channel's lists hide. Only a definite
- * verdict hides a video - one still waiting for its AI verdict stays, and so does everything while a filter is paused
+ * verdict hides a video - one still waiting for its AI verdict or its length stays, and so does everything while a
+ * filter is paused
  */
 export function selectHiddenVideoIds({ subscriptions, videosByChannel, ...context }: Parameters<
   typeof selectFeedVideos

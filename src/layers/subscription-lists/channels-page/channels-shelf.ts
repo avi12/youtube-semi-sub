@@ -1,9 +1,9 @@
+import { describeFilterLiteral, formatFilterLiteral } from "@/lib/filter/filter-literal";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { formatHandle } from "@/lib/youtube/channel-link";
 import { z } from "@/lib/zod";
-import { describeFilterLiteral, formatFilterLiteral } from "#subscription-lists/components/filter-literal";
 import { describeManageButton } from "#subscription-lists/components/open-dialog";
 import { buildListedChannelEndpoint, SEMI_LIST_TITLE } from "#subscription-lists/semi-channels";
 

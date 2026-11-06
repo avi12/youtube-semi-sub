@@ -58,7 +58,7 @@
 {/snippet}
 
 <div class="regex">
-  <div class="regex__field">
+  <div class="regex__field filter-editor-field">
     <span class="regex__slash" aria-hidden="true">/</span>
     <input
       id={inputId}
@@ -109,30 +109,8 @@
   }
 
   .regex__field {
-    display: flex;
-    align-items: center;
-    padding-inline: 12px;
-    border: 1px solid var(--editor-border);
-    border-radius: 10px;
-    background: var(--editor-surface);
     font-family: var(--editor-mono);
     font-size: 15px;
-
-    @media (prefers-reduced-motion: no-preference) {
-      transition:
-        border-color 120ms var(--editor-ease),
-        box-shadow 120ms var(--editor-ease);
-    }
-
-    &:focus-within {
-      border-color: var(--editor-accent);
-      box-shadow: 0 0 0 1px var(--editor-accent);
-    }
-
-    &:has([aria-invalid="true"]) {
-      border-color: var(--editor-error);
-      box-shadow: 0 0 0 1px var(--editor-error);
-    }
   }
 
   .regex__slash {
