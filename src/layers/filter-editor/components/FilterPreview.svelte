@@ -14,9 +14,9 @@
     isLoading: boolean;
     /** The filter input the summary describes */
     inputId: string;
-    /** What the listed videos are: added to the feed, or hidden from it */
+    /** What the listed videos are: the ones that show in the feed */
     label: string;
-    /** What the rest do */
+    /** What the rest are: left out by a follow filter, hidden by a hide filter */
     skippedLabel: string;
   }
 
@@ -40,23 +40,23 @@
       return hints.invalidSummary;
     }
 
-    const { matchCount, pendingCount } = preview;
+    const { shownCount, pendingCount } = preview;
     const noun = pluralize({
       count: videoCount,
       one: "video",
       other: "videos"
     });
     const verb = pluralize({
-      count: matchCount,
-      one: "matches",
-      other: "match"
+      count: shownCount,
+      one: "shows",
+      other: "show"
     });
-    const matchSummary = `${matchCount} of ${videoCount} recent ${noun} ${verb}`;
+    const shownSummary = `${shownCount} of ${videoCount} recent ${noun} ${verb}`;
     if (pendingCount === 0) {
-      return matchSummary;
+      return shownSummary;
     }
 
-    return `${matchSummary} - checking ${pendingCount} more`;
+    return `${shownSummary} - checking ${pendingCount} more`;
   });
 </script>
 
@@ -114,7 +114,7 @@
     </ul>
   {:else if videoCount > 0}
     <ul class={["feed", preview.isStale && "feed--stale"]}>
-      {#each preview.feedRows as row (row.video.videoId)}
+      {#each preview.shownRows as row (row.video.videoId)}
         <li
           class="tile"
           data-match-state={row.matchState}
@@ -133,13 +133,13 @@
         </li>
       {/each}
     </ul>
-    {#if preview.skippedRows.length > 0}
+    {#if preview.hiddenRows.length > 0}
       <Disclosure>
         {#snippet summary()}
-          {preview.skippedRows.length} {skippedLabel}
+          {preview.hiddenRows.length} {skippedLabel}
         {/snippet}
         <ul class="skipped">
-          {#each preview.skippedRows as row (row.video.videoId)}
+          {#each preview.hiddenRows as row (row.video.videoId)}
             <li class="skipped__item">
               {@render videoCard(row)}
             </li>

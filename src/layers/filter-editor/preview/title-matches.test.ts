@@ -163,9 +163,9 @@ describe("previewTitleFilter", () => {
       mode: SubscriptionMode.follow
     });
     expect(preview.isValid).toBe(true);
-    expect(preview.feedRows.map(row => row.video.videoId)).toEqual(["aaaaaaaaaaa", "ccccccccccc"]);
-    expect(preview.skippedRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
-    expect(preview.matchCount).toBe(2);
+    expect(preview.shownRows.map(row => row.video.videoId)).toEqual(["aaaaaaaaaaa", "ccccccccccc"]);
+    expect(preview.hiddenRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
+    expect(preview.shownCount).toBe(2);
     expect(preview.pendingCount).toBe(0);
   });
 
@@ -179,8 +179,8 @@ describe("previewTitleFilter", () => {
       videos,
       mode: SubscriptionMode.follow
     });
-    expect(preview.matchCount).toBe(videos.length);
-    expect(preview.feedRows[1]?.segments).toEqual([{
+    expect(preview.shownCount).toBe(videos.length);
+    expect(preview.shownRows[1]?.segments).toEqual([{
       text: "Vlog",
       isHighlighted: false
     }]);
@@ -197,8 +197,8 @@ describe("previewTitleFilter", () => {
       mode: SubscriptionMode.follow
     });
     expect(preview.isValid).toBe(false);
-    expect(preview.feedRows).toHaveLength(0);
-    expect(preview.skippedRows).toHaveLength(0);
+    expect(preview.shownRows).toHaveLength(0);
+    expect(preview.hiddenRows).toHaveLength(0);
   });
 
   it("highlights the pattern of a filter combined with a length", () => {
@@ -223,8 +223,8 @@ describe("previewTitleFilter", () => {
       aiVerdicts: {},
       isAiEnabled: false
     });
-    expect(preview.matchCount).toBe(1);
-    expect(preview.feedRows[0]?.segments.some(segment => segment.isHighlighted)).toBe(true);
+    expect(preview.shownCount).toBe(1);
+    expect(preview.shownRows[0]?.segments.some(segment => segment.isHighlighted)).toBe(true);
   });
 });
 
@@ -240,7 +240,7 @@ describe("previewTitleFilter in hide mode", () => {
     })
   ];
 
-  it("lists the videos it hides", () => {
+  it("shows the videos it leaves alone, and lists the ones it hides apart", () => {
     const preview = previewTitleFilter({
       filter: {
         kind: FilterKind.regex,
@@ -250,8 +250,8 @@ describe("previewTitleFilter in hide mode", () => {
       videos,
       mode: SubscriptionMode.hide
     });
-    expect(preview.feedRows.map(row => row.video.videoId)).toEqual(["aaaaaaaaaaa"]);
-    expect(preview.skippedRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
+    expect(preview.shownRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
+    expect(preview.hiddenRows.map(row => row.video.videoId)).toEqual(["aaaaaaaaaaa"]);
   });
 
   it("hides nothing with an empty pattern, and still counts as valid", () => {
@@ -265,8 +265,8 @@ describe("previewTitleFilter in hide mode", () => {
       mode: SubscriptionMode.hide
     });
     expect(preview.isValid).toBe(true);
-    expect(preview.matchCount).toBe(0);
-    expect(preview.skippedRows).toHaveLength(videos.length);
+    expect(preview.shownCount).toBe(videos.length);
+    expect(preview.hiddenRows).toHaveLength(0);
   });
 });
 
@@ -304,12 +304,12 @@ describe("previewAiFilter", () => {
       isAiEnabled: true
     });
     expect(preview.isValid).toBe(true);
-    expect(preview.feedRows.map(row => [row.video.videoId, row.matchState])).toEqual([
+    expect(preview.shownRows.map(row => [row.video.videoId, row.matchState])).toEqual([
       ["aaaaaaaaaaa", MatchState.matches],
       ["ccccccccccc", MatchState.pending]
     ]);
-    expect(preview.skippedRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
-    expect(preview.matchCount).toBe(1);
+    expect(preview.hiddenRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
+    expect(preview.shownCount).toBe(1);
     expect(preview.pendingCount).toBe(1);
   });
 
@@ -327,43 +327,57 @@ describe("previewAiFilter", () => {
       isAiEnabled
     });
     expect(preview.isValid).toBe(false);
-    expect(preview.feedRows).toEqual([]);
-    expect(preview.skippedRows).toEqual([]);
+    expect(preview.shownRows).toEqual([]);
+    expect(preview.hiddenRows).toEqual([]);
   });
 });
 
 describe("partitionPreviewRows", () => {
-  it("keeps pending videos in the feed but out of the match count", () => {
-    const partition = partitionPreviewRows([
-      {
-        video: createVideo({
-          videoId: "aaaaaaaaaaa",
-          title: "Pending"
-        }),
-        matchState: MatchState.pending,
-        segments: []
-      },
-      {
-        video: createVideo({
-          videoId: "bbbbbbbbbbb",
-          title: "Skipped"
-        }),
-        matchState: MatchState.doesNotMatch,
-        segments: []
-      },
-      {
-        video: createVideo({
-          videoId: "ccccccccccc",
-          title: "Matching"
-        }),
-        matchState: MatchState.matches,
-        segments: []
-      }
-    ]);
-    expect(partition.feedRows.map(row => row.matchState)).toEqual([MatchState.pending, MatchState.matches]);
-    expect(partition.skippedRows).toHaveLength(1);
-    expect(partition.matchCount).toBe(1);
+  const rows = [
+    {
+      video: createVideo({
+        videoId: "aaaaaaaaaaa",
+        title: "Pending"
+      }),
+      matchState: MatchState.pending,
+      segments: []
+    },
+    {
+      video: createVideo({
+        videoId: "bbbbbbbbbbb",
+        title: "Skipped"
+      }),
+      matchState: MatchState.doesNotMatch,
+      segments: []
+    },
+    {
+      video: createVideo({
+        videoId: "ccccccccccc",
+        title: "Matching"
+      }),
+      matchState: MatchState.matches,
+      segments: []
+    }
+  ];
+
+  it("keeps pending videos in the feed but out of the shown count", () => {
+    const partition = partitionPreviewRows({
+      rows,
+      mode: SubscriptionMode.follow
+    });
+    expect(partition.shownRows.map(row => row.matchState)).toEqual([MatchState.pending, MatchState.matches]);
+    expect(partition.hiddenRows.map(row => row.matchState)).toEqual([MatchState.doesNotMatch]);
+    expect(partition.shownCount).toBe(1);
     expect(partition.pendingCount).toBe(1);
+  });
+
+  it("shows what a hide filter doesn't match, and keeps a pending video until it is judged", () => {
+    const partition = partitionPreviewRows({
+      rows,
+      mode: SubscriptionMode.hide
+    });
+    expect(partition.shownRows.map(row => row.matchState)).toEqual([MatchState.pending, MatchState.doesNotMatch]);
+    expect(partition.hiddenRows.map(row => row.matchState)).toEqual([MatchState.matches]);
   });
 });
 

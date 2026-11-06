@@ -304,7 +304,8 @@ function isConditionUnrestricting(condition: FilterCondition) {
   return false;
 }
 
-function listRestrictingConditions(filter: VideoFilter) {
+/** The conditions that judge anything - one that lets every video through is left out */
+export function listRestrictingConditions(filter: VideoFilter) {
   return listFilterConditions(filter).filter(condition => !isConditionUnrestricting(condition));
 }
 

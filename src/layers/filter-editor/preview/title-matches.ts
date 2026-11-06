@@ -11,7 +11,7 @@ import {
   type VideoFilter
 } from "@/lib/filter/title-filter";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
-import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";
 
 const GLOBAL_FLAG = "g";
@@ -70,31 +70,45 @@ export function highlightMatches({ title, regex }: {
   return segments;
 }
 
-/** Feed rows are the videos that land (or may still land) in the feed, in upload order; skipped rows never will */
-export function partitionPreviewRows(rows: PreviewRow[]) {
-  const feedRows: PreviewRow[] = [];
-  const skippedRows: PreviewRow[] = [];
-  let matchCount = 0;
+/** Whether a definite verdict puts the video in the feed: a follow filter shows its matches, a hide filter the rest */
+const SHOWN_STATE_BY_MODE = {
+  [SubscriptionMode.follow]: MatchState.matches,
+  [SubscriptionMode.hide]: MatchState.doesNotMatch
+} as const satisfies Record<SubscriptionMode, MatchState>;
+
+/**
+ * Splits the rows by what the feed ends up showing, in either mode: shown rows (a pending one may still show, in
+ * upload order) and hidden rows - the ones a follow filter leaves out or a hide filter hides
+ */
+export function partitionPreviewRows({ rows, mode }: {
+  rows: PreviewRow[];
+  mode: SubscriptionMode;
+}) {
+  const shownState = SHOWN_STATE_BY_MODE[mode];
+  const shownRows: PreviewRow[] = [];
+  const hiddenRows: PreviewRow[] = [];
+  let shownCount = 0;
   let pendingCount = 0;
   for (const row of rows) {
-    if (row.matchState === MatchState.doesNotMatch) {
-      skippedRows.push(row);
+    if (row.matchState === MatchState.pending) {
+      shownRows.push(row);
+      pendingCount++;
       continue;
     }
 
-    feedRows.push(row);
-
-    if (row.matchState === MatchState.pending) {
-      pendingCount++;
-    } else {
-      matchCount++;
+    if (row.matchState !== shownState) {
+      hiddenRows.push(row);
+      continue;
     }
+
+    shownRows.push(row);
+    shownCount++;
   }
 
   return {
-    feedRows,
-    skippedRows,
-    matchCount,
+    shownRows,
+    hiddenRows,
+    shownCount,
     pendingCount
   };
 }
@@ -140,7 +154,10 @@ export function previewVideoFilter({ filter, videos, mode, ...context }: AiJudge
     [];
   return {
     isValid,
-    ...partitionPreviewRows(rows)
+    ...partitionPreviewRows({
+      rows,
+      mode
+    })
   };
 }
 

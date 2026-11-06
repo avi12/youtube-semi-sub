@@ -1,11 +1,14 @@
 import {
+  type FilterCondition,
   FilterKind,
   FilterMatch,
   getFilterMatch,
   isFilterInert,
   isLengthFilterSet,
   type LengthFilter,
-  listFilterConditions
+  listFilterConditions,
+  listRestrictingConditions,
+  type VideoFilter
 } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -13,7 +16,7 @@ import {
   ANY_TITLE_LABEL,
   INERT_FILTER_LABEL,
   SUBSCRIPTION_MODE_NAME,
-  type SubscriptionMode
+  SubscriptionMode
 } from "@/lib/schemas/subscription-mode";
 import { SECONDS_PER_MINUTE } from "@/lib/youtube/video-duration";
 import { z } from "@/lib/zod";
@@ -52,17 +55,17 @@ function formatMinutes(seconds: number) {
   return `${Math.round(seconds / SECONDS_PER_MINUTE * MINUTES_PRECISION) / MINUTES_PRECISION}`;
 }
 
-/** "Up to 20 min", "At least 2 min" or "2-20 min" */
+/** "up to 20 min", "at least 2 min" or "2-20 min" */
 function describeLengthRange({ minSeconds, maxSeconds }: LengthFilter) {
   if (minSeconds !== undefined && maxSeconds !== undefined) {
     return `${formatMinutes(minSeconds)}-${formatMinutes(maxSeconds)} min`;
   }
 
   if (maxSeconds !== undefined) {
-    return `Up to ${formatMinutes(maxSeconds)} min`;
+    return `up to ${formatMinutes(maxSeconds)} min`;
   }
 
-  return minSeconds === undefined ? "Any length" : `At least ${formatMinutes(minSeconds)} min`;
+  return minSeconds === undefined ? "any length" : `at least ${formatMinutes(minSeconds)} min`;
 }
 
 function describeEmptyFilter({ isInert, modeName, mode }: {
@@ -155,4 +158,63 @@ function formatLiteralPart({ kind, text, flags, isPaused }: FilterLiteralPart) {
 /** The same literal as plain text, for a surface that renders YouTube's own text runs */
 export function formatFilterLiteral({ parts, connector }: FilterLiteral) {
   return parts.map(formatLiteralPart).join(` ${connector} `);
+}
+
+/** What a mode's filter does to a video it matches, and to every other one */
+const RULE_WORDING = {
+  [SubscriptionMode.follow]: {
+    verb: "Shows",
+    otherwise: "Everything else from this channel stays out of your feed",
+    pending: "Videos still being checked show once they pass",
+    empty: "Shows every video from this channel"
+  },
+  [SubscriptionMode.hide]: {
+    verb: "Hides",
+    otherwise: "Everything else stays in your feed",
+    pending: "Videos still being checked stay until they're judged",
+    empty: "Hides nothing yet - every video stays in your feed"
+  }
+} as const satisfies Record<SubscriptionMode, Record<string, string>>;
+
+/** How a condition reads after "videos that" */
+function describeConditionClause(condition: FilterCondition) {
+  if (condition.kind === FilterKind.aiMatch) {
+    return `fit "${condition.description.trim()}"`;
+  }
+
+  if (condition.kind === FilterKind.length) {
+    return `run ${describeLengthRange(condition)}`;
+  }
+
+  return `have a title matching /${condition.pattern}/${condition.flags}`;
+}
+
+/**
+ * The filter as one plain sentence - which videos it shows or hides, and what happens to the rest - so a reader never
+ * has to combine the list type, the all/any switch and each condition in their head
+ */
+export function describeFilterRule({ filter, mode }: {
+  filter: VideoFilter;
+  mode: SubscriptionMode;
+}) {
+  const wording = RULE_WORDING[mode];
+  const conditions = listRestrictingConditions(filter);
+  if (conditions.length === 0) {
+    return {
+      verb: wording.verb,
+      clauses: [],
+      connector: FILTER_MATCH_CONNECTOR[FilterMatch.all],
+      otherwise: wording.empty,
+      pendingNote: null
+    };
+  }
+
+  const isJudgedLater = conditions.some(condition => condition.kind !== FilterKind.regex);
+  return {
+    verb: wording.verb,
+    clauses: conditions.map(describeConditionClause),
+    connector: FILTER_MATCH_CONNECTOR[getFilterMatch(filter)],
+    otherwise: wording.otherwise,
+    pendingNote: isJudgedLater ? wording.pending : null
+  };
 }

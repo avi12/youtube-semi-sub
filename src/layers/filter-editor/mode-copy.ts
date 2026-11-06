@@ -16,12 +16,12 @@ const FOLLOW_AI_HINTS: PreviewHints = {
 const HIDE_REGEX_HINTS: PreviewHints = {
   invalidSummary: "Fix the pattern to update the preview",
   invalid: "Fix the pattern to see what's hidden from your feed",
-  noMatch: "Nothing recent matches, so nothing's hidden"
+  noMatch: "Every recent video is hidden - try a narrower pattern"
 };
 const HIDE_AI_HINTS: PreviewHints = {
   invalidSummary: "Describe the videos to hide",
   invalid: "Describe the videos to hide to see what's hidden from your feed",
-  noMatch: "Nothing recent fits, so nothing's hidden"
+  noMatch: "Every recent video is hidden - try a narrower description"
 };
 
 const FOLLOW_LENGTH_HINTS: PreviewHints = {
@@ -32,37 +32,31 @@ const FOLLOW_LENGTH_HINTS: PreviewHints = {
 const HIDE_LENGTH_HINTS: PreviewHints = {
   invalidSummary: "Fix the length to update the preview",
   invalid: "Fix the length to see what's hidden from your feed",
-  noMatch: "Nothing recent is that long, so nothing's hidden"
+  noMatch: "Every recent video is hidden - try a narrower range"
 };
 
 export const MODE_COPY = {
   [SubscriptionMode.follow]: {
-    regexLabel: "Title filter",
     aiLabel: "Describe the videos you want",
-    lengthLabel: "Video length",
-    matchLegend: "Add videos that match",
+    matchLegend: "Show videos that match",
     regexPlaceholder: "tutorial|review",
     aiPlaceholder: "Only phone reviews, not unboxings",
     emptyPatternHint: "Leave it empty to add every video",
     aiHint: "A model reads each video's title and description, and adds the ones that fit - it reads topics broadly, so say what to leave out too",
-    previewLabel: "Added to your feed",
-    skippedLabel: "won't be added",
+    skippedLabel: "left out",
     regexHints: FOLLOW_REGEX_HINTS,
     aiHints: FOLLOW_AI_HINTS,
     lengthHints: FOLLOW_LENGTH_HINTS,
     pausedAiInvalid: "Turn on AI match to see what's added to your feed"
   },
   [SubscriptionMode.hide]: {
-    regexLabel: "Hide titles matching",
     aiLabel: "Describe the videos to hide",
-    lengthLabel: "Hide videos by length",
     matchLegend: "Hide videos that match",
     regexPlaceholder: "live|reaction",
     aiPlaceholder: "Livestreams and reaction videos, not interviews",
     emptyPatternHint: "Leave it empty to hide nothing",
     aiHint: "A model reads each video's title and description, and hides the ones that fit - it reads topics broadly, so say what to keep too",
-    previewLabel: "Hidden from your feed",
-    skippedLabel: "stay in your feed",
+    skippedLabel: "hidden",
     regexHints: HIDE_REGEX_HINTS,
     aiHints: HIDE_AI_HINTS,
     lengthHints: HIDE_LENGTH_HINTS,

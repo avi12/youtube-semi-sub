@@ -21,6 +21,7 @@
   import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import AiFilterFields from "#filter-editor/components/AiFilterFields.svelte";
   import FilterPreview from "#filter-editor/components/FilterPreview.svelte";
+  import FilterRule from "#filter-editor/components/FilterRule.svelte";
   import LengthFilterFields from "#filter-editor/components/LengthFilterFields.svelte";
   import MethodPicker from "#filter-editor/components/MethodPicker.svelte";
   import RegexFilterFields from "#filter-editor/components/RegexFilterFields.svelte";
@@ -29,6 +30,7 @@
     createDefaultCondition,
     FILTER_MATCH_LABEL,
     FILTER_MATCHES,
+    FILTER_METHOD_LABEL,
     getConditionMethod,
     TITLE_KIND_LABEL,
     withMethodCondition
@@ -56,6 +58,8 @@
   const id = $props.id();
   const titleInputId = `${id}-title`;
   const lengthInputId = `${id}-length`;
+  const ruleId = `${id}-rule`;
+  const PREVIEW_LABEL = "Shows in your feed";
 
   const copy = $derived(MODE_COPY[mode]);
   const conditions = $derived(listFilterConditions(filter));
@@ -251,7 +255,7 @@
         <section class={["condition__card", isCombined && "condition__card--framed"]}>
           {#if condition.kind === FilterKind.length}
             <header class="condition__header">
-              <label class="condition__label" for={lengthInputId}>{copy.lengthLabel}</label>
+              <label class="condition__label" for={lengthInputId}>{FILTER_METHOD_LABEL[FilterMethod.length]}</label>
             </header>
             <LengthFilterFields
               inputId={lengthInputId}
@@ -265,7 +269,7 @@
                 {#if condition.kind === FilterKind.aiMatch}
                   {copy.aiLabel}
                 {:else}
-                  {copy.regexLabel}
+                  {FILTER_METHOD_LABEL[FilterMethod.title]}
                 {/if}
               </label>
               <SegmentedSwitch
@@ -300,6 +304,8 @@
     {/each}
   </ol>
 
+  <FilterRule id={ruleId} {filter} inputIds="{titleInputId} {lengthInputId}" {mode} />
+
   {#if aiNotice}
     <section class="ai-notice" aria-live="polite">
       <p class="ai-notice__text">{aiNotice}</p>
@@ -318,7 +324,7 @@
     {hints}
     inputId={previewInputId}
     {isLoading}
-    label={copy.previewLabel}
+    label={PREVIEW_LABEL}
     {preview}
     skippedLabel={copy.skippedLabel}
     videoCount={videos.length} />
