@@ -12,10 +12,10 @@ import type { FeedVideo, VideosByChannel } from "@/lib/schemas/feed-video";
 import { isUploadsLengthFiltered } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { settleBefore } from "@/lib/utils/promise";
+import { readOfficialSubscription } from "#channel-button";
 import { composeFeedContents, planFeed } from "#feed/compose/feed-compose";
 import type { PlacementAnchor } from "#feed/compose/feed-slot";
 import {
-  channelIdFromGridItem,
   channelIdsFromGridItem,
   durationFromGridItem,
   durationFromRenderer,
@@ -170,19 +170,36 @@ export function hasResumedChannels() {
 }
 
 /**
+ * Whether the user is subscribed to a channel on YouTube: a semi-subscription's mode, else what this tab's data tells
+ * (undefined when it tells nothing)
+ */
+function readIsChannelSubscribed({ channelId, state }: {
+  channelId: string;
+  state: PageState;
+}) {
+  return state.subscriptions[channelId]?.isSubscribed ?? readOfficialSubscription(channelId);
+}
+
+/**
  * A resumed channel's videos in the feed, each judged by the channel's follow filter - by title, or by verdict for an
  * AI filter (pending without one) - not by the cached uploads, which lag right after a resume. A paused or unset
- * filter lets none through. A video several channels share is never judged
+ * filter lets none through. A collaboration is judged only when the user is known not to be subscribed to any other
+ * channel on it - one they are, or may be, subscribed to keeps it in the feed
  */
 function judgeResumedChannelVideos({ contents, state }: {
   contents: readonly unknown[];
   state: PageState;
 }) {
   return contents.flatMap(item => {
-    const channelId = channelIdFromGridItem(item);
+    const channelIds = [...channelIdsFromGridItem(item)];
+    const channelId = channelIds.find(id => resumedChannelIds.has(id));
     const videoId = videoIdFromGridItem(item);
-    const subscription = channelId && resumedChannelIds.has(channelId) ? state.subscriptions[channelId] : undefined;
-    if (!subscription || !videoId) {
+    const subscription = channelId ? state.subscriptions[channelId] : undefined;
+    const isKeptByOtherChannel = channelIds.some(id => id !== channelId && readIsChannelSubscribed({
+      channelId: id,
+      state
+    }) !== false);
+    if (!subscription || !videoId || isKeptByOtherChannel) {
       return [];
     }
 
@@ -207,19 +224,31 @@ function judgeResumedChannelVideos({ contents, state }: {
 }
 
 /**
- * Whether a subscribed channel's hide filter hides a feed item, judged by the title the item shows - a YouTube title
- * test can make it differ from the cached one - for every channel it links to, uploader or collaborator. Null for an
- * item that names no channel, such as a Short: only the cached uploads know whose it is - and for an item that shows
- * no length while a filter reads lengths, which the cached uploads know too
+ * Whether the subscribed channels' filters hide a feed item, judged by the title and length the item shows - a YouTube
+ * title test can make the title differ from the cached one. A collaboration is hidden only when every channel on it
+ * the user is subscribed to would hide it: one that keeps it - a subscribed channel whose filters let it through, or a
+ * plain YouTube subscription - is reason enough to show it. Null for an item that names no channel, such as a Short:
+ * only the cached uploads know whose it is - and for an item that shows no length while a filter reads lengths, which
+ * the cached uploads know too
  */
 function createShownTitleHideCheck(state: PageState) {
   return function isHiddenByShownTitle({ item, videoId }: {
     item: unknown;
     videoId: string;
   }) {
-    const channelIds = channelIdsFromGridItem(item);
-    if (channelIds.size === 0) {
+    const channelIds = [...channelIdsFromGridItem(item)];
+    if (channelIds.length === 0) {
       return null;
+    }
+
+    const isKeptByPlainSubscription = channelIds.some(channelId => !state.subscriptions[channelId] &&
+      readOfficialSubscription(channelId) === true);
+    const filteredSubscriptions = channelIds.flatMap(channelId => {
+      const subscription = state.subscriptions[channelId];
+      return subscription?.isSubscribed ? [subscription] : [];
+    });
+    if (isKeptByPlainSubscription || filteredSubscriptions.length === 0) {
+      return false;
     }
 
     const video = {
@@ -227,17 +256,13 @@ function createShownTitleHideCheck(state: PageState) {
       title: titleFromGridItem(item) ?? "",
       durationSeconds: durationFromGridItem(item)
     };
-    const isLengthUnknown = video.durationSeconds === undefined && [...channelIds].some(channelId => {
-      const subscription = state.subscriptions[channelId];
-      return !!subscription && isUploadsLengthFiltered(subscription);
-    });
+    const isLengthUnknown = video.durationSeconds === undefined && filteredSubscriptions.some(isUploadsLengthFiltered);
     if (isLengthUnknown) {
       return null;
     }
 
-    return [...channelIds].some(channelId => {
-      const subscription = state.subscriptions[channelId];
-      const isHidden = subscription && createSubscribedHideCheck({
+    return filteredSubscriptions.every(subscription => {
+      const isHidden = createSubscribedHideCheck({
         subscription,
         aiVerdicts: state.aiVerdicts,
         isAiEnabled: state.isAiEnabled
@@ -248,9 +273,31 @@ function createShownTitleHideCheck(state: PageState) {
 }
 
 /**
+ * What this session last judged each feed item that names its channels - the cached uploads can't tell a
+ * collaboration from a solo upload, so a page that lacks an item keeps the item's own verdict. Dropped whenever what
+ * hides videos changes
+ */
+let shownVerdicts = {
+  settingsKey: "",
+  isHiddenById: new Map<string, boolean>()
+};
+
+function readShownVerdicts(state: PageState) {
+  const settingsKey = readHideSettingsKey(state);
+  if (shownVerdicts.settingsKey !== settingsKey) {
+    shownVerdicts = {
+      settingsKey,
+      isHiddenById: new Map()
+    };
+  }
+
+  return shownVerdicts.isHiddenById;
+}
+
+/**
  * The videos subscribed channels' hide filters hide - none while switched off: every cached upload they hide, since a
- * page may lack one an earlier page put in the grid, then each feed item that names its channel, in the band or a
- * shelf, judged again by the title it shows
+ * page may lack one an earlier page put in the grid, then each feed item that names its channels, in the band or a
+ * shelf, judged again by the title it shows - a verdict remembered for the pages that lack the item
  */
 export function findHiddenVideoIds({ contents, state }: {
   contents: readonly unknown[];
@@ -260,17 +307,24 @@ export function findHiddenVideoIds({ contents, state }: {
     return new Set<string>();
   }
 
-  const hiddenIds = new Set(state.hiddenVideoIds);
+  const isHiddenById = readShownVerdicts(state);
+  const hiddenIds = new Set(state.hiddenVideoIds.filter(videoId => isHiddenById.get(videoId) !== false));
   const isHiddenByShownTitle = createShownTitleHideCheck(state);
   for (const item of contents.flatMap(gridItem => [gridItem, ...shelfItemsFromGridItem(gridItem)])) {
     const videoId = videoIdFromShelfItem(item);
-    const isHidden = videoId && isHiddenByShownTitle({
+    if (!videoId) {
+      continue;
+    }
+
+    const isHidden = isHiddenByShownTitle({
       item,
       videoId
     });
-    if (!videoId || isHidden === null) {
+    if (isHidden === null) {
       continue;
     }
+
+    isHiddenById.set(videoId, isHidden);
 
     if (isHidden) {
       hiddenIds.add(videoId);

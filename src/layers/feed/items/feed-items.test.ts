@@ -9,7 +9,7 @@ import {
   videoId
 } from "#feed/fixtures/feed-fixtures";
 import {
-  channelIdFromGridItem,
+  channelIdsFromGridItem,
   collectContentVideoIds,
   readShelf,
   thumbnailUrlFromGridItem,
@@ -19,20 +19,20 @@ import { describe, expect, it } from "vitest";
 
 const PUBLISHED = "2 hours ago";
 
-describe("channelIdFromGridItem", () => {
+describe("channelIdsFromGridItem", () => {
   it("reads the channel a tile links to", () => {
     expect(
-      channelIdFromGridItem(
+      channelIdsFromGridItem(
         desktopFeedItem({
           index: 1,
           published: PUBLISHED,
           channelId: CHANNEL_ID
         })
       )
-    ).toBe(CHANNEL_ID);
+    ).toEqual(new Set([CHANNEL_ID]));
   });
 
-  it("names no channel for a collaboration or an item without one", () => {
+  it("names every channel of a collaboration, and none for an item without one", () => {
     const tile = desktopFeedItem({
       index: 1,
       published: PUBLISHED,
@@ -46,8 +46,8 @@ describe("channelIdFromGridItem", () => {
         }
       }
     });
-    expect(channelIdFromGridItem(collaboration)).toBeNull();
-    expect(channelIdFromGridItem(continuationItem())).toBeNull();
+    expect(channelIdsFromGridItem(collaboration)).toEqual(new Set([CHANNEL_ID, "UCalreadysubscribedchan2"]));
+    expect(channelIdsFromGridItem(continuationItem())).toEqual(new Set());
   });
 });
 

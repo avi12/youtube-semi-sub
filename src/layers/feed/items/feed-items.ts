@@ -97,17 +97,6 @@ export function channelIdsFromGridItem(item: unknown) {
   return channelIds;
 }
 
-/** The one channel a root-level item links to, or null for none - or several, a collaboration it may share */
-export function channelIdFromGridItem(item: unknown) {
-  const channelIds = channelIdsFromGridItem(item);
-  if (channelIds.size !== 1) {
-    return null;
-  }
-
-  const [channelId] = channelIds;
-  return channelId ?? null;
-}
-
 /** The id of a root-level video item, or null for section markers, continuations and non-video items */
 export function videoIdFromGridItem(item: unknown) {
   const content = richItemContent(item);

@@ -23,6 +23,13 @@ import {
 
 type FeedSession = typeof import("#feed/feed-session");
 
+/** The channels this tab's YouTube data says the user is subscribed to, or not */
+const officialSubscriptions = new Map<string, boolean>();
+
+vi.mock("#channel-button", () => ({
+  readOfficialSubscription: (channelId: string) => officialSubscriptions.get(channelId)
+}));
+
 /** The titles the channels' own tabs show, by video id - what a loaded native renderer would carry */
 const nativeTitles = new Map<string, string>();
 
@@ -113,6 +120,7 @@ beforeEach(async () => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
   nativeTitles.clear();
+  officialSubscriptions.clear();
   vi.resetModules();
   session = await import("#feed/feed-session");
 });
@@ -195,6 +203,25 @@ describe("a semi-subscription switched back to following by an official unsubscr
         state
       })
     ).toEqual(new Set([videoId(2)]));
+  });
+
+  it("judges a collaboration once the user is known not to be subscribed to the other channel on it", () => {
+    officialSubscriptions.set(OTHER_CHANNEL_ID, false);
+    const state = resume();
+    const collaboration = richItem({
+      ...semiChannelItem({ index: 4 }).richItemRenderer.content,
+      collaborator: {
+        browseEndpoint: {
+          browseId: OTHER_CHANNEL_ID
+        }
+      }
+    });
+    expect(
+      session.findRemovedVideoIds({
+        contents: [collaboration],
+        state
+      })
+    ).toEqual(new Set([videoId(4)]));
   });
 
   it("manages the passing ones like its own once the feed is clean, so a filter edit takes them out", () => {
@@ -509,6 +536,103 @@ describe("findHiddenVideoIds", () => {
         state: hidingState()
       })
     ).toEqual(new Set([videoId(4), videoId(5)]));
+  });
+
+  function collaborationWith({ index, title, guestChannelId }: {
+    index: number;
+    title: string;
+    guestChannelId: string;
+  }) {
+    return richItem({
+      ...semiChannelItem({
+        index,
+        title
+      }).richItemRenderer.content,
+      collaborator: {
+        browseEndpoint: {
+          browseId: guestChannelId
+        }
+      }
+    });
+  }
+
+  it("shows a collaboration a plain YouTube subscription on it keeps, though a filtered channel would hide it", () => {
+    officialSubscriptions.set(OTHER_CHANNEL_ID, true);
+    expect(
+      session.findHiddenVideoIds({
+        contents: [collaborationWith({
+          index: 4,
+          title: "Hide this collab",
+          guestChannelId: OTHER_CHANNEL_ID
+        })],
+        state: hidingState()
+      })
+    ).toEqual(new Set());
+  });
+
+  it("hides a collaboration only when every subscribed channel on it would hide it", () => {
+    const state = hidingState();
+    function withSecondChannel(hideFilter: TitleFilter) {
+      const hiding: PageState = {
+        ...state,
+        subscriptions: {
+          ...state.subscriptions,
+          [OTHER_CHANNEL_ID]: {
+            channelId: OTHER_CHANNEL_ID,
+            title: "Second Channel",
+            followFilter: null,
+            hideFilter,
+            createdAt: 1,
+            isSubscribed: true
+          }
+        }
+      };
+      return hiding;
+    }
+    const contents = [collaborationWith({
+      index: 4,
+      title: "Hide this live collab",
+      guestChannelId: OTHER_CHANNEL_ID
+    })];
+    expect(
+      session.findHiddenVideoIds({
+        contents,
+        state: withSecondChannel({
+          kind: FilterKind.regex,
+          pattern: "^unboxing",
+          flags: "i"
+        })
+      })
+    ).toEqual(new Set());
+    expect(
+      session.findHiddenVideoIds({
+        contents,
+        state: withSecondChannel({
+          kind: FilterKind.regex,
+          pattern: "live",
+          flags: "i"
+        })
+      })
+    ).toEqual(new Set([videoId(4)]));
+  });
+
+  it("keeps a collaboration it showed once, though a later page lacks it and the cached uploads hide it", () => {
+    officialSubscriptions.set(OTHER_CHANNEL_ID, true);
+    const state = hidingState({ hiddenVideoIds: [videoId(4)] });
+    session.findHiddenVideoIds({
+      contents: [collaborationWith({
+        index: 4,
+        title: "Hide this collab",
+        guestChannelId: OTHER_CHANNEL_ID
+      })],
+      state
+    });
+    expect(
+      session.findHiddenVideoIds({
+        contents: [],
+        state
+      })
+    ).toEqual(new Set());
   });
 
   it("hides a Short in either site's Shorts shelf by the cached uploads, as it names no channel", () => {
