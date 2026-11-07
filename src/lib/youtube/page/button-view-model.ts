@@ -25,11 +25,12 @@ export enum ButtonViewModelState {
 /** Icon names `yt-button-view-model` resolves; an unknown name renders no icon */
 export enum ButtonViewModelIcon {
   none = "",
-  filter = "FILTER"
+  filter = "FILTER",
+  close = "CLOSE"
 }
 
 const buttonViewModelDataSchema = z.object({
-  title: z.string(),
+  title: z.string().optional(),
   iconName: z.enum(ButtonViewModelIcon),
   accessibilityText: z.string(),
   style: z.enum(ButtonViewModelStyle),

@@ -15,20 +15,22 @@
   interface Props {
     label: string;
     type: ButtonViewModelType;
+    /** Shows only this icon, the label read out by screen readers */
+    icon?: ButtonViewModelIcon;
     isDisabled?: boolean;
     /** The form's own submit button - its press submits the dialog's form */
     isSubmit?: boolean;
     onclick?: () => void;
   }
 
-  const { label, type, isDisabled = false, isSubmit = false, onclick }: Props = $props();
+  const { label, type, icon, isDisabled = false, isSubmit = false, onclick }: Props = $props();
 
   const BUTTON_TAG = "yt-button-view-model";
 
   const data = $derived.by(() => {
     const buttonData: ButtonViewModelData = {
-      title: label,
-      iconName: ButtonViewModelIcon.none,
+      title: icon ? undefined : label,
+      iconName: icon ?? ButtonViewModelIcon.none,
       accessibilityText: label,
       style: ButtonViewModelStyle.mono,
       type,

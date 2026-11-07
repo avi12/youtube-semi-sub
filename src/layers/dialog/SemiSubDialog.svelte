@@ -1,6 +1,7 @@
 <script lang="ts">
   import { DialogButtonVariant } from "./controls/dialog-button-variant";
   import DialogButton from "./controls/DialogButton.svelte";
+  import DialogCloseButton from "./controls/DialogCloseButton.svelte";
   import { YOUTUBE_EDITOR_CONTROLS } from "./controls/youtube-editor-controls";
   import { isPageDarkTheme } from "./page-theme";
   import SemiSubSnackbar from "./SemiSubSnackbar.svelte";
@@ -58,8 +59,6 @@
     [SubscriptionMode.follow]: "Only matching videos show",
     [SubscriptionMode.hide]: "Matching videos are hidden"
   } as const satisfies Record<SubscriptionMode, string>;
-
-  const CLOSE_ICON_PATH = "m12.71 12 8.15 8.15-.71.71L12 12.71l-8.15 8.15-.71-.71L11.29 12 3.15 3.85l.71-.71L12 11.29l8.15-8.15.71.71L12.71 12z";
 
   const id = $props.id();
   const titleId = `${id}-title`;
@@ -205,15 +204,7 @@
     }}>
     <header class="dialog__header">
       <h2 id={titleId} class="dialog__title">{SUBSCRIPTION_MODE_NAME[mode]}</h2>
-      <button
-        class="icon-button"
-        aria-label="Close"
-        onclick={() => elDialog?.close()}
-        type="button">
-        <svg class="icon-button__icon" aria-hidden="true" viewBox="0 0 24 24">
-          <path d={CLOSE_ICON_PATH} />
-        </svg>
-      </button>
+      <DialogCloseButton onclick={() => elDialog?.close()} />
     </header>
 
     <div class="dialog__body">
@@ -569,38 +560,5 @@
     padding-inline: 16px 8px;
     border-radius: 12px;
     background: var(--additive);
-  }
-
-  .icon-button {
-    display: grid;
-    place-items: center;
-    block-size: 40px;
-    inline-size: 40px;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: var(--text);
-    font: inherit;
-    cursor: pointer;
-
-    @media (prefers-reduced-motion: no-preference) {
-      transition: background-color 120ms var(--ease);
-    }
-
-    &:hover {
-      background: var(--additive);
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-  }
-
-  .icon-button__icon {
-    block-size: 24px;
-    inline-size: 24px;
-    fill: currentColor;
   }
 </style>
