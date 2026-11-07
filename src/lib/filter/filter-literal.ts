@@ -56,7 +56,7 @@ function formatMinutes(seconds: number) {
 }
 
 /** "up to 20 min", "at least 2 min" or "2-20 min" */
-function describeLengthRange({ minSeconds, maxSeconds }: LengthFilter) {
+export function describeLengthRange({ minSeconds, maxSeconds }: LengthFilter) {
   if (minSeconds !== undefined && maxSeconds !== undefined) {
     return `${formatMinutes(minSeconds)}-${formatMinutes(maxSeconds)} min`;
   }
