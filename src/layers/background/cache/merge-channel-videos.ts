@@ -6,9 +6,9 @@ import {
 } from "@/lib/schemas/feed-video";
 import {
   type ChannelUploads,
-  collectDurations,
+  collectTabDetails,
   UploadsSource,
-  withKnownDurations
+  withKnownTabDetails
 } from "#background/uploads/channel-uploads";
 
 const FEED_VIDEO_KEYS = feedVideoSchema.keyof().options;
@@ -59,7 +59,8 @@ function stabilizeApproximateVideos({ videos, previous }: {
       ? {
         ...knownVideo,
         title: video.title,
-        durationSeconds: video.durationSeconds ?? knownVideo.durationSeconds
+        durationSeconds: video.durationSeconds ?? knownVideo.durationSeconds,
+        isMembersOnly: video.isMembersOnly ?? knownVideo.isMembersOnly
       }
       : video;
   });
@@ -80,10 +81,10 @@ export function mergeChannelVideos({ previous, uploads }: {
 
   const isExact = uploads.source === UploadsSource.rss;
   const fetchedVideos = isExact
-    // A refetch that didn't look lengths up keeps the ones the cache has
-    ? withKnownDurations({
+    // A refetch that didn't look at the Videos tab keeps what the cache learned from it
+    ? withKnownTabDetails({
       videos: uploads.videos,
-      durationById: collectDurations(previous)
+      detailsById: collectTabDetails(previous)
     })
     : stabilizeApproximateVideos({
       videos: uploads.videos,

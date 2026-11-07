@@ -1,6 +1,6 @@
 import { collectAiFilterKeys } from "@/lib/filter/ai-verdicts";
 import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
-import { isUploadsLengthFiltered, isUploadsWatched, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { isUploadsWatched, isVideosTabRead, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { semiSubscriptionsItem } from "@/lib/storage";
 import { classifyPendingVideos, startAiMatch } from "#ai-match";
 import {
@@ -72,9 +72,9 @@ async function handleSubscriptionsChange({ subscriptions, previousSubscriptions 
       .filter(subscription => {
         const previous = previousSubscriptions[subscription.channelId];
         const wasWatched = !!previous && isUploadsWatched(previous);
-        const wasLengthFiltered = !!previous && isUploadsLengthFiltered(previous);
+        const wasTabRead = !!previous && isVideosTabRead(previous);
         const isNewlyWatched = isUploadsWatched(subscription) && !wasWatched;
-        return isNewlyWatched || isUploadsLengthFiltered(subscription) && !wasLengthFiltered;
+        return isNewlyWatched || isVideosTabRead(subscription) && !wasTabRead;
       })
       .map(({ channelId }) => channelId),
     isForced: true

@@ -38,6 +38,14 @@ function respondWith({ rss, videosTab }: {
   });
 }
 
+/** RSS requests only - a followed channel also reads its Videos tab for what RSS doesn't tell */
+function countRssFetches() {
+  return fetchMock.mock.calls.filter(([input]) => {
+    const url = new URL(input instanceof Request ? input.url : input);
+    return url.pathname === RSS_PATH;
+  }).length;
+}
+
 function createSubscriptions(channelIds: string[]) {
   const subscriptions: SemiSubscriptions = {};
   for (const channelId of channelIds) {
@@ -130,20 +138,20 @@ describe("refreshChannels", () => {
       channelIds: [CHANNEL_ID],
       isForced: false
     });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(countRssFetches()).toBe(1);
 
     await refreshChannels({
       channelIds: [CHANNEL_ID],
       isForced: true
     });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(countRssFetches()).toBe(2);
 
     vi.setSystemTime(Date.now() + REFRESH_INTERVAL_MS);
     await refreshChannels({
       channelIds: [CHANNEL_ID],
       isForced: false
     });
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(countRssFetches()).toBe(3);
   });
 
   it("leaves the cache untouched when nothing changed", async () => {

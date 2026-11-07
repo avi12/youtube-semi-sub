@@ -45,50 +45,78 @@ async function fetchFromNetwork(channelId: string) {
   return uploads;
 }
 
-export function withKnownDurations({ videos, durationById }: {
+/** What only the Videos tab tells about an upload: its length and whether it is for members only */
+const tabDetailsSchema = feedVideoSchema.pick({
+  durationSeconds: true,
+  isMembersOnly: true
+});
+type TabDetails = z.infer<typeof tabDetailsSchema>;
+
+/** The videos with every detail `detailsById` knows filled in where they lack it */
+export function withKnownTabDetails({ videos, detailsById }: {
   videos: FeedVideo[];
-  durationById: ReadonlyMap<string, number>;
+  detailsById: ReadonlyMap<string, TabDetails>;
 }) {
   return videos.map(video => {
-    const durationSeconds = video.durationSeconds ?? durationById.get(video.videoId);
-    return durationSeconds === undefined ? video : {
+    const known = detailsById.get(video.videoId);
+    if (!known) {
+      return video;
+    }
+
+    const durationSeconds = video.durationSeconds ?? known.durationSeconds;
+    const isMembersOnly = video.isMembersOnly ?? known.isMembersOnly;
+    const filled: FeedVideo = {
       ...video,
-      durationSeconds
+      ...durationSeconds !== undefined && {
+        durationSeconds
+      },
+      ...isMembersOnly !== undefined && {
+        isMembersOnly
+      }
     };
+    return filled;
   });
 }
 
-export function collectDurations(videos: readonly FeedVideo[]) {
-  const durationById = new Map<string, number>();
-  for (const { videoId, durationSeconds } of videos) {
-    if (durationSeconds !== undefined) {
-      durationById.set(videoId, durationSeconds);
+export function collectTabDetails(videos: readonly FeedVideo[]) {
+  const detailsById = new Map<string, TabDetails>();
+  for (const { videoId, durationSeconds, isMembersOnly } of videos) {
+    const isKnown = durationSeconds !== undefined || isMembersOnly !== undefined;
+    if (isKnown) {
+      detailsById.set(videoId, {
+        durationSeconds,
+        isMembersOnly
+      });
     }
   }
-  return durationById;
+  return detailsById;
+}
+
+function isTabDetailMissing(video: FeedVideo) {
+  return !video.isShort && (video.durationSeconds === undefined || video.isMembersOnly === undefined);
 }
 
 /**
- * RSS tells no lengths, the Videos tab does: the uploads with every length already known (`knownVideos`) filled in,
- * and the Videos tab fetched only while a regular video still lacks one. Shorts never get one - the tab leaves them out
+ * RSS tells no lengths and lists members-only videos unmarked, the Videos tab tells both: the uploads with every
+ * detail already known (`knownVideos`) filled in, and the Videos tab fetched only while a regular video still lacks
+ * one. Shorts never get them - the tab leaves them out
  */
-export async function withDurations({ uploads, knownVideos }: {
+export async function withVideosTabDetails({ uploads, knownVideos }: {
   uploads: ChannelUploads;
   knownVideos: readonly FeedVideo[];
 }) {
-  const videos = withKnownDurations({
+  const videos = withKnownTabDetails({
     videos: uploads.videos,
-    durationById: collectDurations(knownVideos)
+    detailsById: collectTabDetails(knownVideos)
   });
-  const isLengthMissing = videos.some(video => !video.isShort && video.durationSeconds === undefined);
-  const isTabFetchUseful = isLengthMissing && uploads.source === UploadsSource.rss;
+  const isTabFetchUseful = videos.some(isTabDetailMissing) && uploads.source === UploadsSource.rss;
   const tabVideos = isTabFetchUseful ? await fetchVideosTabUploads(uploads.channelId) : null;
   const filled: ChannelUploads = {
     ...uploads,
     videos: tabVideos ?
-      withKnownDurations({
+      withKnownTabDetails({
         videos,
-        durationById: collectDurations(tabVideos)
+        detailsById: collectTabDetails(tabVideos)
       }) :
       videos
   };

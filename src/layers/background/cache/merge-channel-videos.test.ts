@@ -81,11 +81,12 @@ describe("mergeChannelVideos", () => {
     });
   });
 
-  it("keeps the lengths the cache has when RSS, which tells none, refetches a video", () => {
+  it("keeps the lengths and members-only marks the cache has when RSS, which tells neither, refetches a video", () => {
     const merged = mergeChannelVideos({
       previous: [{
         ...kept,
-        durationSeconds: 754
+        durationSeconds: 754,
+        isMembersOnly: true
       }],
       uploads: {
         channelId: CHANNEL_ID,
@@ -94,6 +95,7 @@ describe("mergeChannelVideos", () => {
       }
     });
     expect(merged[0]?.durationSeconds).toBe(754);
+    expect(merged[0]?.isMembersOnly).toBe(true);
   });
 
   it("keeps the cache when a fetch comes back empty", () => {

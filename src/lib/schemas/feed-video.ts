@@ -19,7 +19,9 @@ export const feedVideoSchema = z.object({
   /** RSS only, cleaned up and cut to `VIDEO_DESCRIPTION_MAX_LENGTH` - what AI match reads besides the title */
   description: z.string().max(VIDEO_DESCRIPTION_MAX_LENGTH).optional(),
   /** From the Videos tab, which RSS lacks - unknown for a Short, a live stream and a video not looked up yet */
-  durationSeconds: z.number().int().nonnegative().optional()
+  durationSeconds: z.number().int().nonnegative().optional(),
+  /** From the Videos tab: RSS lists members-only videos unmarked. Unknown for a Short */
+  isMembersOnly: z.boolean().optional()
 });
 export type FeedVideo = z.infer<typeof feedVideoSchema>;
 

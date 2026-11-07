@@ -3,6 +3,7 @@ import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { parseJson } from "@/lib/utils/json";
 import { buildChannelPath } from "@/lib/youtube/channel-link";
 import { findInitialDataJson } from "@/lib/youtube/initial-data";
+import { isMembersOnlyClassicRenderer, isMembersOnlyLockup } from "@/lib/youtube/members-only";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { channelMetadataRendererSchema, tabbedColumnSchema } from "@/lib/youtube/schemas/browse";
 import {
@@ -45,7 +46,8 @@ const gridUploadSchema = z.object({
   /** Every text that may carry the relative publish time, most precise first */
   timeTexts: z.array(z.string()),
   /** Null for a live or upcoming video, which has no length yet */
-  durationSeconds: z.number().nullable()
+  durationSeconds: z.number().nullable(),
+  isMembersOnly: z.boolean()
 });
 type GridUpload = z.infer<typeof gridUploadSchema>;
 
@@ -66,7 +68,8 @@ function readLockup(lockup: Lockup) {
     videoId: lockup.contentId,
     title,
     timeTexts,
-    durationSeconds: durationFromLockup(lockup)
+    durationSeconds: durationFromLockup(lockup),
+    isMembersOnly: isMembersOnlyLockup(lockup)
   };
   return upload;
 }
@@ -80,7 +83,8 @@ function readVideoRenderer(renderer: ClassicRenderer) {
     videoId: renderer.videoId,
     title: readText(renderer.title),
     timeTexts: renderer.publishedTimeText ? [readText(renderer.publishedTimeText)] : [],
-    durationSeconds: durationFromClassicRenderer(renderer)
+    durationSeconds: durationFromClassicRenderer(renderer),
+    isMembersOnly: isMembersOnlyClassicRenderer(renderer)
   };
   return upload;
 }
@@ -161,6 +165,7 @@ export function parseVideosTab({ response, now }: {
       }),
       thumbnailUrl: buildVideoThumbnailUrl(upload.videoId),
       isShort: false,
+      isMembersOnly: upload.isMembersOnly,
       ...upload.durationSeconds !== null && {
         durationSeconds: upload.durationSeconds
       }

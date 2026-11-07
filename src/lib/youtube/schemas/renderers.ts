@@ -32,7 +32,15 @@ const metadataPartSchema = z.looseObject({
   accessibilityLabel: z.string().optional()
 });
 
-const metadataRowSchema = z.looseObject({ metadataParts: z.array(metadataPartSchema).optional() });
+/** A badge under a lockup's title, such as "Members only" */
+const badgeViewModelSchema = z.looseObject({
+  badgeViewModel: z.looseObject({ badgeStyle: z.string().optional() }).optional()
+});
+
+const metadataRowSchema = z.looseObject({
+  metadataParts: z.array(metadataPartSchema).optional(),
+  badges: z.array(badgeViewModelSchema).optional().catch(undefined)
+});
 export type MetadataRow = z.infer<typeof metadataRowSchema>;
 
 const thumbnailBadgeSchema = z.looseObject({
@@ -92,7 +100,12 @@ export const classicRendererSchema = z.looseObject({
   lengthText: formattedTextSchema.optional(),
   viewCountText: formattedTextSchema.optional(),
   shortViewCountText: formattedTextSchema.optional(),
-  thumbnail: thumbnailListSchema.partial().optional()
+  thumbnail: thumbnailListSchema.partial().optional(),
+  badges: z.array(
+    z.looseObject({
+      metadataBadgeRenderer: z.looseObject({ style: z.string().optional() }).optional()
+    })
+  ).optional().catch(undefined)
 });
 export type ClassicRenderer = z.infer<typeof classicRendererSchema>;
 
