@@ -1,97 +1,83 @@
 <script lang="ts">
-  import { isLengthFilterSet, isLengthRangeValid, type LengthFilter } from "@/lib/filter/title-filter";
-  import { SECONDS_PER_MINUTE } from "@/lib/youtube/video-duration";
+  import { describeLengthRange } from "@/lib/filter/filter-literal";
+  import { formatLengthExpression, parseLengthExpression } from "@/lib/filter/length-expression";
+  import { FilterKind, type LengthFilter } from "@/lib/filter/title-filter";
+  import { untrack } from "svelte";
 
   interface Props {
     filter: LengthFilter;
-    /** The first input's id, so the card's heading can point at it */
+    /** The expression input's id, so the card's heading can point at it */
     inputId: string;
   }
 
   let { filter = $bindable(), inputId }: Props = $props();
 
-  const maxInputId = $derived(`${inputId}-max`);
+  const EXAMPLES = [">=10m", "<=20m", "5-20m", "under 1h"] as const;
+
   const hintId = $derived(`${inputId}-hint`);
-  const errorId = $derived(`${inputId}-error`);
-  const error = $derived.by(() => {
-    if (!isLengthFilterSet(filter)) {
-      return "Set at least one limit";
+  const readingId = $derived(`${inputId}-reading`);
+  /** What the user typed - the filter only keeps the bounds it reads as */
+  let expression = $state(untrack(() => formatLengthExpression(filter)));
+  /** The filter this field last wrote, so a filter swapped in from outside (a mode switch) resets the text */
+  let writtenFilter: LengthFilter | null = null;
+  const parsed = $derived(parseLengthExpression(expression));
+  const reading = $derived.by(() => {
+    if (!parsed.bounds) {
+      return null;
     }
 
-    if (!isLengthRangeValid(filter)) {
-      return "The shortest can't be longer than the longest";
-    }
-
-    return null;
+    return `Videos that run ${describeLengthRange({
+      kind: FilterKind.length,
+      ...parsed.bounds
+    })}`;
   });
 
-  function toMinutes(seconds: number | undefined) {
-    return seconds === undefined ? null : seconds / SECONDS_PER_MINUTE;
-  }
+  $effect(() => {
+    const isWrittenHere = filter === untrack(() => writtenFilter);
+    if (!isWrittenHere) {
+      expression = formatLengthExpression(filter);
+    }
+  });
 
-  /** An emptied field leaves that side open */
-  function withBound({ bound, minutes }: {
-    bound: "minSeconds" | "maxSeconds";
-    minutes: number | null | undefined;
-  }) {
-    const isSet = typeof minutes === "number" && Number.isFinite(minutes) && minutes >= 0;
+  /** An expression it can't read sets no bound, so the filter can't be saved until it reads */
+  function setExpression(text: string) {
+    expression = text;
+    const { bounds } = parseLengthExpression(text);
     const updated: LengthFilter = {
-      ...filter,
-      [bound]: isSet ? Math.round(minutes * SECONDS_PER_MINUTE) : undefined
+      kind: FilterKind.length,
+      ...bounds
     };
-    return updated;
+    writtenFilter = updated;
+    filter = updated;
   }
 </script>
 
 <div class="length">
-  <div class="length__range">
-    <label class="length__bound">
-      <span class="length__label">At least</span>
-      <span class="filter-editor-field">
-        <input
-          id={inputId}
-          class="length__input"
-          aria-describedby="{hintId} {errorId}"
-          aria-invalid={error !== null}
-          inputmode="decimal"
-          min="0"
-          placeholder="0"
-          step="any"
-          type="number"
-          bind:value={() => toMinutes(filter.minSeconds), minutes => {
-            filter = withBound({
-              bound: "minSeconds",
-              minutes
-            });
-          }} />
-        <span class="length__unit">min</span>
-      </span>
-    </label>
-    <label class="length__bound">
-      <span class="length__label">Up to</span>
-      <span class="filter-editor-field">
-        <input
-          id={maxInputId}
-          class="length__input"
-          aria-describedby="{hintId} {errorId}"
-          aria-invalid={error !== null}
-          inputmode="decimal"
-          min="0"
-          placeholder="No limit"
-          step="any"
-          type="number"
-          bind:value={() => toMinutes(filter.maxSeconds), minutes => {
-            filter = withBound({
-              bound: "maxSeconds",
-              minutes
-            });
-          }} />
-        <span class="length__unit">min</span>
-      </span>
-    </label>
+  <div class="filter-editor-field length__field">
+    <input
+      id={inputId}
+      class="length__input"
+      aria-describedby="{readingId} {hintId}"
+      aria-invalid={parsed.error !== null}
+      autocapitalize="off"
+      autocomplete="off"
+      dir="ltr"
+      placeholder=">=10m, 5-20m, under 1h"
+      spellcheck="false"
+      type="text"
+      bind:value={() => expression, setExpression} />
   </div>
-  <p id={hintId} class="length__hint">Leave a side empty for no limit - Shorts run up to 3 min</p>
-  <p id={errorId} class="length__error" aria-live="polite">{error ?? ""}</p>
+  <output id={readingId} class={["length__reading", parsed.error && "length__reading--error"]} for={inputId}>
+    {reading ?? parsed.error}
+  </output>
+  <p id={hintId} class="length__hint">
+    <span>Use s, m or h, compare with &lt; &gt; &lt;= &gt;=, or give a range - Shorts run up to 3 min</span>
+    <span class="length__examples">
+      {#each EXAMPLES as example (example)}
+        <button class="length__example" onclick={() => setExpression(example)} type="button">{example}</button>
+      {/each}
+    </span>
+  </p>
 </div>
 
 <style>
@@ -101,21 +87,9 @@
     gap: 6px;
   }
 
-  .length__range {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 8px 12px;
-  }
-
-  .length__bound {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .length__label {
-    color: var(--editor-muted);
-    font-size: 12px;
+  .length__field {
+    font-family: var(--editor-mono);
+    font-size: 15px;
   }
 
   .length__input {
@@ -126,8 +100,6 @@
     background: transparent;
     color: var(--editor-fg);
     font: inherit;
-    font-size: 15px;
-    font-variant-numeric: tabular-nums;
 
     &::placeholder {
       color: var(--editor-muted);
@@ -139,28 +111,49 @@
     }
   }
 
-  .length__unit {
-    flex: none;
-    color: var(--editor-muted);
-    user-select: none;
-  }
-
-  .length__hint,
-  .length__error {
-    margin: 0;
+  .length__reading {
+    color: var(--editor-fg);
+    font-weight: 500;
     font-size: 12px;
   }
 
-  .length__hint {
-    color: var(--editor-muted);
+  .length__reading--error {
+    color: var(--editor-error);
   }
 
-  .length__error {
-    color: var(--editor-error);
-    font-weight: 500;
+  .length__hint {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    align-items: center;
+    margin: 0;
+    color: var(--editor-muted);
+    font-size: 12px;
+  }
 
-    &:empty {
-      display: none;
+  .length__examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .length__example {
+    padding-block: 2px;
+    padding-inline: 8px;
+    border: 1px solid var(--editor-border);
+    border-radius: 999px;
+    background: var(--editor-surface);
+    color: var(--editor-fg);
+    font-family: var(--editor-mono);
+    font-size: 12px;
+    cursor: pointer;
+
+    @media (prefers-reduced-motion: no-preference) {
+      transition: background-color 120ms var(--editor-ease);
+    }
+
+    &:hover {
+      background: color-mix(in sRGB, var(--editor-accent) 12%, transparent);
     }
   }
 </style>
