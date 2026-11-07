@@ -2,7 +2,13 @@
 export { default as FilterEditor } from "./FilterEditor.svelte";
 
 /** What a host implements to build the editor from its own controls */
-export type { EditorCheckboxProps, EditorChipProps, EditorControls, EditorTextFieldProps } from "./controls";
+export type {
+  EditorCheckboxProps,
+  EditorChipProps,
+  EditorControls,
+  EditorDisclosureProps,
+  EditorTextFieldProps
+} from "./controls";
 
 /** The text field the dialog or popup focuses when it opens */
 export { FOCUSED_ON_OPEN_ATTRIBUTE, FOCUSED_ON_OPEN_SELECTOR } from "./controls";

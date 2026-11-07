@@ -26,7 +26,9 @@ export enum ButtonViewModelState {
 export enum ButtonViewModelIcon {
   none = "",
   filter = "FILTER",
-  close = "CLOSE"
+  close = "CLOSE",
+  expandMore = "EXPAND_MORE",
+  expandLess = "EXPAND_LESS"
 }
 
 const buttonViewModelDataSchema = z.object({

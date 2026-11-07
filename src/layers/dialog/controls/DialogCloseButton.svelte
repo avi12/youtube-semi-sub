@@ -18,7 +18,7 @@
 </script>
 
 {#if isDesktop}
-  <YtButton icon={ButtonViewModelIcon.close} label={LABEL} {onclick} type={ButtonViewModelType.text} />
+  <YtButton icon={ButtonViewModelIcon.close} isIconOnly label={LABEL} {onclick} type={ButtonViewModelType.text} />
 {:else}
   <button class="icon-button" aria-label={LABEL} {onclick} type="button">
     <svg class="icon-button__icon" aria-hidden="true" viewBox="0 0 24 24">

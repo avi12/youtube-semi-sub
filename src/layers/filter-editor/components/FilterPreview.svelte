@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Disclosure from "./Disclosure.svelte";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
   import { formatDuration } from "@/lib/youtube/video-duration";
+  import { getEditorControls } from "#filter-editor/controls";
   import { popTile, slideTile } from "#filter-editor/preview/tile-motion";
   import type { PreviewHints, PreviewRow, VideoFilterPreview } from "#filter-editor/preview/title-matches";
 
@@ -58,6 +58,8 @@
 
     return `${shownSummary} - checking ${pendingCount} more`;
   });
+
+  const { Disclosure } = getEditorControls();
 </script>
 
 {#snippet videoCard(row: PreviewRow)}
@@ -140,10 +142,7 @@
       {/each}
     </ul>
     {#if preview.hiddenRows.length > 0}
-      <Disclosure>
-        {#snippet summary()}
-          {preview.hiddenRows.length} {skippedLabel}
-        {/snippet}
+      <Disclosure label="{preview.hiddenRows.length} {skippedLabel}">
         <ul class="skipped">
           {#each preview.hiddenRows as row (row.video.videoId)}
             <li class="skipped__item">

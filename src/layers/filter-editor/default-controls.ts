@@ -1,5 +1,6 @@
 import FilterCheckbox from "#filter-editor/components/FilterCheckbox.svelte";
 import FilterChip from "#filter-editor/components/FilterChip.svelte";
+import FilterDisclosure from "#filter-editor/components/FilterDisclosure.svelte";
 import FilterTextField from "#filter-editor/components/FilterTextField.svelte";
 import type { EditorControls } from "#filter-editor/controls";
 
@@ -7,5 +8,6 @@ import type { EditorControls } from "#filter-editor/controls";
 export const DEFAULT_EDITOR_CONTROLS: EditorControls = {
   Chip: FilterChip,
   Checkbox: FilterCheckbox,
-  TextField: FilterTextField
+  TextField: FilterTextField,
+  Disclosure: FilterDisclosure
 };

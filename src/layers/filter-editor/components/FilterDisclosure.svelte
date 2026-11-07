@@ -1,16 +1,11 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
+  import type { EditorDisclosureProps } from "#filter-editor/controls";
 
-  interface Props {
-    summary: Snippet;
-    children: Snippet;
-  }
-
-  const { summary, children }: Props = $props();
+  const { label, children }: EditorDisclosureProps = $props();
 </script>
 
 <details class="disclosure">
-  <summary class="disclosure__summary">{@render summary()}</summary>
+  <summary class="disclosure__summary">{label}</summary>
   {@render children()}
 </details>
 

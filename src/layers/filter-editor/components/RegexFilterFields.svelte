@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Disclosure from "./Disclosure.svelte";
   import type { RegexFilter } from "@/lib/filter/title-filter";
   import { getEditorControls } from "#filter-editor/controls";
   import {
@@ -22,7 +21,7 @@
 
   let { filter = $bindable(), inputId, placeholder, emptyPatternHint }: Props = $props();
 
-  const { Checkbox, TextField } = getEditorControls();
+  const { Checkbox, TextField, Disclosure } = getEditorControls();
   const hintId = $derived(`${inputId}-hint`);
   const error = $derived(getReadableFilterError(filter));
   const enabledAdvancedFlags = $derived(ADVANCED_FILTER_FLAGS.filter(flag => filter.flags.includes(flag)).join(""));
@@ -80,13 +79,7 @@
 
   <div class="flags">
     {@render flagToggle(IGNORE_CASE_FLAG)}
-    <Disclosure>
-      {#snippet summary()}
-        More flags
-        {#if enabledAdvancedFlags}
-          <code class="flag__letter">{enabledAdvancedFlags}</code>
-        {/if}
-      {/snippet}
+    <Disclosure label={enabledAdvancedFlags ? `More flags (${enabledAdvancedFlags})` : "More flags"}>
       <ul class="flags__advanced">
         {#each ADVANCED_FILTER_FLAGS as flag (flag)}
           <li>{@render flagToggle(flag)}</li>
@@ -127,15 +120,6 @@
     flex-direction: column;
     gap: 6px;
     margin-block-start: 8px;
-  }
-
-  .flag__letter {
-    padding-inline: 5px;
-    border-radius: 4px;
-    background: color-mix(in sRGB, var(--editor-fg) 8%, transparent);
-    color: var(--editor-muted);
-    font-family: var(--editor-mono);
-    font-size: 12px;
   }
 
   .flags__advanced {

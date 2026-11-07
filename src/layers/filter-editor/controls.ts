@@ -44,6 +44,13 @@ export interface EditorTextFieldProps {
   onValueChange(value: string): void;
 }
 
+const editorDisclosurePropsSchema = z.object({
+  /** What pressing it shows */
+  label: z.string(),
+  children: z.custom<Snippet>(value => functionSchema.safeParse(value).success)
+});
+export type EditorDisclosureProps = z.infer<typeof editorDisclosurePropsSchema>;
+
 /** Marks the text field a host focuses when it opens, on the input or on the element that renders it */
 export const FOCUSED_ON_OPEN_ATTRIBUTE = "data-filter-input";
 /** The text field marked `isFocusedOnOpen`, whether a host renders the input itself or inside its own element */
@@ -52,7 +59,8 @@ export const FOCUSED_ON_OPEN_SELECTOR = `:is(input, textarea):is([${FOCUSED_ON_O
 const editorControlsSchema = z.object({
   Chip: z.custom<Component<EditorChipProps>>(value => functionSchema.safeParse(value).success),
   Checkbox: z.custom<Component<EditorCheckboxProps>>(value => functionSchema.safeParse(value).success),
-  TextField: z.custom<Component<EditorTextFieldProps>>(value => functionSchema.safeParse(value).success)
+  TextField: z.custom<Component<EditorTextFieldProps>>(value => functionSchema.safeParse(value).success),
+  Disclosure: z.custom<Component<EditorDisclosureProps>>(value => functionSchema.safeParse(value).success)
 });
 export type EditorControls = z.infer<typeof editorControlsSchema>;
 
