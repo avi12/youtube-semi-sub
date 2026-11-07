@@ -27,6 +27,8 @@
   import RegexFilterFields from "#filter-editor/components/RegexFilterFields.svelte";
   import SegmentedSwitch from "#filter-editor/components/SegmentedSwitch.svelte";
   import TypeFilterFields from "#filter-editor/components/TypeFilterFields.svelte";
+  import { type EditorControls, setEditorControls } from "#filter-editor/controls";
+  import { DEFAULT_EDITOR_CONTROLS } from "#filter-editor/default-controls";
   import {
     createDefaultCondition,
     FILTER_MATCH_LABEL,
@@ -49,6 +51,8 @@
     isLoading?: boolean;
     /** A member of the channel: following then adds its members-only videos too */
     isMember?: boolean;
+    /** The toggles to build the editor from - YouTube's own in-page, the editor's plain ones elsewhere */
+    controls?: EditorControls;
     /** The host's way to turn AI match on or finish setting it up, shown while an AI filter can't run yet */
     aiSetup?: Snippet<[{
       isAiEnabled: boolean;
@@ -56,13 +60,23 @@
     }]>;
   }
 
-  let { filter = $bindable(), mode, videos, isLoading = false, isMember = $bindable(false), aiSetup }: Props = $props();
+  let {
+    filter = $bindable(),
+    mode,
+    videos,
+    isLoading = false,
+    isMember = $bindable(false),
+    controls = DEFAULT_EDITOR_CONTROLS,
+    aiSetup
+  }: Props = $props();
+
+  setEditorControls(untrack(() => controls));
 
   const id = $props.id();
   const titleInputId = `${id}-title`;
   const lengthInputId = `${id}-length`;
   const ruleId = `${id}-rule`;
-  const memberInputId = `${id}-member`;
+  const MEMBERSHIP_LABEL = "I'm a member of this channel";
   const PREVIEW_LABEL = "Shows in your feed";
 
   const copy = $derived(MODE_COPY[mode]);
@@ -239,6 +253,13 @@
   const isMembershipAsked = $derived(
     mode === SubscriptionMode.follow && (isMember || videos.some(video => video.isMembersOnly))
   );
+  const membershipHint = $derived.by(() => {
+    if (isMember) {
+      return "Members-only videos are added like any other";
+    }
+
+    return "Members-only videos are left out, since only members can watch them";
+  });
   const previewInputId = $derived(regexFilter || aiFilter ? titleInputId : lengthInputId);
 </script>
 
@@ -328,19 +349,13 @@
   <FilterRule id={ruleId} {filter} inputIds="{titleInputId} {lengthInputId}" {mode} />
 
   {#if isMembershipAsked}
-    <label class="membership" for={memberInputId}>
-      <input id={memberInputId} class="membership__checkbox" type="checkbox" bind:checked={isMember} />
-      <span class="membership__text">
-        <span class="membership__label">I'm a member of this channel</span>
-        <span class="membership__hint">
-          {#if isMember}
-            Members-only videos are added like any other
-          {:else}
-            Members-only videos are left out, since only members can watch them
-          {/if}
-        </span>
-      </span>
-    </label>
+    <controls.Checkbox
+      hint={membershipHint}
+      isChecked={isMember}
+      label={MEMBERSHIP_LABEL}
+      onCheckedChange={isChecked => {
+        isMember = isChecked;
+      }} />
   {/if}
 
   {#if aiNotice}
@@ -391,50 +406,6 @@
       outline: 2px solid var(--editor-accent);
       outline-offset: 2px;
       animation: none;
-    }
-
-    /* A toggle chip: a hidden checkbox inside a label that lights up while checked */
-    & :global(.filter-editor-chip) {
-      position: relative;
-      padding-block: 5px;
-      border: 1px solid var(--editor-border);
-      border-radius: 8px;
-      color: var(--editor-muted);
-      font-weight: 500;
-      font-size: 13px;
-      cursor: pointer;
-
-      @media (prefers-reduced-motion: no-preference) {
-        transition:
-          background-color 150ms var(--editor-ease),
-          border-color 150ms var(--editor-ease),
-          color 150ms var(--editor-ease);
-      }
-
-      &:hover {
-        color: var(--editor-fg);
-      }
-    }
-
-    & :global(.filter-editor-chip:has(:checked)) {
-      border-color: transparent;
-      background: color-mix(in sRGB, var(--editor-accent) 18%, transparent);
-      color: var(--editor-fg);
-    }
-
-    & :global(.filter-editor-chip:has(:disabled)) {
-      cursor: default;
-    }
-
-    & :global(.filter-editor-chip:has(:focus-visible)) {
-      outline: 2px solid var(--editor-accent);
-      outline-offset: 1px;
-    }
-
-    & :global(.filter-editor-chip__input) {
-      position: absolute;
-      opacity: 0%;
-      pointer-events: none;
     }
 
     /* The frame every text field of the editor sits in */
@@ -535,37 +506,6 @@
     color: var(--editor-fg);
     font-weight: 600;
     font-size: 13px;
-  }
-
-  .membership {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    cursor: pointer;
-  }
-
-  .membership__checkbox {
-    flex: none;
-    block-size: 16px;
-    inline-size: 16px;
-    margin: 0;
-    margin-block-start: 2px;
-    accent-color: var(--editor-accent);
-    cursor: inherit;
-  }
-
-  .membership__text {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .membership__label {
-    font-weight: 500;
-  }
-
-  .membership__hint {
-    color: var(--editor-muted);
-    font-size: 12px;
   }
 
   .ai-notice {

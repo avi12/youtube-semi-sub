@@ -1,6 +1,7 @@
 <script lang="ts">
   import Disclosure from "./Disclosure.svelte";
   import type { RegexFilter } from "@/lib/filter/title-filter";
+  import { getEditorControls } from "#filter-editor/controls";
   import {
     ADVANCED_FILTER_FLAGS,
     FILTER_FLAG_DETAILS,
@@ -21,6 +22,7 @@
 
   let { filter = $bindable(), inputId, placeholder, emptyPatternHint }: Props = $props();
 
+  const { Checkbox } = getEditorControls();
   const hintId = $derived(`${inputId}-hint`);
   const errorId = $derived(`${inputId}-error`);
   const error = $derived(getReadableFilterError(filter));
@@ -39,22 +41,14 @@
 </script>
 
 {#snippet flagToggle(flag: FilterFlag)}
-  <label class="flag">
-    <input
-      class="flag__checkbox"
-      type="checkbox"
-      bind:checked={() => filter.flags.includes(flag), isEnabled => setFlag({
-        flag,
-        isEnabled
-      })} />
-    <span class="flag__text">
-      <span class="flag__label">
-        {FILTER_FLAG_DETAILS[flag].label}
-        <code class="flag__letter">{flag}</code>
-      </span>
-      <span class="flag__description">{FILTER_FLAG_DETAILS[flag].description}</span>
-    </span>
-  </label>
+  <Checkbox
+    hint={FILTER_FLAG_DETAILS[flag].description}
+    isChecked={filter.flags.includes(flag)}
+    label="{FILTER_FLAG_DETAILS[flag].label} ({flag})"
+    onCheckedChange={isEnabled => setFlag({
+      flag,
+      isEnabled
+    })} />
 {/snippet}
 
 <div class="regex">
@@ -170,53 +164,12 @@
     margin-block-start: 8px;
   }
 
-  .flag {
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    padding-block: 6px;
-    padding-inline: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-
-    &:hover {
-      background: color-mix(in sRGB, var(--editor-fg) 6%, transparent);
-    }
-  }
-
-  .flag__checkbox {
-    flex: none;
-    block-size: 16px;
-    inline-size: 16px;
-    margin: 0;
-    margin-block-start: 2px;
-    accent-color: var(--editor-accent);
-    cursor: inherit;
-  }
-
-  .flag__text {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .flag__label {
-    display: flex;
-    gap: 6px;
-    align-items: baseline;
-    font-weight: 500;
-  }
-
   .flag__letter {
     padding-inline: 5px;
     border-radius: 4px;
     background: color-mix(in sRGB, var(--editor-fg) 8%, transparent);
     color: var(--editor-muted);
     font-family: var(--editor-mono);
-    font-size: 12px;
-  }
-
-  .flag__description {
-    color: var(--editor-muted);
     font-size: 12px;
   }
 

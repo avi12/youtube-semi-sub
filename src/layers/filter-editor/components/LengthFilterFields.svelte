@@ -2,6 +2,7 @@
   import { describeLengthRange } from "@/lib/filter/filter-literal";
   import { formatLengthExpression, parseLengthExpression } from "@/lib/filter/length-expression";
   import { FilterKind, type LengthFilter } from "@/lib/filter/title-filter";
+  import { getEditorControls } from "#filter-editor/controls";
   import { untrack } from "svelte";
 
   interface Props {
@@ -13,6 +14,7 @@
   let { filter = $bindable(), inputId }: Props = $props();
 
   const EXAMPLES = [">=10m", "<=20m", "5-20m", "under 1h"] as const;
+  const { Chip } = getEditorControls();
 
   const hintId = $derived(`${inputId}-hint`);
   const readingId = $derived(`${inputId}-reading`);
@@ -74,7 +76,7 @@
     <span>Use s, m or h, compare with &lt; &gt; &lt;= &gt;=, or give a range - Shorts run up to 3 min</span>
     <span class="length__examples">
       {#each EXAMPLES as example (example)}
-        <button class="length__example" onclick={() => setExpression(example)} type="button">{example}</button>
+        <Chip isSelected={expression === example} label={example} onToggle={() => setExpression(example)} />
       {/each}
     </span>
   </p>
@@ -135,25 +137,5 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-  }
-
-  .length__example {
-    padding-block: 2px;
-    padding-inline: 8px;
-    border: 1px solid var(--editor-border);
-    border-radius: 999px;
-    background: var(--editor-surface);
-    color: var(--editor-fg);
-    font-family: var(--editor-mono);
-    font-size: 12px;
-    cursor: pointer;
-
-    @media (prefers-reduced-motion: no-preference) {
-      transition: background-color 120ms var(--editor-ease);
-    }
-
-    &:hover {
-      background: color-mix(in sRGB, var(--editor-accent) 12%, transparent);
-    }
   }
 </style>

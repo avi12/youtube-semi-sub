@@ -1,4 +1,6 @@
 <script generics="Value extends string" lang="ts">
+  import { getEditorControls } from "#filter-editor/controls";
+
   interface Props {
     /** Read by screen readers only - the switch sits beside a visible heading */
     legend: string;
@@ -10,33 +12,24 @@
 
   const { legend, options, labels, value, onValueChange }: Props = $props();
 
-  const id = $props.id();
+  const { Chip } = getEditorControls();
 </script>
 
 <fieldset class="segmented">
   <legend class="segmented__legend">{legend}</legend>
   {#each options as option (option)}
-    <label class="segmented__option">
-      <input
-        name="{id}-option"
-        class="segmented__radio"
-        checked={value === option}
-        onchange={() => onValueChange(option)}
-        type="radio"
-        value={option} />
-      {labels[option]}
-    </label>
+    <Chip isSelected={value === option} label={labels[option]} onToggle={() => onValueChange(option)} />
   {/each}
 </fieldset>
 
 <style>
   .segmented {
     display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
     margin: 0;
-    padding: 2px;
-    border: 1px solid var(--editor-border);
-    border-radius: 999px;
-    background: var(--editor-surface);
+    padding: 0;
+    border: 0;
   }
 
   .segmented__legend {
@@ -46,42 +39,5 @@
     inline-size: 1px;
     clip-path: inset(50%);
     white-space: nowrap;
-  }
-
-  .segmented__option {
-    position: relative;
-    padding-block: 4px;
-    padding-inline: 12px;
-    border-radius: 999px;
-    color: var(--editor-muted);
-    font-weight: 500;
-    font-size: 12px;
-    cursor: pointer;
-
-    @media (prefers-reduced-motion: no-preference) {
-      transition:
-        background-color 150ms var(--editor-ease),
-        color 150ms var(--editor-ease);
-    }
-
-    &:hover {
-      color: var(--editor-fg);
-    }
-
-    &:has(:checked) {
-      background: color-mix(in sRGB, var(--editor-accent) 18%, transparent);
-      color: var(--editor-fg);
-    }
-
-    &:has(:focus-visible) {
-      outline: 2px solid var(--editor-accent);
-      outline-offset: 1px;
-    }
-  }
-
-  .segmented__radio {
-    position: absolute;
-    opacity: 0%;
-    pointer-events: none;
   }
 </style>

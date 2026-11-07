@@ -1,5 +1,6 @@
 <script lang="ts">
   import { type TypeFilter, VideoType } from "@/lib/filter/title-filter";
+  import { getEditorControls } from "#filter-editor/controls";
   import { VIDEO_TYPE_LABEL } from "#filter-editor/filter-methods";
 
   interface Props {
@@ -9,6 +10,7 @@
   let { filter = $bindable() }: Props = $props();
 
   const VIDEO_TYPES = Object.values(VideoType);
+  const { Chip } = getEditorControls();
   const errorId = $props.id();
   const isEmpty = $derived(filter.types.length === 0);
 
@@ -26,17 +28,14 @@
 <fieldset class="types" aria-describedby={errorId}>
   <legend class="types__legend">Upload types</legend>
   {#each VIDEO_TYPES as type (type)}
-    <label class="filter-editor-chip types__chip">
-      <input
-        class="filter-editor-chip__input"
-        checked={filter.types.includes(type)}
-        onchange={e => setTypePicked({
-          type,
-          isPicked: e.currentTarget.checked
-        })}
-        type="checkbox" />
-      {VIDEO_TYPE_LABEL[type]}
-    </label>
+    {@const isPicked = filter.types.includes(type)}
+    <Chip
+      isSelected={isPicked}
+      label={VIDEO_TYPE_LABEL[type]}
+      onToggle={() => setTypePicked({
+        type,
+        isPicked: !isPicked
+      })} />
   {/each}
 </fieldset>
 <p id={errorId} class="types__error" aria-live="polite">
@@ -62,10 +61,6 @@
     inline-size: 1px;
     clip-path: inset(50%);
     white-space: nowrap;
-  }
-
-  .types__chip {
-    padding-inline: 12px;
   }
 
   .types__error {
