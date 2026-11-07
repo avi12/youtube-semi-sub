@@ -68,12 +68,14 @@
     text-transform: uppercase;
   }
 
-  .rule__verb,
-  .rule__connector {
+  .rule__verb {
     font-weight: 700;
   }
 
+  /* Svelte drops the whitespace where a clause's block ends, right before the next connector */
   .rule__connector {
+    margin-inline-start: 0.3em;
+    font-weight: 700;
     text-transform: uppercase;
   }
 
