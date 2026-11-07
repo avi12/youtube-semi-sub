@@ -6,7 +6,7 @@
   import { getModeFilter, type SemiSubscription } from "@/lib/schemas/semi-subscription";
   import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { setSemiSubscriptionFilter } from "@/lib/semi-subscription-storage";
-  import { FilterEditor } from "#filter-editor";
+  import { FilterEditor, FOCUSED_ON_OPEN_SELECTOR } from "#filter-editor";
   import AiSetupAction from "#popup/ai/AiSetupAction.svelte";
   import { Button, ConnectedButtons, Icon } from "m3-svelte";
   import { onMount, untrack } from "svelte";
@@ -47,7 +47,7 @@
   });
 
   function focusFilterInput(elForm: HTMLFormElement) {
-    elForm.querySelector<HTMLElement>("[data-filter-input]")?.focus();
+    elForm.querySelector<HTMLElement>(FOCUSED_ON_OPEN_SELECTOR)?.focus();
   }
 </script>
 

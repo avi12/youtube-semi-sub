@@ -14,7 +14,7 @@
   let { filter = $bindable(), inputId }: Props = $props();
 
   const EXAMPLES = [">=10m", "<=20m", "5-20m", "under 1h"] as const;
-  const { Chip } = getEditorControls();
+  const { Chip, TextField } = getEditorControls();
 
   const hintId = $derived(`${inputId}-hint`);
   const readingId = $derived(`${inputId}-reading`);
@@ -44,10 +44,9 @@
   /** An expression it can't read sets no bound, so the filter can't be saved until it reads */
   function setExpression(text: string) {
     expression = text;
-    const { bounds } = parseLengthExpression(text);
     const updated: LengthFilter = {
       kind: FilterKind.length,
-      ...bounds
+      ...parsed.bounds
     };
     writtenFilter = updated;
     filter = updated;
@@ -55,23 +54,16 @@
 </script>
 
 <div class="length">
-  <div class="filter-editor-field length__field">
-    <input
-      id={inputId}
-      class="length__input"
-      aria-describedby="{readingId} {hintId}"
-      aria-invalid={parsed.error !== null}
-      autocapitalize="off"
-      autocomplete="off"
-      dir="ltr"
-      placeholder=">=10m, 5-20m, under 1h"
-      spellcheck="false"
-      type="text"
-      bind:value={() => expression, setExpression} />
-  </div>
-  <output id={readingId} class={["length__reading", parsed.error && "length__reading--error"]} for={inputId}>
-    {reading ?? parsed.error}
-  </output>
+  <TextField
+    id={inputId}
+    describedBy="{readingId} {hintId}"
+    error={parsed.error}
+    isCode
+    label="Range"
+    onValueChange={setExpression}
+    placeholder=">=10m, 5-20m, under 1h"
+    value={expression} />
+  <output id={readingId} class="length__reading" for={inputId}>{reading}</output>
   <p id={hintId} class="length__hint">
     <span>Use s, m or h, compare with &lt; &gt; &lt;= &gt;=, or give a range - Shorts run up to 3 min</span>
     <span class="length__examples">
@@ -89,38 +81,14 @@
     gap: 6px;
   }
 
-  .length__field {
-    font-family: var(--editor-mono);
-    font-size: 15px;
-  }
-
-  .length__input {
-    flex: 1;
-    min-inline-size: 0;
-    padding-block: 10px;
-    border: 0;
-    background: transparent;
-    color: var(--editor-fg);
-    font: inherit;
-
-    &::placeholder {
-      color: var(--editor-muted);
-      opacity: 60%;
-    }
-
-    &:focus-visible {
-      outline: none;
-    }
-  }
-
   .length__reading {
     color: var(--editor-fg);
     font-weight: 500;
     font-size: 12px;
-  }
 
-  .length__reading--error {
-    color: var(--editor-error);
+    &:empty {
+      display: none;
+    }
   }
 
   .length__hint {

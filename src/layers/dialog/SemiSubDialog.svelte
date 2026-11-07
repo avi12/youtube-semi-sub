@@ -17,7 +17,7 @@
   import { readSemiSubscription, removeSemiSubscription, saveSemiSubscription } from "@/lib/semi-subscription-storage";
   import { isAiEnabledItem } from "@/lib/storage";
   import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
-  import { DEFAULT_EDITOR_CONTROLS, FilterEditor } from "#filter-editor";
+  import { DEFAULT_EDITOR_CONTROLS, FilterEditor, FOCUSED_ON_OPEN_SELECTOR } from "#filter-editor";
   import { onMount } from "svelte";
 
   interface Props {
@@ -141,7 +141,7 @@
 
   onMount(() => {
     elDialog?.showModal();
-    elDialog?.querySelector<HTMLElement>("[data-filter-input]")?.focus();
+    elDialog?.querySelector<HTMLElement>(FOCUSED_ON_OPEN_SELECTOR)?.focus();
     loadVideos().catch(() => {});
     readSemiSubscription(channel.channelId).then(stored => {
       storedSubscription = stored;

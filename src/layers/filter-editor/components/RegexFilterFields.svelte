@@ -22,9 +22,8 @@
 
   let { filter = $bindable(), inputId, placeholder, emptyPatternHint }: Props = $props();
 
-  const { Checkbox } = getEditorControls();
+  const { Checkbox, TextField } = getEditorControls();
   const hintId = $derived(`${inputId}-hint`);
-  const errorId = $derived(`${inputId}-error`);
   const error = $derived(getReadableFilterError(filter));
   const enabledAdvancedFlags = $derived(ADVANCED_FILTER_FLAGS.filter(flag => filter.flags.includes(flag)).join(""));
 
@@ -51,31 +50,33 @@
     })} />
 {/snippet}
 
+{#snippet slash()}
+  <span class="regex__slash" aria-hidden="true">/</span>
+{/snippet}
+
+{#snippet slashFlags()}
+  <span class="regex__slash" aria-hidden="true">/<span class="regex__flags">{filter.flags}</span></span>
+{/snippet}
+
 <div class="regex">
-  <div class="regex__field filter-editor-field">
-    <span class="regex__slash" aria-hidden="true">/</span>
-    <input
-      id={inputId}
-      class="regex__input"
-      aria-describedby="{hintId} {errorId}"
-      aria-invalid={error !== null}
-      autocapitalize="off"
-      autocomplete="off"
-      data-filter-input
-      dir="auto"
-      {placeholder}
-      spellcheck="false"
-      type="text"
-      bind:value={() => filter.pattern, pattern => {
-        filter = {
-          ...filter,
-          pattern
-        };
-      }} />
-    <span class="regex__slash" aria-hidden="true">/<span class="regex__flags">{filter.flags}</span></span>
-  </div>
+  <TextField
+    id={inputId}
+    describedBy={hintId}
+    {error}
+    isCode
+    isFocusedOnOpen
+    label="Pattern"
+    onValueChange={pattern => {
+      filter = {
+        ...filter,
+        pattern
+      };
+    }}
+    {placeholder}
+    prefix={slash}
+    suffix={slashFlags}
+    value={filter.pattern} />
   <p id={hintId} class="regex__hint">{emptyPatternHint}</p>
-  <p id={errorId} class="regex__error" aria-live="polite">{error ?? ""}</p>
 
   <div class="flags">
     {@render flagToggle(IGNORE_CASE_FLAG)}
@@ -102,14 +103,11 @@
     gap: 6px;
   }
 
-  .regex__field {
-    font-family: var(--editor-mono);
-    font-size: 15px;
-  }
-
   .regex__slash {
     flex: none;
     color: var(--editor-muted);
+    font-family: var(--editor-mono);
+    font-size: 15px;
     user-select: none;
   }
 
@@ -118,43 +116,10 @@
     font-weight: 600;
   }
 
-  .regex__input {
-    flex: 1;
-    min-inline-size: 0;
-    padding-block: 10px;
-    padding-inline: 6px;
-    border: 0;
-    background: transparent;
-    color: var(--editor-fg);
-    font: inherit;
-
-    &::placeholder {
-      color: var(--editor-muted);
-      opacity: 60%;
-    }
-
-    &:focus-visible {
-      outline: none;
-    }
-  }
-
-  .regex__hint,
-  .regex__error {
-    margin: 0;
-    font-size: 12px;
-  }
-
   .regex__hint {
+    margin: 0;
     color: var(--editor-muted);
-  }
-
-  .regex__error {
-    color: var(--editor-error);
-    font-weight: 500;
-
-    &:empty {
-      display: none;
-    }
+    font-size: 12px;
   }
 
   .flags {
