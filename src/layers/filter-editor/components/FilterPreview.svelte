@@ -83,6 +83,9 @@
       {#if row.video.isShort}
         <span class="video__short">Short</span>
       {/if}
+      {#if row.video.isLiveStream}
+        <span class="video__short">Live stream</span>
+      {/if}
       {#if row.video.isMembersOnly}
         <span class="video__short">Members only</span>
       {/if}

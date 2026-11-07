@@ -20,9 +20,9 @@
   <legend class="methods__legend">Filter by</legend>
   {#each FILTER_METHODS as method (method)}
     {@const isPicked = pickedMethods.includes(method)}
-    <label class="methods__chip">
+    <label class="filter-editor-chip methods__chip">
       <input
-        class="methods__checkbox"
+        class="filter-editor-chip__input"
         checked={isPicked}
         disabled={isPicked && isLastPick}
         onchange={e => onPickedChange({
@@ -59,50 +59,10 @@
   }
 
   .methods__chip {
-    position: relative;
     display: inline-flex;
     gap: 6px;
     align-items: center;
-    padding-block: 5px;
     padding-inline: 10px 14px;
-    border: 1px solid var(--editor-border);
-    border-radius: 8px;
-    color: var(--editor-muted);
-    font-weight: 500;
-    font-size: 13px;
-    cursor: pointer;
-
-    @media (prefers-reduced-motion: no-preference) {
-      transition:
-        background-color 150ms var(--editor-ease),
-        border-color 150ms var(--editor-ease),
-        color 150ms var(--editor-ease);
-    }
-
-    &:hover {
-      color: var(--editor-fg);
-    }
-
-    &:has(:checked) {
-      border-color: transparent;
-      background: color-mix(in sRGB, var(--editor-accent) 18%, transparent);
-      color: var(--editor-fg);
-    }
-
-    &:has(:disabled) {
-      cursor: default;
-    }
-
-    &:has(:focus-visible) {
-      outline: 2px solid var(--editor-accent);
-      outline-offset: 1px;
-    }
-  }
-
-  .methods__checkbox {
-    position: absolute;
-    opacity: 0%;
-    pointer-events: none;
   }
 
   .methods__check {
@@ -118,7 +78,7 @@
       transition: inline-size 150ms var(--editor-ease);
     }
 
-    .methods__chip:has(:checked) & {
+    .filter-editor-chip:has(:checked) & {
       inline-size: 16px;
     }
   }

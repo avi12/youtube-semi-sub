@@ -11,6 +11,8 @@ export enum FilterKind {
   aiMatch = "ai",
   /** How long a video runs */
   length = "length",
+  /** Whether a video is a regular one, a Short or a live stream */
+  type = "type",
   /** Several conditions, all or any of which a video has to meet */
   group = "group"
 }
@@ -18,7 +20,15 @@ export enum FilterKind {
 /** What a condition judges a video by - a filter holds at most one condition per method */
 export enum FilterMethod {
   title = "title",
-  length = "length"
+  length = "length",
+  type = "type"
+}
+
+/** What kind of upload a video is - a premiere counts as a regular video, as YouTube lists it on the Videos tab */
+export enum VideoType {
+  video = "video",
+  short = "short",
+  liveStream = "live-stream"
 }
 
 /** The ways a title condition can be written */
@@ -71,7 +81,19 @@ const lengthFilterSchema = z.object({
 });
 export type LengthFilter = z.infer<typeof lengthFilterSchema>;
 
-const filterConditionSchema = z.discriminatedUnion("kind", [regexFilterSchema, aiFilterSchema, lengthFilterSchema]);
+/** The upload types a video has to be one of */
+const typeFilterSchema = z.object({
+  kind: z.literal(FilterKind.type),
+  types: z.array(z.enum(VideoType))
+});
+export type TypeFilter = z.infer<typeof typeFilterSchema>;
+
+const filterConditionSchema = z.discriminatedUnion("kind", [
+  regexFilterSchema,
+  aiFilterSchema,
+  lengthFilterSchema,
+  typeFilterSchema
+]);
 export type FilterCondition = z.infer<typeof filterConditionSchema>;
 
 const filterGroupSchema = z.object({
@@ -88,6 +110,7 @@ export const videoFilterSchema = z.discriminatedUnion("kind", [
   regexFilterSchema,
   aiFilterSchema,
   lengthFilterSchema,
+  typeFilterSchema,
   filterGroupSchema
 ]);
 export type VideoFilter = z.infer<typeof videoFilterSchema>;
@@ -95,7 +118,8 @@ export type VideoFilter = z.infer<typeof videoFilterSchema>;
 export const FILTER_METHOD_BY_KIND = {
   [FilterKind.regex]: FilterMethod.title,
   [FilterKind.aiMatch]: FilterMethod.title,
-  [FilterKind.length]: FilterMethod.length
+  [FilterKind.length]: FilterMethod.length,
+  [FilterKind.type]: FilterMethod.type
 } as const satisfies Record<FilterCondition["kind"], FilterMethod>;
 
 /** A filter saved before filters had a `kind`, when every filter was a RegExp, read as today's RegExp filter */
@@ -194,7 +218,7 @@ export function getTitleFilterError(filter: RegexFilter) {
   return compileRegexFilter(filter).error;
 }
 
-export function isLengthFilterSet({ minSeconds, maxSeconds }: LengthFilter) {
+function isLengthFilterSet({ minSeconds, maxSeconds }: LengthFilter) {
   return minSeconds !== undefined || maxSeconds !== undefined;
 }
 
@@ -205,6 +229,10 @@ function isLengthRangeValid({ minSeconds = 0, maxSeconds = Infinity }: LengthFil
 export function isFilterConditionValid(condition: FilterCondition) {
   if (condition.kind === FilterKind.regex) {
     return compileTitleFilter(condition) !== null;
+  }
+
+  if (condition.kind === FilterKind.type) {
+    return typeFilterSchema.safeParse(condition).success && condition.types.length > 0;
   }
 
   if (condition.kind === FilterKind.length) {
@@ -228,7 +256,32 @@ export function isVideoFilterValid(filter: VideoFilter) {
 export type AiJudgeContext = Pick<StoredState, "aiVerdicts" | "isAiEnabled">;
 
 /** All a judge reads of a video, so a feed tile can be judged as well as a cached upload */
-type JudgedVideo = Pick<FeedVideo, "videoId" | "title"> & Partial<Pick<FeedVideo, "durationSeconds" | "isShort">>;
+type JudgedVideo = Pick<FeedVideo, "videoId" | "title"> &
+  Partial<Pick<FeedVideo, "durationSeconds" | "isShort" | "isLiveStream">>;
+
+/** A video's upload type, or null while its channel's tabs haven't told whether it is a live stream */
+function readVideoType({ isShort, isLiveStream }: Pick<JudgedVideo, "isShort" | "isLiveStream">) {
+  if (isShort) {
+    return VideoType.short;
+  }
+
+  if (isLiveStream === undefined) {
+    return null;
+  }
+
+  return isLiveStream ? VideoType.liveStream : VideoType.video;
+}
+
+function createTypeJudge({ types }: TypeFilter) {
+  return function judgeByType(video: JudgedVideo) {
+    const type = readVideoType(video);
+    if (type === null) {
+      return MatchState.pending;
+    }
+
+    return types.includes(type) ? MatchState.matches : MatchState.doesNotMatch;
+  };
+}
 
 function createRegexJudge(filter: RegexFilter) {
   const regex = compileTitleFilter(filter);
@@ -285,6 +338,10 @@ function createConditionJudge({ condition, ...context }: AiJudgeContext & { cond
     return createLengthJudge(condition);
   }
 
+  if (condition.kind === FilterKind.type) {
+    return createTypeJudge(condition);
+  }
+
   return createAiJudge({
     filter: condition,
     ...context
@@ -299,6 +356,10 @@ function isConditionUnrestricting(condition: FilterCondition) {
 
   if (condition.kind === FilterKind.length) {
     return !isLengthFilterSet(condition);
+  }
+
+  if (condition.kind === FilterKind.type) {
+    return Object.values(VideoType).every(type => condition.types.includes(type));
   }
 
   return false;
@@ -397,10 +458,10 @@ export function isAllowListRestricting(filter: VideoFilter | null) {
   return listRestrictingConditions(filter).length > 0;
 }
 
-/** Whether a filter judges videos by their length, which only the Videos tab tells */
-export function isLengthFiltered(filter: VideoFilter | null) {
+/** Whether a filter judges videos by what only a channel's tabs tell: their length, or whether they are live streams */
+export function isTabDetailFiltered(filter: VideoFilter | null) {
   const conditions = filter ? listRestrictingConditions(filter) : [];
-  return conditions.some(condition => condition.kind === FilterKind.length);
+  return conditions.some(condition => condition.kind === FilterKind.length || condition.kind === FilterKind.type);
 }
 
 function judgeNoMatch() {

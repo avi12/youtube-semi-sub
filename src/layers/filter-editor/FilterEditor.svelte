@@ -26,6 +26,7 @@
   import MethodPicker from "#filter-editor/components/MethodPicker.svelte";
   import RegexFilterFields from "#filter-editor/components/RegexFilterFields.svelte";
   import SegmentedSwitch from "#filter-editor/components/SegmentedSwitch.svelte";
+  import TypeFilterFields from "#filter-editor/components/TypeFilterFields.svelte";
   import {
     createDefaultCondition,
     FILTER_MATCH_LABEL,
@@ -115,7 +116,10 @@
 
     setCondition({
       method,
-      condition: isPicked ? parkedConditions[method] ?? createDefaultCondition(method) : null
+      condition: isPicked ? parkedConditions[method] ?? createDefaultCondition({
+        method,
+        mode
+      }) : null
     });
   }
 
@@ -261,7 +265,16 @@
           <span class="condition__connector">{FILTER_MATCH_CONNECTOR[match]}</span>
         {/if}
         <section class={["condition__card", isCombined && "condition__card--framed"]}>
-          {#if condition.kind === FilterKind.length}
+          {#if condition.kind === FilterKind.type}
+            <header class="condition__header">
+              <span class="condition__label">{FILTER_METHOD_LABEL[FilterMethod.type]}</span>
+            </header>
+            <TypeFilterFields
+              bind:filter={() => condition, edited => setCondition({
+                method: FilterMethod.type,
+                condition: edited
+              })} />
+          {:else if condition.kind === FilterKind.length}
             <header class="condition__header">
               <label class="condition__label" for={lengthInputId}>{FILTER_METHOD_LABEL[FilterMethod.length]}</label>
             </header>
@@ -378,6 +391,50 @@
       outline: 2px solid var(--editor-accent);
       outline-offset: 2px;
       animation: none;
+    }
+
+    /* A toggle chip: a hidden checkbox inside a label that lights up while checked */
+    & :global(.filter-editor-chip) {
+      position: relative;
+      padding-block: 5px;
+      border: 1px solid var(--editor-border);
+      border-radius: 8px;
+      color: var(--editor-muted);
+      font-weight: 500;
+      font-size: 13px;
+      cursor: pointer;
+
+      @media (prefers-reduced-motion: no-preference) {
+        transition:
+          background-color 150ms var(--editor-ease),
+          border-color 150ms var(--editor-ease),
+          color 150ms var(--editor-ease);
+      }
+
+      &:hover {
+        color: var(--editor-fg);
+      }
+    }
+
+    & :global(.filter-editor-chip:has(:checked)) {
+      border-color: transparent;
+      background: color-mix(in sRGB, var(--editor-accent) 18%, transparent);
+      color: var(--editor-fg);
+    }
+
+    & :global(.filter-editor-chip:has(:disabled)) {
+      cursor: default;
+    }
+
+    & :global(.filter-editor-chip:has(:focus-visible)) {
+      outline: 2px solid var(--editor-accent);
+      outline-offset: 1px;
+    }
+
+    & :global(.filter-editor-chip__input) {
+      position: absolute;
+      opacity: 0%;
+      pointer-events: none;
     }
 
     /* The frame every text field of the editor sits in */

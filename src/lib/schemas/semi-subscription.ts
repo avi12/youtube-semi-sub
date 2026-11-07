@@ -1,7 +1,7 @@
 import {
   isAllowListRestricting,
   isFilterInert,
-  isLengthFiltered,
+  isTabDetailFiltered,
   legacyRegexFilterSchema,
   titleFilterSchema,
   type VideoFilter,
@@ -143,17 +143,20 @@ export function getJudgingFilters(subscription: Pick<SemiSubscription, "followFi
   return filters.filter(filter => filter !== null);
 }
 
-/** Whether a filter judging the channel reads lengths, so its uploads need them looked up */
-export function isUploadsLengthFiltered(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
-  return getJudgingFilters(subscription).some(isLengthFiltered);
+/** Whether a filter judging the channel reads lengths or upload types, so its uploads need them looked up */
+export function isUploadsTabDetailFiltered(subscription: Pick<
+  SemiSubscription,
+  "followFilter" | "hideFilter" | "isSubscribed"
+>) {
+  return getJudgingFilters(subscription).some(isTabDetailFiltered);
 }
 
 /**
- * Whether the channel's uploads need what only its Videos tab tells: lengths for a filter that reads them, and for a
- * followed channel which videos are members-only, since following never adds one for a non-member
+ * Whether the channel's uploads need what only its tabs tell: lengths and upload types for a filter that reads them,
+ * and for a followed channel which videos are members-only, since following never adds one for a non-member
  */
 export function isVideosTabRead(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
-  return !subscription.isSubscribed || isUploadsLengthFiltered(subscription);
+  return !subscription.isSubscribed || isUploadsTabDetailFiltered(subscription);
 }
 
 /** The subscription with one mode's filter replaced */

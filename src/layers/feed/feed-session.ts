@@ -9,7 +9,7 @@ import { createModeJudge, createSubscribedHideCheck, MatchState, selectFeedVideo
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import type { FeedVideo, VideosByChannel } from "@/lib/schemas/feed-video";
-import { isUploadsLengthFiltered } from "@/lib/schemas/semi-subscription";
+import { isUploadsTabDetailFiltered } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { settleBefore } from "@/lib/utils/promise";
 import { readOfficialSubscription } from "#channel-button";
@@ -233,8 +233,8 @@ function judgeResumedChannelVideos({ contents, state }: {
  * title test can make the title differ from the cached one. A collaboration is hidden only when every channel on it
  * the user is subscribed to would hide it: one that keeps it - a subscribed channel whose filters let it through, or a
  * plain YouTube subscription - is reason enough to show it. Null for an item that names no channel, such as a Short:
- * only the cached uploads know whose it is - and for an item that shows no length while a filter reads lengths, which
- * the cached uploads know too
+ * only the cached uploads know whose it is - and for one a length or type filter judges, which the cached uploads
+ * know from the channel's tabs
  */
 function createShownTitleHideCheck(state: PageState) {
   return function isHiddenByShownTitle({ item, videoId }: {
@@ -261,8 +261,9 @@ function createShownTitleHideCheck(state: PageState) {
       title: titleFromGridItem(item) ?? "",
       durationSeconds: durationFromGridItem(item)
     };
-    const isLengthUnknown = video.durationSeconds === undefined && filteredSubscriptions.some(isUploadsLengthFiltered);
-    if (isLengthUnknown) {
+    // A tile shows no upload type, and a live one no length - the cached uploads, filled from the channel's tabs, know
+    const isTabDetailRead = filteredSubscriptions.some(isUploadsTabDetailFiltered);
+    if (isTabDetailRead) {
       return null;
     }
 

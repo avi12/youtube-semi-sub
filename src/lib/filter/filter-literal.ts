@@ -4,11 +4,11 @@ import {
   FilterMatch,
   getFilterMatch,
   isFilterInert,
-  isLengthFilterSet,
   type LengthFilter,
-  listFilterConditions,
   listRestrictingConditions,
-  type VideoFilter
+  type TypeFilter,
+  type VideoFilter,
+  VideoType
 } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
@@ -27,6 +27,7 @@ export enum FilterLiteralKind {
   inert = "inert",
   regex = "regex",
   length = "length",
+  type = "type",
   /** An empty follow pattern, which lets every video through */
   anyTitle = "any-title"
 }
@@ -56,6 +57,18 @@ function formatMinutes(seconds: number) {
 }
 
 /** "up to 20 min", "at least 2 min" or "2-20 min" */
+/** Each upload type as a sentence names it */
+const VIDEO_TYPE_NAME = {
+  [VideoType.video]: "regular videos",
+  [VideoType.short]: "Shorts",
+  [VideoType.liveStream]: "live streams"
+} as const satisfies Record<VideoType, string>;
+
+/** "Shorts or live streams" */
+function describeVideoTypes({ types }: TypeFilter) {
+  return Object.values(VideoType).filter(type => types.includes(type)).map(type => VIDEO_TYPE_NAME[type]).join(" or ");
+}
+
 export function describeLengthRange({ minSeconds, maxSeconds }: LengthFilter) {
   if (minSeconds !== undefined && maxSeconds !== undefined) {
     return `${formatMinutes(minSeconds)}-${formatMinutes(maxSeconds)} min`;
@@ -99,32 +112,32 @@ export function describeFilterLiteral({ subscription, isAiEnabled }: Pick<PageSt
     filter,
     mode
   });
-  const parts = (filter ? listFilterConditions(filter) : []).flatMap(condition => {
+  const parts = (filter ? listRestrictingConditions(filter) : []).map(condition => {
     if (condition.kind === FilterKind.aiMatch) {
       const part: FilterLiteralPart = {
         kind: FilterLiteralKind.aiMatch,
         text: condition.description,
         isPaused: !isAiEnabled
       };
-      return [part];
+      return part;
     }
 
-    if (condition.kind === FilterKind.length) {
+    if (condition.kind === FilterKind.regex) {
       const part: FilterLiteralPart = {
-        kind: FilterLiteralKind.length,
-        text: describeLengthRange(condition),
+        kind: FilterLiteralKind.regex,
+        text: condition.pattern,
+        flags: condition.flags,
         isPaused: false
       };
-      return isLengthFilterSet(condition) ? [part] : [];
+      return part;
     }
 
     const part: FilterLiteralPart = {
-      kind: FilterLiteralKind.regex,
-      text: condition.pattern,
-      flags: condition.flags,
+      kind: condition.kind === FilterKind.length ? FilterLiteralKind.length : FilterLiteralKind.type,
+      text: condition.kind === FilterKind.length ? describeLengthRange(condition) : describeVideoTypes(condition),
       isPaused: false
     };
-    return condition.pattern ? [part] : [];
+    return part;
   });
   if (!filter || isInert || parts.length === 0) {
     return describeEmptyFilter({
@@ -184,6 +197,10 @@ function describeConditionClause(condition: FilterCondition) {
 
   if (condition.kind === FilterKind.length) {
     return `run ${describeLengthRange(condition)}`;
+  }
+
+  if (condition.kind === FilterKind.type) {
+    return `are ${describeVideoTypes(condition)}`;
   }
 
   return `have a title matching /${condition.pattern}/${condition.flags}`;

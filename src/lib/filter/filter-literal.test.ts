@@ -1,5 +1,5 @@
 import { describeFilterRule } from "./filter-literal";
-import { DEFAULT_TITLE_FILTER, FilterKind, FilterMatch } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER, FilterKind, FilterMatch, VideoType } from "@/lib/filter/title-filter";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { describe, expect, it } from "vitest";
 
@@ -46,6 +46,18 @@ describe("describeFilterRule", () => {
     expect(rule.verb).toBe("Hides");
     expect(rule.clauses).toEqual(["run up to 1 min"]);
     expect(rule.otherwise).toBe("Everything else stays in your feed");
+  });
+
+  it("names the upload types a type condition picks", () => {
+    expect(
+      describeFilterRule({
+        filter: {
+          kind: FilterKind.type,
+          types: [VideoType.liveStream, VideoType.short]
+        },
+        mode: SubscriptionMode.hide
+      }).clauses
+    ).toEqual(["are Shorts or live streams"]);
   });
 
   it("says a filter that judges nothing leaves the channel alone", () => {

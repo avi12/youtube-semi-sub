@@ -5,8 +5,10 @@ import {
   type FilterCondition,
   FilterKind,
   FilterMatch,
-  FilterMethod
+  FilterMethod,
+  VideoType
 } from "@/lib/filter/title-filter";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 
 // The editor's registry of filter methods: a new method is an entry here, a condition kind in title-filter and a
 // fields component in FilterEditor
@@ -16,8 +18,25 @@ export const FILTER_METHODS = Object.values(FilterMethod);
 
 export const FILTER_METHOD_LABEL = {
   [FilterMethod.title]: "Title",
-  [FilterMethod.length]: "Length"
+  [FilterMethod.length]: "Length",
+  [FilterMethod.type]: "Type"
 } as const satisfies Record<FilterMethod, string>;
+
+/** Each upload type as its toggle names it */
+export const VIDEO_TYPE_LABEL = {
+  [VideoType.video]: "Videos",
+  [VideoType.short]: "Shorts",
+  [VideoType.liveStream]: "Live streams"
+} as const satisfies Record<VideoType, string>;
+
+/**
+ * Where a newly picked type condition starts: following keeps regular videos (no Shorts, no streams), hiding hides
+ * Shorts - the two asks this method exists for
+ */
+const DEFAULT_TYPES_BY_MODE = {
+  [SubscriptionMode.follow]: [VideoType.video],
+  [SubscriptionMode.hide]: [VideoType.short]
+} as const satisfies Record<SubscriptionMode, readonly VideoType[]>;
 
 export const TITLE_KIND_LABEL = {
   [FilterKind.regex]: "RegExp",
@@ -36,10 +55,23 @@ export function getConditionMethod(condition: FilterCondition) {
 }
 
 /** Where a newly picked method starts */
-export function createDefaultCondition(method: FilterMethod) {
-  const condition: FilterCondition = method === FilterMethod.length ? { ...DEFAULT_LENGTH_FILTER } : {
-    ...DEFAULT_TITLE_FILTER
-  };
+export function createDefaultCondition({ method, mode }: {
+  method: FilterMethod;
+  mode: SubscriptionMode;
+}) {
+  const conditionByMethod = {
+    [FilterMethod.title]: {
+      ...DEFAULT_TITLE_FILTER
+    },
+    [FilterMethod.length]: {
+      ...DEFAULT_LENGTH_FILTER
+    },
+    [FilterMethod.type]: {
+      kind: FilterKind.type,
+      types: [...DEFAULT_TYPES_BY_MODE[mode]]
+    }
+  } satisfies Record<FilterMethod, FilterCondition>;
+  const condition: FilterCondition = conditionByMethod[method];
   return condition;
 }
 

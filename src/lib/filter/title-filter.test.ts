@@ -17,7 +17,8 @@ import {
   selectFeedVideos,
   selectHiddenVideoIds,
   type TitleFilter,
-  type VideoFilter
+  type VideoFilter,
+  VideoType
 } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
@@ -216,6 +217,57 @@ describe("createVideoJudge by length", () => {
         }
       })
     ).toBe(MatchState.pending);
+  });
+});
+
+describe("createVideoJudge by upload type", () => {
+  const NO_SHORTS_OR_STREAMS: VideoFilter = {
+    kind: FilterKind.type,
+    types: [VideoType.video]
+  };
+
+  function judgeType(video: Partial<Pick<FeedVideo, "isShort" | "isLiveStream">>) {
+    return createVideoJudge({
+      filter: NO_SHORTS_OR_STREAMS,
+      aiVerdicts: {},
+      isAiEnabled: false
+    })?.({
+      videoId: "aaaaaaaaaaa",
+      title: "Video",
+      ...video
+    });
+  }
+
+  it("keeps the picked types and rejects the rest", () => {
+    expect(
+      judgeType({
+        isShort: false,
+        isLiveStream: false
+      })
+    ).toBe(MatchState.matches);
+    expect(judgeType({ isShort: true })).toBe(MatchState.doesNotMatch);
+    expect(
+      judgeType({
+        isShort: false,
+        isLiveStream: true
+      })
+    ).toBe(MatchState.doesNotMatch);
+  });
+
+  it("keeps a video pending until a channel tab tells whether it is a live stream", () => {
+    expect(judgeType({ isShort: false })).toBe(MatchState.pending);
+  });
+
+  it("leaves out a condition that picks every type", () => {
+    expect(
+      isFilterInert({
+        filter: {
+          kind: FilterKind.type,
+          types: Object.values(VideoType)
+        },
+        mode: SubscriptionMode.hide
+      })
+    ).toBe(true);
   });
 });
 
