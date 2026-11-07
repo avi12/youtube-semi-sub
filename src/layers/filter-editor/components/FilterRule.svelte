@@ -29,7 +29,7 @@
       videos that
       {#each rule.clauses as clause, i (i)}
         {#if i > 0}
-          <strong class="rule__connector">{rule.connector}</strong>
+          <strong class="rule__connector">{` ${rule.connector}`}</strong>
         {/if}
         <bdi class="rule__clause">{clause}</bdi>
       {/each}
@@ -72,9 +72,7 @@
     font-weight: 700;
   }
 
-  /* Svelte drops the whitespace where a clause's block ends, right before the next connector */
   .rule__connector {
-    margin-inline-start: 0.3em;
     font-weight: 700;
     text-transform: uppercase;
   }
