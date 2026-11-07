@@ -21,7 +21,9 @@ export const feedVideoSchema = z.object({
   /** From the Videos tab, which RSS lacks - unknown for a Short, a live stream and a video not looked up yet */
   durationSeconds: z.number().int().nonnegative().optional(),
   /** From the Videos tab: RSS lists members-only videos unmarked. Unknown for a Short */
-  isMembersOnly: z.boolean().optional()
+  isMembersOnly: z.boolean().optional(),
+  /** From the channel's tabs: true on its Streams tab (live, upcoming or streamed), false on its Videos tab */
+  isLiveStream: z.boolean().optional()
 });
 export type FeedVideo = z.infer<typeof feedVideoSchema>;
 

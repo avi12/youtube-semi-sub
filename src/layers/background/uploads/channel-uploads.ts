@@ -1,5 +1,5 @@
 import { fetchRssUploads } from "./rss-feed";
-import { fetchVideosTabUploads } from "./videos-tab-uploads";
+import { ChannelGridTab, fetchChannelTabUploads } from "./videos-tab-uploads";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
@@ -32,7 +32,10 @@ async function fetchFromNetwork(channelId: string) {
     return uploads;
   }
 
-  const tabVideos = await fetchVideosTabUploads(channelId);
+  const tabVideos = await fetchChannelTabUploads({
+    channelId,
+    tab: ChannelGridTab.videos
+  });
   if (!tabVideos) {
     return null;
   }
@@ -45,10 +48,11 @@ async function fetchFromNetwork(channelId: string) {
   return uploads;
 }
 
-/** What only the Videos tab tells about an upload: its length and whether it is for members only */
+/** What only a channel's tabs tell about an upload: its length, whether it is for members only and a live stream */
 const tabDetailsSchema = feedVideoSchema.pick({
   durationSeconds: true,
-  isMembersOnly: true
+  isMembersOnly: true,
+  isLiveStream: true
 });
 type TabDetails = z.infer<typeof tabDetailsSchema>;
 
@@ -80,45 +84,58 @@ export function withKnownTabDetails({ videos, detailsById }: {
 
 export function collectTabDetails(videos: readonly FeedVideo[]) {
   const detailsById = new Map<string, TabDetails>();
-  for (const { videoId, durationSeconds, isMembersOnly } of videos) {
-    const isKnown = durationSeconds !== undefined || isMembersOnly !== undefined;
+  for (const { videoId, durationSeconds, isMembersOnly, isLiveStream } of videos) {
+    const isKnown = durationSeconds !== undefined || isMembersOnly !== undefined || isLiveStream !== undefined;
     if (isKnown) {
       detailsById.set(videoId, {
         durationSeconds,
-        isMembersOnly
+        isMembersOnly,
+        isLiveStream
       });
     }
   }
   return detailsById;
 }
 
+/** A live or upcoming stream has no length yet, so only its tab and badge are waited for */
 function isTabDetailMissing(video: FeedVideo) {
-  return !video.isShort && (video.durationSeconds === undefined || video.isMembersOnly === undefined);
+  const isLengthMissing = video.durationSeconds === undefined && video.isLiveStream !== true;
+  return !video.isShort && (isLengthMissing || video.isMembersOnly === undefined || video.isLiveStream === undefined);
 }
 
 /**
- * RSS tells no lengths and lists members-only videos unmarked, the Videos tab tells both: the uploads with every
- * detail already known (`knownVideos`) filled in, and the Videos tab fetched only while a regular video still lacks
- * one. Shorts never get them - the tab leaves them out
+ * RSS tells no lengths and lists members-only videos and live streams unmarked; a channel's tabs tell all three: the
+ * uploads with every detail already known (`knownVideos`) filled in, then the Videos tab read while a regular upload
+ * still lacks one, and the Streams tab while one is still missing - a stream is only ever on that tab. Shorts never get
+ * them - neither tab lists Shorts
  */
 export async function withVideosTabDetails({ uploads, knownVideos }: {
   uploads: ChannelUploads;
   knownVideos: readonly FeedVideo[];
 }) {
-  const videos = withKnownTabDetails({
+  let videos = withKnownTabDetails({
     videos: uploads.videos,
     detailsById: collectTabDetails(knownVideos)
   });
-  const isTabFetchUseful = videos.some(isTabDetailMissing) && uploads.source === UploadsSource.rss;
-  const tabVideos = isTabFetchUseful ? await fetchVideosTabUploads(uploads.channelId) : null;
+  const isFromRss = uploads.source === UploadsSource.rss;
+  for (const tab of Object.values(ChannelGridTab)) {
+    if (!isFromRss || !videos.some(isTabDetailMissing)) {
+      break;
+    }
+
+    const tabVideos = await fetchChannelTabUploads({
+      channelId: uploads.channelId,
+      tab
+    });
+    videos = withKnownTabDetails({
+      videos,
+      detailsById: collectTabDetails(tabVideos ?? [])
+    });
+  }
+
   const filled: ChannelUploads = {
     ...uploads,
-    videos: tabVideos ?
-      withKnownTabDetails({
-        videos,
-        detailsById: collectTabDetails(tabVideos)
-      }) :
-      videos
+    videos
   };
   return filled;
 }

@@ -23,6 +23,12 @@ import { z } from "@/lib/zod";
 // `ytInitialData`. A direct InnerTube POST is not an option - the browser stamps the extension's Origin on it and
 // YouTube answers 403 - while a GET carries no Origin
 
+/** The grid tabs of a channel that list its uploads the same way: regular videos, and live streams */
+export enum ChannelGridTab {
+  videos = "videos",
+  streams = "streams"
+}
+
 const INTERFACE_LANGUAGE_PARAM = "hl";
 // Relative publish times ("3 hours ago") are only parsed in English
 const ENGLISH_INTERFACE_LANGUAGE = "en";
@@ -132,9 +138,11 @@ export function extractInitialData(html: string) {
  * Reads the uploads of a channel's Videos tab (newest first); publish times are approximated from relative text. The
  * tab never lists Shorts
  */
-export function parseVideosTab({ response, now }: {
+export function parseVideosTab({ response, now, tab = ChannelGridTab.videos }: {
   response: unknown;
   now: number;
+  /** The Streams tab is read the same way; its uploads are marked live streams */
+  tab?: ChannelGridTab;
 }) {
   const parsed = channelBrowseResponseSchema.safeParse(response);
   if (!parsed.success) {
@@ -166,6 +174,7 @@ export function parseVideosTab({ response, now }: {
       thumbnailUrl: buildVideoThumbnailUrl(upload.videoId),
       isShort: false,
       isMembersOnly: upload.isMembersOnly,
+      isLiveStream: tab === ChannelGridTab.streams,
       ...upload.durationSeconds !== null && {
         durationSeconds: upload.durationSeconds
       }
@@ -177,9 +186,12 @@ export function parseVideosTab({ response, now }: {
   return videos;
 }
 
-/** The channel's Videos tab uploads, or null when the page is unavailable or unreadable */
-export async function fetchVideosTabUploads(channelId: string) {
-  const url = new URL(`${buildChannelPath(channelId)}/videos`, YOUTUBE_ORIGIN);
+/** The uploads a channel's grid tab lists, or null when the page is unavailable or unreadable */
+export async function fetchChannelTabUploads({ channelId, tab }: {
+  channelId: string;
+  tab: ChannelGridTab;
+}) {
+  const url = new URL(`${buildChannelPath(channelId)}/${tab}`, YOUTUBE_ORIGIN);
   url.searchParams.set(INTERFACE_LANGUAGE_PARAM, ENGLISH_INTERFACE_LANGUAGE);
   // Cookies carry the user's consent choice - without them EU visitors get the consent interstitial instead
   const html = await fetchText({
@@ -192,6 +204,7 @@ export async function fetchVideosTabUploads(channelId: string) {
 
   return parseVideosTab({
     response: extractInitialData(html),
-    now: Date.now()
+    now: Date.now(),
+    tab
   });
 }

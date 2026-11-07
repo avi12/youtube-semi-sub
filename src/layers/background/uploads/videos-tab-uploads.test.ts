@@ -1,4 +1,4 @@
-import { extractInitialData, parseVideosTab } from "./videos-tab-uploads";
+import { ChannelGridTab, extractInitialData, parseVideosTab } from "./videos-tab-uploads";
 import channelVideosPageHtml from "#background/fixtures/channel-videos-page.html?raw";
 import { describe, expect, it } from "vitest";
 
@@ -73,10 +73,20 @@ describe("parseVideosTab", () => {
       publishedAt: NOW - DAY_MS,
       thumbnailUrl: "https://i.ytimg.com/vi/QVv3mQzlrN0/hqdefault.jpg",
       isShort: false,
-      isMembersOnly: false
+      isMembersOnly: false,
+      isLiveStream: false
     });
     // A collaboration lists its channels before the view count and the time
     expect(videos?.[3]?.publishedAt).toBe(NOW - 3 * AVERAGE_MONTH_DAYS * DAY_MS);
+  });
+
+  it("marks every upload of the Streams tab, which reads like the Videos tab, a live stream", () => {
+    const videos = parseVideosTab({
+      response: extractInitialData(channelVideosPageHtml),
+      now: NOW,
+      tab: ChannelGridTab.streams
+    });
+    expect(videos?.every(video => video.isLiveStream)).toBe(true);
   });
 
   it("reads videoRenderer items, counting a live video as published now", () => {

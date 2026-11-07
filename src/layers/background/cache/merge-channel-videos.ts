@@ -60,7 +60,8 @@ function stabilizeApproximateVideos({ videos, previous }: {
         ...knownVideo,
         title: video.title,
         durationSeconds: video.durationSeconds ?? knownVideo.durationSeconds,
-        isMembersOnly: video.isMembersOnly ?? knownVideo.isMembersOnly
+        isMembersOnly: video.isMembersOnly ?? knownVideo.isMembersOnly,
+        isLiveStream: video.isLiveStream ?? knownVideo.isLiveStream
       }
       : video;
   });
