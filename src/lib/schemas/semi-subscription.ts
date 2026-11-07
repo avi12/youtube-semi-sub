@@ -27,7 +27,9 @@ const semiSubscriptionSchema = semiSubscriptionV2Schema.omit({ filter: true }).e
   /** Picks the videos hidden from the feed while the user is subscribed; null until one is saved in that mode */
   hideFilter: videoFilterSchema.nullable(),
   /** Subscribed on YouTube, which switches the channel to hiding. Both filters are kept either way */
-  isSubscribed: z.boolean()
+  isSubscribed: z.boolean(),
+  /** A member of the channel, so following adds its members-only videos too - absent until the user says so */
+  isMember: z.boolean().optional()
 });
 export type SemiSubscription = z.infer<typeof semiSubscriptionSchema>;
 
@@ -144,6 +146,14 @@ export function getJudgingFilters(subscription: Pick<SemiSubscription, "followFi
 /** Whether a filter judging the channel reads lengths, so its uploads need them looked up */
 export function isUploadsLengthFiltered(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
   return getJudgingFilters(subscription).some(isLengthFiltered);
+}
+
+/**
+ * Whether the channel's uploads need what only its Videos tab tells: lengths for a filter that reads them, and for a
+ * followed channel which videos are members-only, since following never adds one for a non-member
+ */
+export function isVideosTabRead(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
+  return !subscription.isSubscribed || isUploadsLengthFiltered(subscription);
 }
 
 /** The subscription with one mode's filter replaced */

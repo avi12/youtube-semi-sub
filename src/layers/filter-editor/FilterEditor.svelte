@@ -18,7 +18,7 @@
     type VideoFilter
   } from "@/lib/filter/title-filter";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
-  import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
+  import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import AiFilterFields from "#filter-editor/components/AiFilterFields.svelte";
   import FilterPreview from "#filter-editor/components/FilterPreview.svelte";
   import FilterRule from "#filter-editor/components/FilterRule.svelte";
@@ -46,6 +46,8 @@
     /** A sample of the channel's recent uploads to preview the filter on - may be empty */
     videos: FeedVideo[];
     isLoading?: boolean;
+    /** A member of the channel: following then adds its members-only videos too */
+    isMember?: boolean;
     /** The host's way to turn AI match on or finish setting it up, shown while an AI filter can't run yet */
     aiSetup?: Snippet<[{
       isAiEnabled: boolean;
@@ -53,12 +55,13 @@
     }]>;
   }
 
-  let { filter = $bindable(), mode, videos, isLoading = false, aiSetup }: Props = $props();
+  let { filter = $bindable(), mode, videos, isLoading = false, isMember = $bindable(false), aiSetup }: Props = $props();
 
   const id = $props.id();
   const titleInputId = `${id}-title`;
   const lengthInputId = `${id}-length`;
   const ruleId = `${id}-rule`;
+  const memberInputId = `${id}-member`;
   const PREVIEW_LABEL = "Shows in your feed";
 
   const copy = $derived(MODE_COPY[mode]);
@@ -177,6 +180,7 @@
       filter,
       videos,
       mode,
+      isMember,
       aiVerdicts: aiMatch.aiVerdicts,
       isAiEnabled: aiMatch.isAiEnabled
     });
@@ -227,6 +231,10 @@
 
     return copy.aiHints;
   });
+  /** Only a followed channel with members-only videos asks - a subscribed one never shows them in the feed */
+  const isMembershipAsked = $derived(
+    mode === SubscriptionMode.follow && (isMember || videos.some(video => video.isMembersOnly))
+  );
   const previewInputId = $derived(regexFilter || aiFilter ? titleInputId : lengthInputId);
 </script>
 
@@ -305,6 +313,22 @@
   </ol>
 
   <FilterRule id={ruleId} {filter} inputIds="{titleInputId} {lengthInputId}" {mode} />
+
+  {#if isMembershipAsked}
+    <label class="membership" for={memberInputId}>
+      <input id={memberInputId} class="membership__checkbox" type="checkbox" bind:checked={isMember} />
+      <span class="membership__text">
+        <span class="membership__label">I'm a member of this channel</span>
+        <span class="membership__hint">
+          {#if isMember}
+            Members-only videos are added like any other
+          {:else}
+            Members-only videos are left out, since only members can watch them
+          {/if}
+        </span>
+      </span>
+    </label>
+  {/if}
 
   {#if aiNotice}
     <section class="ai-notice" aria-live="polite">
@@ -454,6 +478,37 @@
     color: var(--editor-fg);
     font-weight: 600;
     font-size: 13px;
+  }
+
+  .membership {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+
+  .membership__checkbox {
+    flex: none;
+    block-size: 16px;
+    inline-size: 16px;
+    margin: 0;
+    margin-block-start: 2px;
+    accent-color: var(--editor-accent);
+    cursor: inherit;
+  }
+
+  .membership__text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .membership__label {
+    font-weight: 500;
+  }
+
+  .membership__hint {
+    color: var(--editor-muted);
+    font-size: 12px;
   }
 
   .ai-notice {

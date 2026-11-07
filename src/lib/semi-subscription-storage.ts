@@ -11,12 +11,36 @@ export async function readSemiSubscription(channelId: string) {
   return subscriptions[channelId] ?? null;
 }
 
+/** The optional fields a save keeps from what was stored when the page that opened it doesn't say */
+function readCarriedFields({ previous, channel, isMember }: Pick<
+  Parameters<typeof mergeSemiSubscription>[0],
+  "previous" | "channel" | "isMember"
+>) {
+  const handle = channel.handle ?? previous?.handle;
+  const avatarUrl = channel.avatarUrl ?? previous?.avatarUrl;
+  const isMemberSet = isMember ?? previous?.isMember;
+  return {
+    ...handle && {
+      handle
+    },
+    ...avatarUrl && {
+      avatarUrl
+    },
+    ...isMemberSet && {
+      isMember: isMemberSet
+    }
+  };
+}
+
 /**
  * The stored entry after a save of one mode's filter: `createdAt`, the subscription state and the other mode's filter
- * survive an edit, and a channel opened from a page that lacks its avatar or handle keeps the ones stored before. A
- * new entry starts subscribed when it is saved in hide mode, with the other mode's filter unset (`isFilterInert`)
+ * survive an edit, and a channel opened from a page that lacks its avatar or handle keeps the ones stored before - as
+ * does the membership, unless the save sets it. A new entry starts subscribed when it is saved in hide mode, with the
+ * other mode's filter unset (`isFilterInert`)
  */
-export function mergeSemiSubscription({ previous, channel, mode, filter, now }: {
+export function mergeSemiSubscription({ previous, channel, mode, filter, isMember, now }: Partial<
+  Pick<SemiSubscription, "isMember">
+> & {
   previous: SemiSubscription | undefined;
   channel: ChannelInfo;
   mode: SubscriptionMode;
@@ -29,29 +53,23 @@ export function mergeSemiSubscription({ previous, channel, mode, filter, now }: 
     followFilter: previous?.followFilter ?? null,
     hideFilter: previous?.hideFilter ?? null,
     createdAt: previous?.createdAt ?? now,
-    isSubscribed: previous?.isSubscribed ?? mode === SubscriptionMode.hide
+    isSubscribed: previous?.isSubscribed ?? mode === SubscriptionMode.hide,
+    ...readCarriedFields({
+      previous,
+      channel,
+      isMember
+    })
   };
-  const subscription = withModeFilter({
+  return withModeFilter({
     subscription: base,
     mode,
     filter
   });
-  const handle = channel.handle ?? previous?.handle;
-  if (handle) {
-    subscription.handle = handle;
-  }
-
-  const avatarUrl = channel.avatarUrl ?? previous?.avatarUrl;
-  if (avatarUrl) {
-    subscription.avatarUrl = avatarUrl;
-  }
-
-  return subscription;
 }
 
-export function saveSemiSubscription({ channel, mode, filter }: Pick<
+export function saveSemiSubscription({ channel, mode, filter, isMember }: Pick<
   Parameters<typeof mergeSemiSubscription>[0],
-  "channel" | "mode" | "filter"
+  "channel" | "mode" | "filter" | "isMember"
 >) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
@@ -63,6 +81,7 @@ export function saveSemiSubscription({ channel, mode, filter }: Pick<
           channel,
           mode,
           filter,
+          isMember,
           now: Date.now()
         })
       };
@@ -91,11 +110,12 @@ export function restoreSemiSubscription(subscription: SemiSubscription) {
   });
 }
 
-/** Replaces one mode's filter of a channel that is still semi-subscribed; a removed one stays removed */
-export function setSemiSubscriptionFilter({ channelId, mode, filter }: Pick<SemiSubscription, "channelId"> & Pick<
-  Parameters<typeof mergeSemiSubscription>[0],
-  "mode" | "filter"
->) {
+/**
+ * Replaces one mode's filter of a channel that is still semi-subscribed, and whether the user is its member; a removed
+ * one stays removed
+ */
+export function setSemiSubscriptionFilter({ channelId, mode, filter, isMember }: Pick<SemiSubscription, "channelId"> &
+  Pick<Parameters<typeof mergeSemiSubscription>[0], "mode" | "filter" | "isMember">) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
     mutator(subscriptions) {
@@ -104,13 +124,18 @@ export function setSemiSubscriptionFilter({ channelId, mode, filter }: Pick<Semi
         return subscriptions;
       }
 
+      const { isMember: _previousMembership, ...rest } = withModeFilter({
+        subscription: current,
+        mode,
+        filter
+      });
+      const isMemberSet = isMember ?? current.isMember;
       return {
         ...subscriptions,
-        [channelId]: withModeFilter({
-          subscription: current,
-          mode,
-          filter
-        })
+        [channelId]: isMemberSet ? {
+          ...rest,
+          isMember: isMemberSet
+        } : rest
       };
     }
   });

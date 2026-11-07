@@ -4,6 +4,7 @@ import {
   createModeJudge,
   FilterKind,
   getTitleFilterError,
+  isMembersOnlyLocked,
   isVideoFilterValid,
   listFilterConditions,
   MatchState,
@@ -125,10 +126,12 @@ function findHighlightRegex(filter: VideoFilter) {
  * every video (`isFilterInert`). Not valid while a condition can't run - a pattern mid-edit, a blank description, AI
  * match off with nothing else to judge by - then nothing is judged at all
  */
-export function previewVideoFilter({ filter, videos, mode, ...context }: AiJudgeContext & {
+export function previewVideoFilter({ filter, videos, mode, isMember, ...context }: AiJudgeContext & {
   filter: VideoFilter;
   videos: FeedVideo[];
   mode: SubscriptionMode;
+  /** Following leaves a members-only video out for a non-member, whatever the filter says (`isMembersOnlyLocked`) */
+  isMember?: boolean;
 }) {
   const judge = createModeJudge({
     filter,
@@ -137,10 +140,24 @@ export function previewVideoFilter({ filter, videos, mode, ...context }: AiJudge
   });
   const isValid = isVideoFilterValid(filter) && judge !== null;
   const regex = findHighlightRegex(filter);
-  const rows: PreviewRow[] = isValid ?
-    videos.map(video => ({
+  if (!isValid || !judge) {
+    return {
+      isValid: false,
+      ...partitionPreviewRows({
+        rows: [],
+        mode
+      })
+    };
+  }
+
+  const rows = videos.map(video => {
+    const isLeftOut = mode === SubscriptionMode.follow && isMembersOnlyLocked({
       video,
-      matchState: judge(video),
+      isMember
+    });
+    const row: PreviewRow = {
+      video,
+      matchState: isLeftOut ? MatchState.doesNotMatch : judge(video),
       segments: regex ?
         highlightMatches({
           title: video.title,
@@ -150,8 +167,9 @@ export function previewVideoFilter({ filter, videos, mode, ...context }: AiJudge
           text: video.title,
           isHighlighted: false
         }]
-    })) :
-    [];
+    };
+    return row;
+  });
   return {
     isValid,
     ...partitionPreviewRows({

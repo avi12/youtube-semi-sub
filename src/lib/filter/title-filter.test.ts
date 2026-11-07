@@ -458,6 +458,33 @@ describe("selectFeedVideos", () => {
     isAiEnabled: false
   };
 
+  it("leaves a members-only video out unless the user is a member", () => {
+    const membersOnly = {
+      ...createVideo({
+        videoId: "ddddddddddd",
+        channelId: CHANNEL_ID,
+        title: "Members review",
+        publishedAt: 4 * HOUR_MS
+      }),
+      isMembersOnly: true
+    };
+    function select(isMember: boolean) {
+      const subscriptions = createRegexSubscriptions("review");
+      for (const subscription of Object.values(subscriptions)) {
+        subscription.isMember = isMember;
+      }
+      return selectFeedVideos({
+        subscriptions,
+        videosByChannel: {
+          [CHANNEL_ID]: [membersOnly]
+        },
+        ...noAi
+      }).map(video => video.videoId);
+    }
+    expect(select(false)).toEqual([]);
+    expect(select(true)).toEqual(["ddddddddddd"]);
+  });
+
   it("keeps only matching videos, newest first", () => {
     const selected = selectFeedVideos({
       subscriptions: createRegexSubscriptions("review"),

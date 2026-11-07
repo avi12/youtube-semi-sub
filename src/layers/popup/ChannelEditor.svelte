@@ -33,6 +33,7 @@
     }))
   );
   let isFetching = $state(false);
+  let isMember = $state(untrack(() => subscription.isMember ?? false));
   const isDraftValid = $derived(isVideoFilterValid(draftFilter));
 
   onMount(async () => {
@@ -65,7 +66,8 @@
     await setSemiSubscriptionFilter({
       channelId: subscription.channelId,
       mode,
-      filter: $state.snapshot(draftFilter)
+      filter: $state.snapshot(draftFilter),
+      isMember
     });
     onClose();
   }}>
@@ -73,7 +75,8 @@
     isLoading={isFetching && videos.length === 0}
     {mode}
     {videos}
-    bind:filter={draftFilter}>
+    bind:filter={draftFilter}
+    bind:isMember>
     {#snippet aiSetup({ isAiEnabled })}
       <AiSetupAction {isAiEnabled} />
     {/snippet}

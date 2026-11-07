@@ -83,6 +83,9 @@
       {#if row.video.isShort}
         <span class="video__short">Short</span>
       {/if}
+      {#if row.video.isMembersOnly}
+        <span class="video__short">Members only</span>
+      {/if}
       {#if row.video.durationSeconds !== undefined}
         <span class="video__duration">{formatDuration(row.video.durationSeconds)}</span>
       {/if}

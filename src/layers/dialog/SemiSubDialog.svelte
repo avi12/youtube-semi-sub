@@ -61,6 +61,7 @@
 
   let elDialog = $state<HTMLDialogElement>();
   let filter = $state<VideoFilter>({ ...DEFAULT_TITLE_FILTER });
+  let isMember = $state(false);
   /** Once the user has typed, the stored filter arriving late must not overwrite what they wrote */
   let isFilterEdited = false;
   let storedSubscription = $state<SemiSubscription | null>(null);
@@ -138,6 +139,7 @@
     loadVideos().catch(() => {});
     readSemiSubscription(channel.channelId).then(stored => {
       storedSubscription = stored;
+      isMember = stored?.isMember ?? false;
 
       const storedFilter = stored && getModeFilter({
         subscription: stored,
@@ -181,7 +183,8 @@
         await saveSemiSubscription({
           channel: $state.snapshot(channel),
           mode,
-          filter: $state.snapshot(filter)
+          filter: $state.snapshot(filter),
+          isMember
         });
         closeWithToast(savedMessage);
       } catch {
@@ -259,6 +262,7 @@
         isLoading={isLoadingVideos}
         {mode}
         {videos}
+        bind:isMember
         bind:filter={() => filter, editedFilter => {
           filter = editedFilter;
           isFilterEdited = true;

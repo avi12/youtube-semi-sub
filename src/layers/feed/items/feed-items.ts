@@ -1,6 +1,7 @@
 import type { VideoRenderer } from "./feed-schemas";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { VIDEO_ID_PATTERN } from "@/lib/schemas/feed-video";
+import { isMembersOnlyClassicRenderer, isMembersOnlyLockup } from "@/lib/youtube/members-only";
 import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
 import {
   CLASSIC_RENDERER_KINDS,
@@ -216,6 +217,12 @@ export function durationFromRenderer(video: VideoRenderer) {
     ? durationFromLockup(video.renderer)
     : durationFromClassicRenderer(video.renderer);
   return durationSeconds ?? undefined;
+}
+
+export function isMembersOnlyRenderer(video: VideoRenderer) {
+  return video.kind === RendererKind.lockupViewModel
+    ? isMembersOnlyLockup(video.renderer)
+    : isMembersOnlyClassicRenderer(video.renderer);
 }
 
 export function durationFromGridItem(item: unknown) {

@@ -19,6 +19,7 @@ import {
   channelIdsFromGridItem,
   durationFromGridItem,
   durationFromRenderer,
+  isMembersOnlyRenderer,
   shelfItemsFromGridItem,
   titleFromGridItem,
   titleFromRenderer,
@@ -47,18 +48,22 @@ let isHideSettingsChanged = false;
 
 /**
  * A followed upload with the title its tile will show: the native renderer's, once loaded, else the cached one - and
- * the native's length when the cache has none
+ * the native's length and members-only badge when the cache lacks them
  */
 function withShownTitle(video: FeedVideo) {
   const native = video.isShort ? null : findNativeRenderer(video);
   const nativeShort = video.isShort ? findNativeShort(video) : null;
   const shownTitle = native ? titleFromRenderer(native) : nativeShort?.overlayMetadata?.primaryText?.content;
   const durationSeconds = video.durationSeconds ?? (native ? durationFromRenderer(native) : undefined);
+  const isMembersOnly = video.isMembersOnly ?? (native ? isMembersOnlyRenderer(native) : undefined);
   return {
     ...video,
     title: shownTitle ?? video.title,
     ...durationSeconds !== undefined && {
       durationSeconds
+    },
+    ...isMembersOnly !== undefined && {
+      isMembersOnly
     }
   };
 }

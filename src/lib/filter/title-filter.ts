@@ -198,7 +198,7 @@ export function isLengthFilterSet({ minSeconds, maxSeconds }: LengthFilter) {
   return minSeconds !== undefined || maxSeconds !== undefined;
 }
 
-export function isLengthRangeValid({ minSeconds = 0, maxSeconds = Infinity }: LengthFilter) {
+function isLengthRangeValid({ minSeconds = 0, maxSeconds = Infinity }: LengthFilter) {
   return minSeconds <= maxSeconds;
 }
 
@@ -427,8 +427,19 @@ export function createModeJudge({ filter, mode, ...context }: AiJudgeContext & {
 }
 
 /**
+ * A members-only video only a member can watch, so following adds it only for one. RSS lists these unmarked; the
+ * Videos tab marks them (`isMembersOnly`). A subscribed channel needs no such rule: YouTube's own feed leaves them out
+ */
+export function isMembersOnlyLocked({ video, isMember }: {
+  video: Pick<FeedVideo, "isMembersOnly">;
+  isMember: boolean | undefined;
+}) {
+  return !!video.isMembersOnly && !isMember;
+}
+
+/**
  * One of the two places the feed is filtered: a video lands only on a definite match of its channel's follow filter,
- * never while pending or paused, nor from a channel the user is subscribed to
+ * never while pending or paused, nor from a channel the user is subscribed to, nor members-only for a non-member
  */
 export function selectFeedVideos({ subscriptions, videosByChannel, ...context }: AiJudgeContext & {
   subscriptions: SemiSubscriptions;
@@ -448,7 +459,11 @@ export function selectFeedVideos({ subscriptions, videosByChannel, ...context }:
     }
 
     for (const video of videosByChannel[channelId] ?? []) {
-      if (judge(video) === MatchState.matches) {
+      const isLocked = isMembersOnlyLocked({
+        video,
+        isMember: subscription?.isMember
+      });
+      if (!isLocked && judge(video) === MatchState.matches) {
         selectedById.set(video.videoId, video);
       }
     }
