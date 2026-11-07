@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { DialogButtonVariant } from "./controls/dialog-button-variant";
+  import DialogButton from "./controls/DialogButton.svelte";
+  import { YOUTUBE_EDITOR_CONTROLS } from "./controls/youtube-editor-controls";
   import { isPageDarkTheme } from "./page-theme";
   import SemiSubSnackbar from "./SemiSubSnackbar.svelte";
   import { ToastMessage } from "./toast-message";
@@ -12,7 +15,8 @@
   import { SUBSCRIPTION_MODE_NAME, SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { readSemiSubscription, removeSemiSubscription, saveSemiSubscription } from "@/lib/semi-subscription-storage";
   import { isAiEnabledItem } from "@/lib/storage";
-  import { FilterEditor } from "#filter-editor";
+  import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
+  import { DEFAULT_EDITOR_CONTROLS, FilterEditor } from "#filter-editor";
   import { onMount } from "svelte";
 
   interface Props {
@@ -41,6 +45,9 @@
       removedMessage: ToastMessage.hideFilterRemoved
     }
   } as const;
+
+  /** www's own Polymer chip and checkbox; m.youtube.com has no Polymer, so it keeps the editor's plain ones */
+  const editorControls = getYouTubeSite() === YouTubeSite.desktop ? YOUTUBE_EDITOR_CONTROLS : DEFAULT_EDITOR_CONTROLS;
 
   const MODE_LIST_NAME = {
     [SubscriptionMode.follow]: "Allow list",
@@ -167,7 +174,10 @@
     if (!toastMessage) {
       onDone();
     }
-  }}>
+  }}
+  onkeydown={e => e.stopPropagation()}
+  onkeypress={e => e.stopPropagation()}
+  onkeyup={e => e.stopPropagation()}>
   <form
     class="dialog__form"
     onsubmit={async e => {
@@ -223,21 +233,15 @@
 
       <fieldset class="modes">
         <legend class="modes__legend">List type</legend>
-        {#each Object.values(SubscriptionMode) as option (option)}
-          <label class="modes__option">
-            <input
-              name="{id}-mode"
-              class="modes__input"
-              checked={mode === option}
-              onchange={() => pickMode(option)}
-              type="radio"
-              value={option} />
-            <span class="modes__text">
-              <span class="modes__label">{MODE_LIST_NAME[option]}</span>
-              <span class="modes__effect">{MODE_LIST_EFFECT[option]}</span>
-            </span>
-          </label>
-        {/each}
+        <span class="modes__chips">
+          {#each Object.values(SubscriptionMode) as option (option)}
+            <editorControls.Chip
+              isSelected={mode === option}
+              label={MODE_LIST_NAME[option]}
+              onToggle={() => pickMode(option)} />
+          {/each}
+        </span>
+        <span class="modes__effect">{MODE_LIST_EFFECT[mode]}</span>
       </fieldset>
 
       <p id={descriptionId} class="dialog__description">
@@ -250,7 +254,7 @@
       {#if isLoadFailed}
         <p class="notice" role="alert">
           <span>Couldn't load this channel's recent videos, so there's nothing to preview yet</span>
-          <button class="button button--text" onclick={() => loadVideos()} type="button">Try again</button>
+          <DialogButton label="Try again" onclick={() => loadVideos()} variant={DialogButtonVariant.text} />
         </p>
       {/if}
 
@@ -259,6 +263,7 @@
       {/if}
 
       <FilterEditor
+        controls={editorControls}
         isLoading={isLoadingVideos}
         {mode}
         {videos}
@@ -270,16 +275,15 @@
         {#snippet aiSetup({ isAiEnabled, aiStatus })}
           <!-- With the model on disk, one click here; a download goes through the popup, which explains its size -->
           {#if isAiModelReady(aiStatus) && !isAiEnabled}
-            <button class="button button--tonal" onclick={() => isAiEnabledItem.setValue(true)} type="button">
-              Turn on AI match
-            </button>
+            <DialogButton
+              label="Turn on AI match"
+              onclick={() => isAiEnabledItem.setValue(true)}
+              variant={DialogButtonVariant.tonal} />
           {:else}
-            <button
-              class="button button--tonal"
+            <DialogButton
+              label="Set up AI match"
               onclick={() => sendMessage(MessageType.openAiSettings).catch(() => {})}
-              type="button">
-              Set up AI match
-            </button>
+              variant={DialogButtonVariant.tonal} />
           {/if}
         {/snippet}
       </FilterEditor>
@@ -287,9 +291,9 @@
 
     <footer class="dialog__footer">
       {#if isEditing}
-        <button
-          class="button button--danger"
-          disabled={isSaving}
+        <DialogButton
+          isDisabled={isSaving}
+          label="Remove"
           onclick={async () => {
             if (isSaving) {
               return;
@@ -306,13 +310,11 @@
               isSaving = false;
             }
           }}
-          type="button">
-          Remove
-        </button>
+          variant={DialogButtonVariant.danger} />
       {/if}
       <span class="dialog__footer-spacer"></span>
-      <button class="button button--text" onclick={() => elDialog?.close()} type="button">Cancel</button>
-      <button class="button button--filled" disabled={!canSave} type="submit">{submitLabel}</button>
+      <DialogButton label="Cancel" onclick={() => elDialog?.close()} variant={DialogButtonVariant.text} />
+      <DialogButton isDisabled={!canSave} isSubmit label={submitLabel} variant={DialogButtonVariant.filled} />
     </footer>
   </form>
 </dialog>
@@ -470,6 +472,7 @@
 
   .modes {
     display: flex;
+    flex-direction: column;
     gap: 8px;
     margin: 0;
     padding: 0;
@@ -483,39 +486,10 @@
     font-size: 12px;
   }
 
-  .modes__option {
+  .modes__chips {
     display: flex;
-    flex: 1;
+    flex-wrap: wrap;
     gap: 8px;
-    align-items: center;
-    padding-block: 8px;
-    padding-inline: 12px;
-    border: 1px solid var(--outline);
-    border-radius: 12px;
-    cursor: pointer;
-
-    &:has(:checked) {
-      border-color: var(--accent);
-      background: var(--additive);
-    }
-
-    &:has(:focus-visible) {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
-    }
-  }
-
-  .modes__input {
-    accent-color: var(--accent);
-  }
-
-  .modes__text {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .modes__label {
-    font-weight: 500;
   }
 
   .modes__effect {
@@ -597,9 +571,15 @@
     background: var(--additive);
   }
 
-  .button,
   .icon-button {
+    display: grid;
+    place-items: center;
+    block-size: 40px;
+    inline-size: 40px;
+    padding: 0;
     border: 0;
+    border-radius: 50%;
+    background: transparent;
     color: var(--text);
     font: inherit;
     cursor: pointer;
@@ -608,65 +588,13 @@
       transition: background-color 120ms var(--ease);
     }
 
+    &:hover {
+      background: var(--additive);
+    }
+
     &:focus-visible {
       outline: 2px solid var(--accent);
       outline-offset: 2px;
-    }
-
-    &:disabled {
-      opacity: 40%;
-      cursor: default;
-    }
-  }
-
-  .button {
-    min-block-size: 36px;
-    padding-inline: 16px;
-    border-radius: 18px;
-    font-weight: 500;
-  }
-
-  .button--text,
-  .button--danger {
-    background: transparent;
-
-    &:hover:not(:disabled) {
-      background: var(--additive);
-    }
-  }
-
-  .button--danger {
-    color: var(--error);
-  }
-
-  .button--tonal {
-    background: var(--additive);
-
-    &:hover:not(:disabled) {
-      background: var(--yt-sys-color-baseline--button-chip-background-hover, var(--outline));
-    }
-  }
-
-  .button--filled {
-    background: var(--text);
-    color: var(--surface);
-
-    &:hover:not(:disabled) {
-      background: var(--yt-sys-color-baseline--mono-filled-hover, color-mix(in sRGB, var(--text) 85%, var(--surface)));
-    }
-  }
-
-  .icon-button {
-    display: grid;
-    place-items: center;
-    block-size: 40px;
-    inline-size: 40px;
-    padding: 0;
-    border-radius: 50%;
-    background: transparent;
-
-    &:hover {
-      background: var(--additive);
     }
   }
 
