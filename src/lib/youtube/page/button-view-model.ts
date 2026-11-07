@@ -9,7 +9,8 @@ export enum ButtonViewModelStyle {
 
 export enum ButtonViewModelType {
   filled = "BUTTON_VIEW_MODEL_TYPE_FILLED",
-  tonal = "BUTTON_VIEW_MODEL_TYPE_TONAL"
+  tonal = "BUTTON_VIEW_MODEL_TYPE_TONAL",
+  text = "BUTTON_VIEW_MODEL_TYPE_TEXT"
 }
 
 export enum ButtonViewModelSize {
@@ -17,7 +18,8 @@ export enum ButtonViewModelSize {
 }
 
 export enum ButtonViewModelState {
-  active = "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+  active = "BUTTON_VIEW_MODEL_STATE_ACTIVE",
+  disabled = "BUTTON_VIEW_MODEL_STATE_DISABLED"
 }
 
 /** Icon names `yt-button-view-model` resolves; an unknown name renders no icon */

@@ -1,4 +1,5 @@
 import { initPageState } from "@/lib/page/page-state";
+import { installPolymerHosts } from "@/lib/youtube/page/polymer-host";
 import { YOUTUBE_MATCHES } from "@/lib/youtube/site";
 import { installSubscriptionEntityWatch, installSubscriptionWatch, startChannelButton } from "#channel-button";
 import { installFeedResponseHook, startFeed } from "#feed";
@@ -9,6 +10,7 @@ export default defineContentScript({
   world: "MAIN",
   runAt: "document_start",
   main() {
+    installPolymerHosts();
     installFeedResponseHook();
     installSubscriptionListsHook();
     installSubscriptionWatch();
