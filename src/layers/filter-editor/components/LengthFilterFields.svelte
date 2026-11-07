@@ -20,8 +20,6 @@
   const readingId = $derived(`${inputId}-reading`);
   /** What the user typed - the filter only keeps the bounds it reads as */
   let expression = $state(untrack(() => formatLengthExpression(filter)));
-  /** The filter this field last wrote, so a filter swapped in from outside (a mode switch) resets the text */
-  let writtenFilter: LengthFilter | null = null;
   const parsed = $derived(parseLengthExpression(expression));
   const reading = $derived.by(() => {
     if (!parsed.bounds) {
@@ -34,10 +32,15 @@
     })}`;
   });
 
+  /** A filter swapped in from outside (a mode switch) resets the text; one that reads the same as it keeps it */
   $effect(() => {
-    const isWrittenHere = filter === untrack(() => writtenFilter);
-    if (!isWrittenHere) {
-      expression = formatLengthExpression(filter);
+    const filterExpression = formatLengthExpression(filter);
+    const typedExpression = untrack(() => formatLengthExpression({
+      kind: FilterKind.length,
+      ...parsed.bounds
+    }));
+    if (filterExpression !== typedExpression) {
+      expression = filterExpression;
     }
   });
 
@@ -48,7 +51,6 @@
       kind: FilterKind.length,
       ...parsed.bounds
     };
-    writtenFilter = updated;
     filter = updated;
   }
 </script>
