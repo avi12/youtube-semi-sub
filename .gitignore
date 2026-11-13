@@ -22,3 +22,6 @@ keys/
 !.vscode/extensions.json
 .idea
 .DS_Store
+
+# Lint cache
+.verify/
