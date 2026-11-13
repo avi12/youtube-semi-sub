@@ -84,10 +84,10 @@
   });
   const iconName = $derived.by(() => {
     if (isActive) {
-      return ButtonViewModelIcon.filter;
+      return ButtonViewModelIcon.FILTER;
     }
 
-    return ButtonViewModelIcon.none;
+    return ButtonViewModelIcon.NONE;
   });
 
   // The Polymer element renders from `.data`, which only exists in the page realm
@@ -100,10 +100,10 @@
       title: label,
       iconName,
       accessibilityText,
-      style: ButtonViewModelStyle.mono,
-      type: ButtonViewModelType.tonal,
-      buttonSize: ButtonViewModelSize.default,
-      state: ButtonViewModelState.active,
+      style: ButtonViewModelStyle.MONO,
+      type: ButtonViewModelType.TONAL,
+      buttonSize: ButtonViewModelSize.DEFAULT,
+      state: ButtonViewModelState.ACTIVE,
       isFullWidth: false
     };
   });
@@ -134,7 +134,7 @@
       return;
     }
 
-    pageMessenger.sendMessage(PageMessage.openSemiSubDialog, {
+    pageMessenger.sendMessage(PageMessage.OPEN_SEMI_SUB_DIALOG, {
       ...$state.snapshot(channel),
       isSubscribed: isOfficiallySubscribed
     }).catch(() => {});
@@ -147,7 +147,7 @@
   class={[wrapperClass, "yss-channel-button"]}
   data-placement={placement}
   hidden={!isVisible}>
-  {#if site === YouTubeSite.desktop}
+  {#if site === YouTubeSite.DESKTOP}
     <!-- The Polymer element renders the real <button> inside; its clicks bubble up here -->
     <yt-button-view-model
       bind:this={elButtonViewModel}

@@ -53,7 +53,7 @@ describe("mergeChannelVideos", () => {
       previous: [deletedInWindow, kept, olderThanWindow],
       uploads: {
         channelId: CHANNEL_ID,
-        source: UploadsSource.rss,
+        source: UploadsSource.RSS,
         videos: [
           createVideo({
             videoId: "new00000000",
@@ -76,7 +76,7 @@ describe("mergeChannelVideos", () => {
       previous: [deletedInWindow, kept, olderThanWindow],
       uploads: {
         channelId: CHANNEL_ID,
-        source: UploadsSource.videosTab,
+        source: UploadsSource.VIDEOS_TAB,
         videos: [approximateKept]
       }
     });
@@ -98,7 +98,7 @@ describe("mergeChannelVideos", () => {
       ],
       uploads: {
         channelId: CHANNEL_ID,
-        source: UploadsSource.rss,
+        source: UploadsSource.RSS,
         videos: [kept]
       }
     });
@@ -113,7 +113,7 @@ describe("mergeChannelVideos", () => {
         previous,
         uploads: {
           channelId: CHANNEL_ID,
-          source: UploadsSource.rss,
+          source: UploadsSource.RSS,
           videos: []
         }
       })
@@ -131,7 +131,7 @@ describe("mergeChannelVideos", () => {
       previous,
       uploads: {
         channelId: CHANNEL_ID,
-        source: UploadsSource.rss,
+        source: UploadsSource.RSS,
         videos: [
           createVideo({
             videoId: "new00000000",

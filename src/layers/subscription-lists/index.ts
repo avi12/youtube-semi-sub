@@ -10,7 +10,7 @@ import { listSemiSubscriptions } from "./semi-channels";
 
 /** MAIN world, document_start: patch guide responses before YouTube reads them (m.youtube.com has no guide) */
 export function installSubscriptionListsHook() {
-  const isDesktop = getYouTubeSite() === YouTubeSite.desktop;
+  const isDesktop = getYouTubeSite() === YouTubeSite.DESKTOP;
   if (isDesktop) {
     installGuideResponseHook();
   }
@@ -23,7 +23,7 @@ export function startSubscriptionLists() {
     listsView.isAiEnabled = state.isAiEnabled;
   });
 
-  const isDesktop = getYouTubeSite() === YouTubeSite.desktop;
+  const isDesktop = getYouTubeSite() === YouTubeSite.DESKTOP;
   if (!isDesktop) {
     startMobileLists();
     return;

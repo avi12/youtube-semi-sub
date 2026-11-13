@@ -16,13 +16,13 @@ import { z } from "@/lib/zod";
 // page session
 
 enum ChannelTab {
-  videos = "videos",
-  shorts = "shorts"
+  VIDEOS = "videos",
+  SHORTS = "shorts"
 }
 
 const TAB_PARAMS: Record<ChannelTab, string> = {
-  [ChannelTab.videos]: "EgZ2aWRlb3PyBgQKAjoA",
-  [ChannelTab.shorts]: "EgZzaG9ydHPyBgUKA5oBAA=="
+  [ChannelTab.VIDEOS]: "EgZ2aWRlb3PyBgQKAjoA",
+  [ChannelTab.SHORTS]: "EgZzaG9ydHPyBgUKA5oBAA=="
 };
 const CACHE_TTL_MS = 5 * MILLISECONDS_PER_MINUTE;
 const FAILED_FETCH_RETRY_MS = 30 * 1000;
@@ -55,7 +55,7 @@ function cacheKey({ channelId, tab }: TabRequest) {
 }
 
 function tabOf(video: Pick<FeedVideo, "isShort">) {
-  return video.isShort ? ChannelTab.shorts : ChannelTab.videos;
+  return video.isShort ? ChannelTab.SHORTS : ChannelTab.VIDEOS;
 }
 
 function parseChannelNatives(response: unknown) {
@@ -91,7 +91,7 @@ function parseChannelNatives(response: unknown) {
 
 async function fetchChannelNatives({ channelId, tab }: TabRequest) {
   const response = await postInnerTube({
-    endpoint: InnerTubeEndpoint.browse,
+    endpoint: InnerTubeEndpoint.BROWSE,
     payload: {
       browseId: channelId,
       params: TAB_PARAMS[tab]

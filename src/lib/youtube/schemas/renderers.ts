@@ -7,22 +7,22 @@ import { z } from "@/lib/zod";
 // of failing the whole item
 
 export enum RendererKind {
-  lockupViewModel = "lockupViewModel",
-  videoWithContextRenderer = "videoWithContextRenderer",
-  videoRenderer = "videoRenderer",
-  compactVideoRenderer = "compactVideoRenderer",
-  gridVideoRenderer = "gridVideoRenderer",
+  LOCKUP_VIEW_MODEL = "lockupViewModel",
+  VIDEO_WITH_CONTEXT_RENDERER = "videoWithContextRenderer",
+  VIDEO_RENDERER = "videoRenderer",
+  COMPACT_VIDEO_RENDERER = "compactVideoRenderer",
+  GRID_VIDEO_RENDERER = "gridVideoRenderer",
   /** A Short's tile: in the feed's Shorts shelf and on a channel's Shorts tab */
-  shortsLockupViewModel = "shortsLockupViewModel"
+  SHORTS_LOCKUP_VIEW_MODEL = "shortsLockupViewModel"
 }
 
 export const LOCKUP_VIDEO_CONTENT_TYPE = "LOCKUP_CONTENT_TYPE_VIDEO";
 
 export const CLASSIC_RENDERER_KINDS = [
-  RendererKind.videoWithContextRenderer,
-  RendererKind.videoRenderer,
-  RendererKind.compactVideoRenderer,
-  RendererKind.gridVideoRenderer
+  RendererKind.VIDEO_WITH_CONTEXT_RENDERER,
+  RendererKind.VIDEO_RENDERER,
+  RendererKind.COMPACT_VIDEO_RENDERER,
+  RendererKind.GRID_VIDEO_RENDERER
 ] as const;
 
 const textContentSchema = z.looseObject({ content: z.string() });
@@ -164,20 +164,20 @@ export const shortsLockupSchema = z.looseObject({
 export type ShortsLockup = z.infer<typeof shortsLockupSchema>;
 
 export const richItemContentSchema = z.looseObject({
-  [RendererKind.lockupViewModel]: lockupSchema.optional().catch(undefined),
-  [RendererKind.videoWithContextRenderer]: classicRendererSchema.optional().catch(undefined),
-  [RendererKind.videoRenderer]: classicRendererSchema.optional().catch(undefined),
-  [RendererKind.compactVideoRenderer]: classicRendererSchema.optional().catch(undefined),
-  [RendererKind.gridVideoRenderer]: classicRendererSchema.optional().catch(undefined),
-  [RendererKind.shortsLockupViewModel]: shortsLockupSchema.optional().catch(undefined)
+  [RendererKind.LOCKUP_VIEW_MODEL]: lockupSchema.optional().catch(undefined),
+  [RendererKind.VIDEO_WITH_CONTEXT_RENDERER]: classicRendererSchema.optional().catch(undefined),
+  [RendererKind.VIDEO_RENDERER]: classicRendererSchema.optional().catch(undefined),
+  [RendererKind.COMPACT_VIDEO_RENDERER]: classicRendererSchema.optional().catch(undefined),
+  [RendererKind.GRID_VIDEO_RENDERER]: classicRendererSchema.optional().catch(undefined),
+  [RendererKind.SHORTS_LOCKUP_VIEW_MODEL]: shortsLockupSchema.optional().catch(undefined)
 });
 
 /** The shelves a feed section holds */
 export enum ShelfRendererKind {
   /** www's shelves (Shorts, "Most relevant"): grid items in `contents` */
-  rich = "richShelfRenderer",
+  RICH = "richShelfRenderer",
   /** m's Shorts shelf: bare `shortsLockupViewModel`s in `items` */
-  reel = "reelShelfRenderer"
+  REEL = "reelShelfRenderer"
 }
 
 /** A section marker: a titled break in the grid, or a shelf with items of its own */
@@ -185,8 +185,8 @@ export const sectionItemSchema = z.looseObject({
   richSectionRenderer: z.looseObject({
     content: z
       .looseObject({
-        [ShelfRendererKind.rich]: z.looseObject({ contents: z.array(z.unknown()).optional() }).optional(),
-        [ShelfRendererKind.reel]: z.looseObject({ items: z.array(z.unknown()).optional() }).optional()
+        [ShelfRendererKind.RICH]: z.looseObject({ contents: z.array(z.unknown()).optional() }).optional(),
+        [ShelfRendererKind.REEL]: z.looseObject({ items: z.array(z.unknown()).optional() }).optional()
       })
       .optional()
   })

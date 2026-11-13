@@ -70,7 +70,7 @@ export function mergeChannelVideos({ previous, uploads }: { previous: FeedVideo[
     return previous;
   }
 
-  const isExact = uploads.source === UploadsSource.rss;
+  const isExact = uploads.source === UploadsSource.RSS;
   const fetchedVideos = isExact
     ? // A refetch that didn't look at the Videos tab keeps what the cache learned from it
       withKnownTabDetails({

@@ -19,7 +19,7 @@ export function createLiteRtJudge(infer: (messages: ChatMessage[]) => Promise<st
       const messages: ChatMessage[] = [
         ...buildPrefaceMessages(),
         {
-          role: ChatRole.user,
+          role: ChatRole.USER,
           content: buildBatchPrompt(batch)
         }
       ];

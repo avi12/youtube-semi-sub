@@ -54,8 +54,8 @@ describe("channelIdsFromGridItem", () => {
 
 describe("readShelf", () => {
   it.each([
-    [shortsShelf([90, 91]), ShelfRendererKind.rich],
-    [mobileShortsShelf([90, 91]), ShelfRendererKind.reel]
+    [shortsShelf([90, 91]), ShelfRendererKind.RICH],
+    [mobileShortsShelf([90, 91]), ShelfRendererKind.REEL]
   ])("reads the items of a %#. shelf and swaps them, keeping the rest of it", (shelfItem, kind) => {
     const shelf = readShelf(shelfItem);
     expect(shelf?.kind).toBe(kind);

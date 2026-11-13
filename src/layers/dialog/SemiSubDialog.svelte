@@ -31,33 +31,33 @@
   const { channel, isSubscribed, onDone }: Props = $props();
 
   const MODE_TEXT = {
-    [SubscriptionMode.follow]: {
+    [SubscriptionMode.FOLLOW]: {
       description: "You're not subscribed, so only the videos your filter lets through are added to your feed",
       createLabel: "Semi-subscribe",
-      createdMessage: ToastMessage.semiSubscribed,
-      savedMessage: ToastMessage.filterSaved,
-      removedMessage: ToastMessage.removed
+      createdMessage: ToastMessage.SEMI_SUBSCRIBED,
+      savedMessage: ToastMessage.FILTER_SAVED,
+      removedMessage: ToastMessage.REMOVED
     },
-    [SubscriptionMode.hide]: {
+    [SubscriptionMode.HIDE]: {
       description: "You're subscribed, so the videos your filter matches are hidden from your feed",
       createLabel: "Save",
-      createdMessage: ToastMessage.hideFilterSaved,
-      savedMessage: ToastMessage.hideFilterSaved,
-      removedMessage: ToastMessage.hideFilterRemoved
+      createdMessage: ToastMessage.HIDE_FILTER_SAVED,
+      savedMessage: ToastMessage.HIDE_FILTER_SAVED,
+      removedMessage: ToastMessage.HIDE_FILTER_REMOVED
     }
   } as const;
 
   /** www's own Polymer chip and checkbox; m.youtube.com has no Polymer, so it keeps the editor's plain ones */
-  const editorControls = getYouTubeSite() === YouTubeSite.desktop ? YOUTUBE_EDITOR_CONTROLS : DEFAULT_EDITOR_CONTROLS;
+  const editorControls = getYouTubeSite() === YouTubeSite.DESKTOP ? YOUTUBE_EDITOR_CONTROLS : DEFAULT_EDITOR_CONTROLS;
 
   const MODE_LIST_NAME = {
-    [SubscriptionMode.follow]: "Allow list",
-    [SubscriptionMode.hide]: "Block list"
+    [SubscriptionMode.FOLLOW]: "Allow list",
+    [SubscriptionMode.HIDE]: "Block list"
   } as const satisfies Record<SubscriptionMode, string>;
   /** What each list does to a video its filter matches - the one thing that tells them apart */
   const MODE_LIST_EFFECT = {
-    [SubscriptionMode.follow]: "Only matching videos show",
-    [SubscriptionMode.hide]: "Matching videos are hidden"
+    [SubscriptionMode.FOLLOW]: "Only matching videos show",
+    [SubscriptionMode.HIDE]: "Matching videos are hidden"
   } as const satisfies Record<SubscriptionMode, string>;
 
   const id = $props.id();
@@ -93,8 +93,8 @@
   const isModeActive = $derived(mode === activeMode);
   const modeText = $derived(MODE_TEXT[mode]);
   const INACTIVE_NOTE = {
-    [SubscriptionMode.follow]: "while you're subscribed it hides the videos it doesn't let through, and it adds the ones it does once you unsubscribe",
-    [SubscriptionMode.hide]: "this filter applies once you subscribe"
+    [SubscriptionMode.FOLLOW]: "while you're subscribed it hides the videos it doesn't let through, and it adds the ones it does once you unsubscribe",
+    [SubscriptionMode.HIDE]: "this filter applies once you subscribe"
   } as const satisfies Record<SubscriptionMode, string>;
   const submitLabel = $derived.by(() => {
     if (isEditing) {
@@ -116,7 +116,7 @@
     isLoadingVideos = true;
     isLoadFailed = false;
     try {
-      videos = await sendMessage(MessageType.refreshChannel, { channelId: channel.channelId });
+      videos = await sendMessage(MessageType.REFRESH_CHANNEL, { channelId: channel.channelId });
     } catch {
       isLoadFailed = true;
     } finally {
@@ -245,7 +245,7 @@
       {#if isLoadFailed}
         <p class="notice" role="alert">
           <span>Couldn't load this channel's recent videos, so there's nothing to preview yet</span>
-          <DialogButton label="Try again" onclick={() => loadVideos()} variant={DialogButtonVariant.text} />
+          <DialogButton label="Try again" onclick={() => loadVideos()} variant={DialogButtonVariant.TEXT} />
         </p>
       {/if}
 
@@ -269,12 +269,12 @@
             <DialogButton
               label="Turn on AI match"
               onclick={() => isAiEnabledItem.setValue(true)}
-              variant={DialogButtonVariant.tonal} />
+              variant={DialogButtonVariant.TONAL} />
           {:else}
             <DialogButton
               label="Set up AI match"
-              onclick={() => sendMessage(MessageType.openAiSettings).catch(() => {})}
-              variant={DialogButtonVariant.tonal} />
+              onclick={() => sendMessage(MessageType.OPEN_AI_SETTINGS).catch(() => {})}
+              variant={DialogButtonVariant.TONAL} />
           {/if}
         {/snippet}
       </FilterEditor>
@@ -301,11 +301,11 @@
               isSaving = false;
             }
           }}
-          variant={DialogButtonVariant.danger} />
+          variant={DialogButtonVariant.DANGER} />
       {/if}
       <span class="dialog__footer-spacer"></span>
-      <DialogButton label="Cancel" onclick={() => elDialog?.close()} variant={DialogButtonVariant.text} />
-      <DialogButton isDisabled={!canSave} isSubmit label={submitLabel} variant={DialogButtonVariant.filled} />
+      <DialogButton label="Cancel" onclick={() => elDialog?.close()} variant={DialogButtonVariant.TEXT} />
+      <DialogButton isDisabled={!canSave} isSubmit label={submitLabel} variant={DialogButtonVariant.FILLED} />
     </footer>
   </form>
 </dialog>

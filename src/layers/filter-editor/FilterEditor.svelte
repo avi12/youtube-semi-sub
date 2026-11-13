@@ -138,7 +138,7 @@
   }
 
   function createEmptyTitleFilter(kind: TitleFilter["kind"]) {
-    const emptyFilter: TitleFilter = kind === FilterKind.aiMatch ? { ...EMPTY_AI_FILTER } : { ...DEFAULT_TITLE_FILTER };
+    const emptyFilter: TitleFilter = kind === FilterKind.AI_MATCH ? { ...EMPTY_AI_FILTER } : { ...DEFAULT_TITLE_FILTER };
     return emptyFilter;
   }
 
@@ -150,15 +150,15 @@
 
     parkedTitleFilters[titleFilter.kind] = titleFilter;
     setCondition({
-      method: FilterMethod.title,
+      method: FilterMethod.TITLE,
       condition: parkedTitleFilters[kind] ?? createEmptyTitleFilter(kind)
     });
   }
 
-  const aiFilter = $derived(conditions.find(condition => condition.kind === FilterKind.aiMatch) ?? null);
-  const regexFilter = $derived(conditions.find(condition => condition.kind === FilterKind.regex) ?? null);
-  const lengthFilter = $derived(conditions.find(condition => condition.kind === FilterKind.length) ?? null);
-  const titleKind = $derived(aiFilter ? FilterKind.aiMatch : FilterKind.regex);
+  const aiFilter = $derived(conditions.find(condition => condition.kind === FilterKind.AI_MATCH) ?? null);
+  const regexFilter = $derived(conditions.find(condition => condition.kind === FilterKind.REGEX) ?? null);
+  const lengthFilter = $derived(conditions.find(condition => condition.kind === FilterKind.LENGTH) ?? null);
+  const titleKind = $derived(aiFilter ? FilterKind.AI_MATCH : FilterKind.REGEX);
 
   const aiMatch = watchAiMatchPreview(() => ({
     filter: aiFilter,
@@ -175,7 +175,7 @@
     }
 
     const { aiStatus } = aiMatch;
-    if (aiStatus?.engine === AiEngine.none) {
+    if (aiStatus?.engine === AiEngine.NONE) {
       return "AI match isn't available in this browser";
     }
 
@@ -230,12 +230,12 @@
   /** Worded after the condition that stops the preview, else after the one most likely to explain no match */
   const hints = $derived.by(() => {
     const invalidCondition = conditions.find(condition => !isFilterConditionValid(condition));
-    const kind = invalidCondition?.kind ?? aiFilter?.kind ?? regexFilter?.kind ?? FilterKind.length;
-    if (kind === FilterKind.regex) {
+    const kind = invalidCondition?.kind ?? aiFilter?.kind ?? regexFilter?.kind ?? FilterKind.LENGTH;
+    if (kind === FilterKind.REGEX) {
       return copy.regexHints;
     }
 
-    if (kind === FilterKind.length) {
+    if (kind === FilterKind.LENGTH) {
       return copy.lengthHints;
     }
 
@@ -251,7 +251,7 @@
   });
   /** Only a followed channel with members-only videos asks - a subscribed one never shows them in the feed */
   const isMembershipAsked = $derived(
-    mode === SubscriptionMode.follow && (isMember || videos.some(video => video.isMembersOnly))
+    mode === SubscriptionMode.FOLLOW && (isMember || videos.some(video => video.isMembersOnly))
   );
   const membershipHint = $derived.by(() => {
     if (isMember) {
@@ -286,32 +286,32 @@
           <span class="condition__connector">{FILTER_MATCH_CONNECTOR[match]}</span>
         {/if}
         <section class={["condition__card", isCombined && "condition__card--framed"]}>
-          {#if condition.kind === FilterKind.type}
+          {#if condition.kind === FilterKind.TYPE}
             <header class="condition__header">
-              <span class="condition__label">{FILTER_METHOD_LABEL[FilterMethod.type]}</span>
+              <span class="condition__label">{FILTER_METHOD_LABEL[FilterMethod.TYPE]}</span>
             </header>
             <TypeFilterFields
               bind:filter={() => condition, edited => setCondition({
-                method: FilterMethod.type,
+                method: FilterMethod.TYPE,
                 condition: edited
               })} />
-          {:else if condition.kind === FilterKind.length}
+          {:else if condition.kind === FilterKind.LENGTH}
             <header class="condition__header">
-              <label class="condition__label" for={lengthInputId}>{FILTER_METHOD_LABEL[FilterMethod.length]}</label>
+              <label class="condition__label" for={lengthInputId}>{FILTER_METHOD_LABEL[FilterMethod.LENGTH]}</label>
             </header>
             <LengthFilterFields
               inputId={lengthInputId}
               bind:filter={() => condition, edited => setCondition({
-                method: FilterMethod.length,
+                method: FilterMethod.LENGTH,
                 condition: edited
               })} />
           {:else}
             <header class="condition__header">
               <label class="condition__label" for={titleInputId}>
-                {#if condition.kind === FilterKind.aiMatch}
+                {#if condition.kind === FilterKind.AI_MATCH}
                   {copy.aiLabel}
                 {:else}
-                  {FILTER_METHOD_LABEL[FilterMethod.title]}
+                  {FILTER_METHOD_LABEL[FilterMethod.TITLE]}
                 {/if}
               </label>
               <SegmentedSwitch
@@ -321,13 +321,13 @@
                 options={TITLE_FILTER_KINDS}
                 value={titleKind} />
             </header>
-            {#if condition.kind === FilterKind.regex}
+            {#if condition.kind === FilterKind.REGEX}
               <RegexFilterFields
                 emptyPatternHint={isCombined ? "Leave it empty to judge by the other filters only" : copy.emptyPatternHint}
                 inputId={titleInputId}
                 placeholder={copy.regexPlaceholder}
                 bind:filter={() => condition, edited => setCondition({
-                  method: FilterMethod.title,
+                  method: FilterMethod.TITLE,
                   condition: edited
                 })} />
             {:else}
@@ -336,7 +336,7 @@
                 inputId={titleInputId}
                 placeholder={copy.aiPlaceholder}
                 bind:filter={() => condition, edited => setCondition({
-                  method: FilterMethod.title,
+                  method: FilterMethod.TITLE,
                   condition: edited
                 })} />
             {/if}

@@ -41,7 +41,7 @@ describe("migrateSemiSubscriptionsToV2", () => {
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
         followFilter: {
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "review",
           flags: "i"
         },
@@ -59,7 +59,7 @@ describe("migrateSemiSubscriptionsToV2", () => {
       handle: "@LinusTechTips"
     };
     const aiFilter = {
-      kind: FilterKind.aiMatch,
+      kind: FilterKind.AI_MATCH,
       description: "Only GPU reviews"
     };
     const migrated = migrateFromV1({
@@ -80,7 +80,7 @@ describe("migrateSemiSubscriptionsToV2", () => {
       [REGEX_CHANNEL_ID]: {
         ...CHANNEL,
         followFilter: {
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "iphone",
           flags: ""
         },
@@ -104,7 +104,7 @@ describe("migrateSemiSubscriptionsToV2", () => {
 describe("migrateSemiSubscriptionsToV3", () => {
   it("adds an unhalted state to every v2 semi-subscription", () => {
     const filter = {
-      kind: FilterKind.regex,
+      kind: FilterKind.REGEX,
       pattern: "review",
       flags: "i"
     };
@@ -132,7 +132,7 @@ describe("migrateSemiSubscriptionsToV3", () => {
 
 describe("migrateSemiSubscriptionsToV4", () => {
   const filter = {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "review",
     flags: "i"
   };
@@ -184,7 +184,7 @@ describe("migrateSemiSubscriptionsToV4", () => {
 
 describe("isUploadsWatched", () => {
   const filter: RegexFilter = {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "shorts",
     flags: "i"
   };

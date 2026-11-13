@@ -10,8 +10,8 @@ import { z } from "@/lib/zod";
 import { listsView } from "./lists-view.svelte";
 
 export enum SemiListSurface {
-  mobileChannels = "mobile-channels",
-  mobileStrip = "mobile-strip"
+  MOBILE_CHANNELS = "mobile-channels",
+  MOBILE_STRIP = "mobile-strip"
 }
 
 const SURFACE_ATTRIBUTE = "data-yss-surface";

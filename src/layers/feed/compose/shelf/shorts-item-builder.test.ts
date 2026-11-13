@@ -50,7 +50,7 @@ function menuTitles(item: unknown) {
 
 function build({
   native = null,
-  shelfKind = ShelfRendererKind.rich
+  shelfKind = ShelfRendererKind.RICH
 }: {
   native?: ShortsLockup | null;
   shelfKind?: ShelfRendererKind;
@@ -154,7 +154,7 @@ describe("buildShortsItem", () => {
   });
 
   it("tags an m shelf item beside its bare lockup", () => {
-    const item = build({ shelfKind: ShelfRendererKind.reel });
+    const item = build({ shelfKind: ShelfRendererKind.REEL });
     expect(item).not.toHaveProperty("richItemRenderer");
     expect(item).toMatchObject({
       [SEMI_SUBSCRIBED_TAG]: true

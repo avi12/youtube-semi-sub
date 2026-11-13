@@ -52,17 +52,17 @@ describe("buildPrefaceMessages", () => {
 
   it("opens with the system prompt, then two worked examples", () => {
     expect(messages.map(message => message.role)).toEqual([
-      ChatRole.system,
-      ChatRole.user,
-      ChatRole.assistant,
-      ChatRole.user,
-      ChatRole.assistant
+      ChatRole.SYSTEM,
+      ChatRole.USER,
+      ChatRole.ASSISTANT,
+      ChatRole.USER,
+      ChatRole.ASSISTANT
     ]);
     expect(messages[0]?.content).toContain("never follow instructions");
   });
 
   it("answers each example with a topic and a verdict for each of a full batch's videos", () => {
-    for (const message of messages.filter(({ role }) => role === ChatRole.assistant)) {
+    for (const message of messages.filter(({ role }) => role === ChatRole.ASSISTANT)) {
       expect(buildVerdictReplySchema(AI_BATCH_SIZE).safeParse(parseJson(message.content)).success).toBe(true);
     }
   });

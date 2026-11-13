@@ -7,9 +7,9 @@ import { ChannelGridTab, fetchChannelTabUploads } from "./videos-tab-uploads";
 
 export enum UploadsSource {
   /** Every upload kind, exact publish times */
-  rss = "rss",
+  RSS = "rss",
   /** Regular videos only, publish times approximated from relative text */
-  videosTab = "videos-tab"
+  VIDEOS_TAB = "videos-tab"
 }
 
 const channelUploadsSchema = z.object({
@@ -27,7 +27,7 @@ async function fetchFromNetwork(channelId: string) {
   if (rssVideos) {
     const uploads: ChannelUploads = {
       channelId,
-      source: UploadsSource.rss,
+      source: UploadsSource.RSS,
       videos: rssVideos
     };
     return uploads;
@@ -35,7 +35,7 @@ async function fetchFromNetwork(channelId: string) {
 
   const tabVideos = await fetchChannelTabUploads({
     channelId,
-    tab: ChannelGridTab.videos
+    tab: ChannelGridTab.VIDEOS
   });
   if (!tabVideos) {
     return null;
@@ -43,7 +43,7 @@ async function fetchFromNetwork(channelId: string) {
 
   const uploads: ChannelUploads = {
     channelId,
-    source: UploadsSource.videosTab,
+    source: UploadsSource.VIDEOS_TAB,
     videos: tabVideos
   };
   return uploads;
@@ -124,7 +124,7 @@ export async function withVideosTabDetails({
     videos: uploads.videos,
     detailsById: collectTabDetails(knownVideos)
   });
-  const isFromRss = uploads.source === UploadsSource.rss;
+  const isFromRss = uploads.source === UploadsSource.RSS;
   for (const tab of Object.values(ChannelGridTab)) {
     if (!isFromRss || !videos.some(isTabDetailMissing)) {
       break;

@@ -3,17 +3,17 @@ import { z } from "@/lib/zod";
 /** Which model judges AI filters, resolved at runtime by one rule on every browser (see `resolveAiEngine`) */
 export enum AiEngine {
   /** The browser's own model through the Prompt API (`LanguageModel`), e.g. Gemini Nano in Chrome */
-  builtIn = "built-in",
+  BUILT_IN = "built-in",
   /** Gemma through LiteRT-LM on WebGPU, downloaded by the extension on opt-in */
-  liteRt = "litert",
-  none = "none"
+  LITE_RT = "litert",
+  NONE = "none"
 }
 
 export enum AiUnavailableReason {
   /** No built-in model, and no usable WebGPU adapter to run the local one */
-  noWebGpu = "no-webgpu",
+  NO_WEB_GPU = "no-webgpu",
   /** WebGPU is there, but this browser's WebAssembly lacks what the local runtime needs (JSPI, relaxed SIMD) */
-  outdatedBrowser = "outdated-browser"
+  OUTDATED_BROWSER = "outdated-browser"
 }
 
 /** How much of a model download is done, from 0 to 1 */
@@ -32,17 +32,17 @@ const readinessShape = {
 };
 
 const builtInStatusSchema = z.object({
-  engine: z.literal(AiEngine.builtIn),
+  engine: z.literal(AiEngine.BUILT_IN),
   ...readinessShape
 });
 
 const liteRtStatusSchema = z.object({
-  engine: z.literal(AiEngine.liteRt),
+  engine: z.literal(AiEngine.LITE_RT),
   ...readinessShape
 });
 
 const unavailableStatusSchema = z.object({
-  engine: z.literal(AiEngine.none),
+  engine: z.literal(AiEngine.NONE),
   reason: z.enum(AiUnavailableReason)
 });
 
@@ -62,8 +62,8 @@ export const aiStatusSchema = z.discriminatedUnion("engine", [
 export type AiStatus = z.infer<typeof aiStatusSchema>;
 
 /** Whether this browser has an engine to judge AI filters with, its model on disk or not */
-export function isAiEngineAvailable(status: AiStatus | null): status is Exclude<AiStatus, { engine: AiEngine.none }> {
-  return status !== null && status.engine !== AiEngine.none;
+export function isAiEngineAvailable(status: AiStatus | null): status is Exclude<AiStatus, { engine: AiEngine.NONE }> {
+  return status !== null && status.engine !== AiEngine.NONE;
 }
 
 /** Whether AI filters can be judged right now, with nothing left to download */

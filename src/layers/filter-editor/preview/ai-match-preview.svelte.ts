@@ -33,7 +33,7 @@ export function watchAiMatchPreview(
   });
 
   function refreshStatus() {
-    sendMessage(MessageType.getAiStatus)
+    sendMessage(MessageType.GET_AI_STATUS)
       .then(aiStatus => {
         aiState.aiStatus = aiStatus;
       })
@@ -105,7 +105,7 @@ export function watchAiMatchPreview(
       const verdicts = untrack(() => aiState.aiVerdicts)[getAiFilterKey(request.filter)] ?? {};
       const pendingVideos = request.videos.filter(video => verdicts[video.videoId] === undefined);
       if (pendingVideos.length > 0) {
-        sendMessage(MessageType.classifyVideos, {
+        sendMessage(MessageType.CLASSIFY_VIDEOS, {
           filter: request.filter,
           videos: pendingVideos
         }).catch(() => {});

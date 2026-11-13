@@ -70,8 +70,8 @@ export function highlightMatches({ title, regex }: { title: string; regex: RegEx
 
 /** Whether a definite verdict puts the video in the feed: a follow filter shows its matches, a hide filter the rest */
 const SHOWN_STATE_BY_MODE = {
-  [SubscriptionMode.follow]: MatchState.matches,
-  [SubscriptionMode.hide]: MatchState.doesNotMatch
+  [SubscriptionMode.FOLLOW]: MatchState.MATCHES,
+  [SubscriptionMode.HIDE]: MatchState.DOES_NOT_MATCH
 } as const satisfies Record<SubscriptionMode, MatchState>;
 
 /**
@@ -85,7 +85,7 @@ export function partitionPreviewRows({ rows, mode }: { rows: PreviewRow[]; mode:
   let shownCount = 0;
   let pendingCount = 0;
   for (const row of rows) {
-    if (row.matchState === MatchState.pending) {
+    if (row.matchState === MatchState.PENDING) {
       shownRows.push(row);
       pendingCount++;
       continue;
@@ -110,7 +110,7 @@ export function partitionPreviewRows({ rows, mode }: { rows: PreviewRow[]; mode:
 
 /** What a preview highlights in each title: the filter's RegExp condition, once it compiles and isn't empty */
 function findHighlightRegex(filter: VideoFilter) {
-  const regexFilter = listFilterConditions(filter).find(condition => condition.kind === FilterKind.regex);
+  const regexFilter = listFilterConditions(filter).find(condition => condition.kind === FilterKind.REGEX);
   return regexFilter?.pattern ? compileTitleFilter(regexFilter) : null;
 }
 
@@ -152,14 +152,14 @@ export function previewVideoFilter({
 
   const rows = videos.map(video => {
     const isLeftOut =
-      mode === SubscriptionMode.follow &&
+      mode === SubscriptionMode.FOLLOW &&
       isMembersOnlyLocked({
         video,
         isMember
       });
     const row: PreviewRow = {
       video,
-      matchState: isLeftOut ? MatchState.doesNotMatch : judge(video),
+      matchState: isLeftOut ? MatchState.DOES_NOT_MATCH : judge(video),
       segments: regex
         ? highlightMatches({
             title: video.title,

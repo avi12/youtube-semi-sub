@@ -35,7 +35,7 @@ async function handleLocalModelDownloadEnded() {
 /** Only for a user who just switched AI match on, and only on a browser that resolves to the local model */
 async function downloadRequestedModel() {
   const [status, isAiEnabled] = await Promise.all([readAiStatus(), isAiEnabledItem.getValue()]);
-  const isLocalDownloadWanted = status.engine === AiEngine.liteRt && isAiEnabled;
+  const isLocalDownloadWanted = status.engine === AiEngine.LITE_RT && isAiEnabled;
   if (!isLocalDownloadWanted) {
     return false;
   }
@@ -63,17 +63,17 @@ async function openAiSettings() {
  * the local one only when the user asks for it right after opting in
  */
 export function startAiMatch() {
-  onMessage(MessageType.getAiStatus, () => readAiStatus());
-  onMessage(MessageType.downloadAiModel, () => downloadRequestedModel());
-  onMessage(MessageType.openAiSettings, () => openAiSettings());
+  onMessage(MessageType.GET_AI_STATUS, () => readAiStatus());
+  onMessage(MessageType.DOWNLOAD_AI_MODEL, () => downloadRequestedModel());
+  onMessage(MessageType.OPEN_AI_SETTINGS, () => openAiSettings());
 
-  onMessage(MessageType.classifyVideos, request => {
+  onMessage(MessageType.CLASSIFY_VIDEOS, request => {
     // Answered at once: the preview watches the verdict cache rather than waiting on this message
     void classifyPendingVideos(request);
   });
 
   // Chromium's offscreen page announces the end of a download, which also wakes a worker that stopped meanwhile
-  onMessage(MessageType.aiModelDownloadChanged, async ({ fraction }) => {
+  onMessage(MessageType.AI_MODEL_DOWNLOAD_CHANGED, async ({ fraction }) => {
     const isDownloadEnded = fraction === null;
     if (isDownloadEnded) {
       await handleLocalModelDownloadEnded();

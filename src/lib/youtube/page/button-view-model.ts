@@ -4,31 +4,31 @@ import { z } from "@/lib/zod";
 // exists in the page realm. Values were read from YouTube's own runtime
 
 export enum ButtonViewModelStyle {
-  mono = "BUTTON_VIEW_MODEL_STYLE_MONO"
+  MONO = "BUTTON_VIEW_MODEL_STYLE_MONO"
 }
 
 export enum ButtonViewModelType {
-  filled = "BUTTON_VIEW_MODEL_TYPE_FILLED",
-  tonal = "BUTTON_VIEW_MODEL_TYPE_TONAL",
-  text = "BUTTON_VIEW_MODEL_TYPE_TEXT"
+  FILLED = "BUTTON_VIEW_MODEL_TYPE_FILLED",
+  TONAL = "BUTTON_VIEW_MODEL_TYPE_TONAL",
+  TEXT = "BUTTON_VIEW_MODEL_TYPE_TEXT"
 }
 
 export enum ButtonViewModelSize {
-  default = "BUTTON_VIEW_MODEL_SIZE_DEFAULT"
+  DEFAULT = "BUTTON_VIEW_MODEL_SIZE_DEFAULT"
 }
 
 export enum ButtonViewModelState {
-  active = "BUTTON_VIEW_MODEL_STATE_ACTIVE",
-  disabled = "BUTTON_VIEW_MODEL_STATE_DISABLED"
+  ACTIVE = "BUTTON_VIEW_MODEL_STATE_ACTIVE",
+  DISABLED = "BUTTON_VIEW_MODEL_STATE_DISABLED"
 }
 
 /** Icon names `yt-button-view-model` resolves; an unknown name renders no icon */
 export enum ButtonViewModelIcon {
-  none = "",
-  filter = "FILTER",
-  close = "CLOSE",
-  expandMore = "EXPAND_MORE",
-  expandLess = "EXPAND_LESS"
+  NONE = "",
+  FILTER = "FILTER",
+  CLOSE = "CLOSE",
+  EXPAND_MORE = "EXPAND_MORE",
+  EXPAND_LESS = "EXPAND_LESS"
 }
 
 const buttonViewModelDataSchema = z.object({

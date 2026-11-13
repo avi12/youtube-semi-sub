@@ -7,10 +7,10 @@ const MOTION_NAME_PREFIX = "yss-feed-";
 const GLIDE_PROPERTY = "translate";
 
 export enum FeedMotionClass {
-  pending = "yss-feed-pending",
-  entering = "yss-feed-entering",
-  leaving = "yss-feed-leaving",
-  gliding = "yss-feed-gliding"
+  PENDING = "yss-feed-pending",
+  ENTERING = "yss-feed-entering",
+  LEAVING = "yss-feed-leaving",
+  GLIDING = "yss-feed-gliding"
 }
 
 export function nextFrame() {
@@ -63,12 +63,12 @@ export function pinAtOffset({ element, deltaX, deltaY }: { element: HTMLElement;
 }
 
 export function isInGlide(element: HTMLElement) {
-  return element.style.translate !== "" || element.classList.contains(FeedMotionClass.gliding);
+  return element.style.translate !== "" || element.classList.contains(FeedMotionClass.GLIDING);
 }
 
 export async function glide(element: HTMLElement) {
-  element.classList.add(FeedMotionClass.gliding);
+  element.classList.add(FeedMotionClass.GLIDING);
   element.style.translate = "";
   await whenMotionFinishes(element);
-  element.classList.remove(FeedMotionClass.gliding);
+  element.classList.remove(FeedMotionClass.GLIDING);
 }

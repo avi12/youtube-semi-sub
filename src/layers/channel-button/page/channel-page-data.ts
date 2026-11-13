@@ -8,8 +8,8 @@ import { z } from "@/lib/zod";
 // Pure readers over a page's InnerTube data ({ response, playerResponse }), shared by www and m.youtube.com
 
 export enum PageKind {
-  watch = "watch",
-  channel = "channel"
+  WATCH = "watch",
+  CHANNEL = "channel"
 }
 
 const WATCH_PATH_PATTERN = new RegExp(`^/(?:watch$|live/${VIDEO_ID_SOURCE}$)`);
@@ -159,11 +159,11 @@ export type PageChannel = z.infer<typeof pageChannelSchema>;
 
 export function getPageKind(pathname: string) {
   if (WATCH_PATH_PATTERN.test(pathname)) {
-    return PageKind.watch;
+    return PageKind.WATCH;
   }
 
   if (CHANNEL_PATH_PATTERN.test(pathname)) {
-    return PageKind.channel;
+    return PageKind.CHANNEL;
   }
 
   return null;
@@ -370,7 +370,7 @@ function readWatchChannel({ response, playerResponse }: PageData) {
   }
 
   const pageChannel: PageChannel = {
-    kind: PageKind.watch,
+    kind: PageKind.WATCH,
     channel,
     videoId: videoDetails?.videoId,
     isOwnedByViewer: videoDetails?.isOwnerViewing ?? false,
@@ -422,7 +422,7 @@ function readChannelPageChannel(response: unknown) {
     isMatch: isRecord
   });
   const pageChannel: PageChannel = {
-    kind: PageKind.channel,
+    kind: PageKind.CHANNEL,
     channel,
     videoId: undefined,
     isOwnedByViewer: false,
@@ -448,7 +448,7 @@ export function readPageChannel({ pageData, kind }: { pageData: unknown; kind: P
     return null;
   }
 
-  if (kind === PageKind.watch) {
+  if (kind === PageKind.WATCH) {
     return readWatchChannel(parsed.data);
   }
 

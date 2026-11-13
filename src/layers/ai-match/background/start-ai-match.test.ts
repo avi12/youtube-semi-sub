@@ -16,7 +16,7 @@ import { startAiMatch } from "./start-ai-match";
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const PREVIEW_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
 const AI_FILTER: AiFilter = {
-  kind: FilterKind.aiMatch,
+  kind: FilterKind.AI_MATCH,
   description: "only reviews"
 };
 const KEY = getAiFilterKey(AI_FILTER);
@@ -39,7 +39,7 @@ function createVideo({
 }
 
 const fakeLanguageModel = {
-  availability: vi.fn(async () => BuiltInAvailability.available),
+  availability: vi.fn(async () => BuiltInAvailability.AVAILABLE),
   create: vi.fn(async () => createFakeBase().base)
 };
 
@@ -85,7 +85,7 @@ describe("startAiMatch with the built-in model", () => {
   });
 
   beforeEach(async () => {
-    fakeLanguageModel.availability.mockResolvedValue(BuiltInAvailability.available);
+    fakeLanguageModel.availability.mockResolvedValue(BuiltInAvailability.AVAILABLE);
     fakeLanguageModel.create.mockClear();
     await isAiEnabledItem.setValue(false);
     await aiVerdictsItem.setValue({});
@@ -96,8 +96,8 @@ describe("startAiMatch with the built-in model", () => {
   });
 
   it("reports the built-in engine as ready", async () => {
-    expect(await sendMessage(MessageType.getAiStatus)).toEqual({
-      engine: AiEngine.builtIn,
+    expect(await sendMessage(MessageType.GET_AI_STATUS)).toEqual({
+      engine: AiEngine.BUILT_IN,
       isModelReady: true,
       download: null
     });
@@ -124,22 +124,22 @@ describe("startAiMatch with the built-in model", () => {
   });
 
   it("never starts a download - a model that isn't on disk leaves every video pending", async () => {
-    fakeLanguageModel.availability.mockResolvedValue(BuiltInAvailability.downloadable);
+    fakeLanguageModel.availability.mockResolvedValue(BuiltInAvailability.DOWNLOADABLE);
     await semiSubscribeWithAiFilter();
     await isAiEnabledItem.setValue(true);
     await classifyPendingVideos();
     expect(fakeLanguageModel.availability).toHaveBeenCalled();
     expect(fakeLanguageModel.create).not.toHaveBeenCalled();
     expect(await aiVerdictsItem.getValue()).toEqual({});
-    expect(await sendMessage(MessageType.getAiStatus)).toMatchObject({
-      engine: AiEngine.builtIn,
+    expect(await sendMessage(MessageType.GET_AI_STATUS)).toMatchObject({
+      engine: AiEngine.BUILT_IN,
       isModelReady: false
     });
   });
 
   it("judges an editor's preview of a channel that isn't semi-subscribed", async () => {
     await isAiEnabledItem.setValue(true);
-    await sendMessage(MessageType.classifyVideos, {
+    await sendMessage(MessageType.CLASSIFY_VIDEOS, {
       filter: AI_FILTER,
       videos: [
         createVideo({
@@ -181,9 +181,9 @@ describe("startAiMatch with the built-in model", () => {
 
   it("rejects a malformed preview request", async () => {
     await expect(
-      sendMessage(MessageType.classifyVideos, {
+      sendMessage(MessageType.CLASSIFY_VIDEOS, {
         filter: {
-          kind: FilterKind.aiMatch,
+          kind: FilterKind.AI_MATCH,
           description: " "
         },
         videos: []

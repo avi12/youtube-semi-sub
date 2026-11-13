@@ -35,12 +35,12 @@ describe("createLiteRtJudge", () => {
 
     const messages = infer.mock.calls[0]?.[0] ?? [];
     expect(messages.map(message => message.role)).toEqual([
-      ChatRole.system,
-      ChatRole.user,
-      ChatRole.assistant,
-      ChatRole.user,
-      ChatRole.assistant,
-      ChatRole.user
+      ChatRole.SYSTEM,
+      ChatRole.USER,
+      ChatRole.ASSISTANT,
+      ChatRole.USER,
+      ChatRole.ASSISTANT,
+      ChatRole.USER
     ]);
     expect(messages.at(-1)?.content).toContain("Filter: only reviews");
   });

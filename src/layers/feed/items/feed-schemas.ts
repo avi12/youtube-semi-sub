@@ -13,7 +13,7 @@ import { z } from "@/lib/zod";
 /** A video item's renderer, tagged with the key it sits under */
 export const videoRendererSchema = z.discriminatedUnion("kind", [
   z.object({
-    kind: z.literal(RendererKind.lockupViewModel),
+    kind: z.literal(RendererKind.LOCKUP_VIEW_MODEL),
     renderer: lockupSchema
   }),
   z.object({

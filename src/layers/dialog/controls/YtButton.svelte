@@ -31,12 +31,12 @@
   const data = $derived.by(() => {
     const buttonData: ButtonViewModelData = {
       title: isIconOnly ? undefined : label,
-      iconName: icon ?? ButtonViewModelIcon.none,
+      iconName: icon ?? ButtonViewModelIcon.NONE,
       accessibilityText: label,
-      style: ButtonViewModelStyle.mono,
+      style: ButtonViewModelStyle.MONO,
       type,
-      buttonSize: ButtonViewModelSize.default,
-      state: isDisabled ? ButtonViewModelState.disabled : ButtonViewModelState.active,
+      buttonSize: ButtonViewModelSize.DEFAULT,
+      state: isDisabled ? ButtonViewModelState.DISABLED : ButtonViewModelState.ACTIVE,
       isFullWidth: false
     };
     return buttonData;

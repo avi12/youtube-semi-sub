@@ -10,11 +10,11 @@ import { collectClassificationJobs } from "./classification";
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const REGEX_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
 const REVIEWS: AiFilter = {
-  kind: FilterKind.aiMatch,
+  kind: FilterKind.AI_MATCH,
   description: "only reviews"
 };
 const TUTORIALS: AiFilter = {
-  kind: FilterKind.aiMatch,
+  kind: FilterKind.AI_MATCH,
   description: "only tutorials"
 };
 
@@ -57,7 +57,7 @@ const SUBSCRIPTIONS: SemiSubscriptions = {
     channelId: REGEX_CHANNEL_ID,
     title: "Regex channel",
     followFilter: {
-      kind: FilterKind.regex,
+      kind: FilterKind.REGEX,
       pattern: "",
       flags: "i"
     },
@@ -76,7 +76,7 @@ describe("collectClassificationJobs", () => {
       },
       {
         filter: {
-          kind: FilterKind.aiMatch,
+          kind: FilterKind.AI_MATCH,
           description: " only  reviews"
         },
         videos: [OLD]

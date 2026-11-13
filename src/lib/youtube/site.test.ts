@@ -36,8 +36,8 @@ describe("isYouTubeUrlAt", () => {
     for (const origin of ["https://www.youtube.com", "https://m.youtube.com"]) {
       expect(
         isYouTubeUrlAt({
-          url: `${origin}${InnerTubePath.browse}?prettyPrint=false`,
-          pathname: InnerTubePath.browse
+          url: `${origin}${InnerTubePath.BROWSE}?prettyPrint=false`,
+          pathname: InnerTubePath.BROWSE
         })
       ).toBe(true);
     }
@@ -46,8 +46,8 @@ describe("isYouTubeUrlAt", () => {
   it("ignores a trailing slash", () => {
     expect(
       isYouTubeUrlAt({
-        url: `https://www.youtube.com${FeedPathname.subscriptions}/`,
-        pathname: FeedPathname.subscriptions
+        url: `https://www.youtube.com${FeedPathname.SUBSCRIPTIONS}/`,
+        pathname: FeedPathname.SUBSCRIPTIONS
       })
     ).toBe(true);
   });
@@ -55,20 +55,20 @@ describe("isYouTubeUrlAt", () => {
   it("rejects another path, another host, and an empty URL", () => {
     expect(
       isYouTubeUrlAt({
-        url: `https://www.youtube.com${InnerTubePath.next}`,
-        pathname: InnerTubePath.browse
+        url: `https://www.youtube.com${InnerTubePath.NEXT}`,
+        pathname: InnerTubePath.BROWSE
       })
     ).toBe(false);
     expect(
       isYouTubeUrlAt({
-        url: `https://example.com${InnerTubePath.browse}`,
-        pathname: InnerTubePath.browse
+        url: `https://example.com${InnerTubePath.BROWSE}`,
+        pathname: InnerTubePath.BROWSE
       })
     ).toBe(false);
     expect(
       isYouTubeUrlAt({
         url: "",
-        pathname: InnerTubePath.browse
+        pathname: InnerTubePath.BROWSE
       })
     ).toBe(false);
   });

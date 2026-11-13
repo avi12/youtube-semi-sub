@@ -16,8 +16,8 @@ const ESCAPED_LESS_THAN = "\\u003c";
 const HIDDEN_VIDEO_IDS_KEY = "yssHiddenVideoIds";
 
 enum BrowseColumn {
-  twoColumn = "twoColumnBrowseResultsRenderer",
-  singleColumn = "singleColumnBrowseResultsRenderer"
+  TWO_COLUMN = "twoColumnBrowseResultsRenderer",
+  SINGLE_COLUMN = "singleColumnBrowseResultsRenderer"
 }
 
 function isSubscriptionsBrowseIdTracked(response: Pick<BrowseResponse, "responseContext">) {
@@ -48,7 +48,7 @@ export function readSubscriptionsFeed(data: unknown) {
 
   const response = parsed.data;
   const isTwoColumn = !!response.contents.twoColumnBrowseResultsRenderer;
-  const columnKey = isTwoColumn ? BrowseColumn.twoColumn : BrowseColumn.singleColumn;
+  const columnKey = isTwoColumn ? BrowseColumn.TWO_COLUMN : BrowseColumn.SINGLE_COLUMN;
   const column = response.contents[columnKey];
   const gridTab = column && findGridTab(column.tabs);
   if (!column || !gridTab) {

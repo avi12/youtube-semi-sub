@@ -19,13 +19,13 @@
 
   /** YouTube has no destructive button - a removal reads as a plain text action, as in its own dialogs */
   const BUTTON_TYPE_BY_VARIANT = {
-    [DialogButtonVariant.filled]: ButtonViewModelType.filled,
-    [DialogButtonVariant.tonal]: ButtonViewModelType.tonal,
-    [DialogButtonVariant.text]: ButtonViewModelType.text,
-    [DialogButtonVariant.danger]: ButtonViewModelType.text
+    [DialogButtonVariant.FILLED]: ButtonViewModelType.FILLED,
+    [DialogButtonVariant.TONAL]: ButtonViewModelType.TONAL,
+    [DialogButtonVariant.TEXT]: ButtonViewModelType.TEXT,
+    [DialogButtonVariant.DANGER]: ButtonViewModelType.TEXT
   } as const satisfies Record<DialogButtonVariant, ButtonViewModelType>;
 
-  const isDesktop = getYouTubeSite() === YouTubeSite.desktop;
+  const isDesktop = getYouTubeSite() === YouTubeSite.DESKTOP;
 </script>
 
 {#if isDesktop}

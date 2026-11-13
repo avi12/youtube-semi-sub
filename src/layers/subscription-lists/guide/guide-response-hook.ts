@@ -13,7 +13,7 @@ import { buildSemiGuideEntry, patchGuideResponse, readGuideSubscriptions } from 
 function isGuideResponse(response: Response) {
   return isYouTubeUrlAt({
     url: response.url,
-    pathname: InnerTubePath.guide
+    pathname: InnerTubePath.GUIDE
   });
 }
 

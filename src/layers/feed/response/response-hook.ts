@@ -66,7 +66,7 @@ function stateForPage({ state, isLaterPage }: { state: PageState; isLaterPage: b
     return state;
   }
 
-  const isShelfFilledOnLaterPages = getYouTubeSite() === YouTubeSite.mobile;
+  const isShelfFilledOnLaterPages = getYouTubeSite() === YouTubeSite.MOBILE;
   const pageState: PageState = {
     ...state,
     followedUploads: isShelfFilledOnLaterPages
@@ -203,7 +203,7 @@ function installResponsePatch() {
   function json(this: Response) {
     const isBrowseResponse = isYouTubeUrlAt({
       url: this.url,
-      pathname: InnerTubePath.browse
+      pathname: InnerTubePath.BROWSE
     });
     return isBrowseResponse ? readPatchedJson(this) : originalJson.call(this);
   }
@@ -211,7 +211,7 @@ function installResponsePatch() {
   function text(this: Response) {
     const isBrowseResponse = isYouTubeUrlAt({
       url: this.url,
-      pathname: InnerTubePath.browse
+      pathname: InnerTubePath.BROWSE
     });
     if (isBrowseResponse) {
       return readPatchedText({
@@ -222,7 +222,7 @@ function installResponsePatch() {
 
     const isFeedPage = isYouTubeUrlAt({
       url: this.url,
-      pathname: FeedPathname.subscriptions
+      pathname: FeedPathname.SUBSCRIPTIONS
     });
     if (isFeedPage) {
       return readPatchedText({
@@ -244,7 +244,7 @@ export function installResponseHooks() {
   // A hard load renders from `ytInitialData`, patched as it is assigned (m's first assignment, a JSON string, passes
   // through). www only takes the hidden videos out there - a running YouTube Auto Feed would otherwise show them until
   // its first poll - and inserts live, animated, with full native renderers
-  const isInsertingOnHardLoad = getYouTubeSite() === YouTubeSite.mobile;
+  const isInsertingOnHardLoad = getYouTubeSite() === YouTubeSite.MOBILE;
   interceptInitialData(
     value =>
       patchFeedDataNow({

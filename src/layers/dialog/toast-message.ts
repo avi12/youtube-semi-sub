@@ -1,13 +1,13 @@
 export enum ToastMessage {
-  semiSubscribed = "Semi-subscribed - matching videos will show up in your feed",
-  filterSaved = "Filter saved - your feed follows it right away",
-  hideFilterSaved = "Filter saved - matching videos are hidden from your feed",
-  removed = "Semi-subscription removed",
-  hideFilterRemoved = "Filter removed - you'll see all their videos again"
+  SEMI_SUBSCRIBED = "Semi-subscribed - matching videos will show up in your feed",
+  FILTER_SAVED = "Filter saved - your feed follows it right away",
+  HIDE_FILTER_SAVED = "Filter saved - matching videos are hidden from your feed",
+  REMOVED = "Semi-subscription removed",
+  HIDE_FILTER_REMOVED = "Filter removed - you'll see all their videos again"
 }
 
 /** The values of `dir` m.youtube.com's stylesheet slides its `c3-toast` by */
 export enum MobileToastDirection {
-  entering = "in",
-  leaving = "out"
+  ENTERING = "in",
+  LEAVING = "out"
 }

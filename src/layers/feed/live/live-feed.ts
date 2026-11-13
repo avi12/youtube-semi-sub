@@ -53,7 +53,7 @@ let isReconcileQueued = false;
 let lastYtafNudgeKey = "";
 
 function isOnFeedPage() {
-  return location.pathname === FeedPathname.subscriptions;
+  return location.pathname === FeedPathname.SUBSCRIPTIONS;
 }
 
 function isSameContents({ left, right }: { left: readonly unknown[] | null; right: readonly unknown[] }) {
@@ -285,7 +285,7 @@ function isFeedNavigation(detail: unknown) {
   }
 
   const { url, href, endpoint } = parsed.data;
-  const isFeedUrl = [url, href].some(target => target?.includes(FeedPathname.subscriptions));
+  const isFeedUrl = [url, href].some(target => target?.includes(FeedPathname.SUBSCRIPTIONS));
   return isFeedUrl || endpoint?.browseEndpoint?.browseId === SUBSCRIPTIONS_BROWSE_ID;
 }
 

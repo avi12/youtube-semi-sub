@@ -37,16 +37,16 @@ async function readPageState() {
 
 async function broadcastPageState() {
   currentState = await readPageState();
-  await pageMessenger.sendMessage(PageMessage.pageStateChanged, currentState);
+  await pageMessenger.sendMessage(PageMessage.PAGE_STATE_CHANGED, currentState);
 }
 
 export function startStateBridge(context: ContentScriptContext) {
-  pageMessenger.onMessage(PageMessage.getPageState, () => currentState);
+  pageMessenger.onMessage(PageMessage.GET_PAGE_STATE, () => currentState);
   // Subscribing switches the channel to hiding; unsubscribing switches it back to following
-  pageMessenger.onMessage(PageMessage.officialSubscriptionChanged, async change => {
+  pageMessenger.onMessage(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, async change => {
     await setSemiSubscriptionSubscribed(change);
   });
-  pageMessenger.onMessage(PageMessage.semiUnsubscribe, async ({ channelId }) => {
+  pageMessenger.onMessage(PageMessage.SEMI_UNSUBSCRIBE, async ({ channelId }) => {
     await removeSemiSubscription(channelId);
   });
 
@@ -57,5 +57,5 @@ export function startStateBridge(context: ContentScriptContext) {
   context.onInvalidated(watchStoredState(handleStorageChange));
 
   handleStorageChange();
-  sendMessage(MessageType.refreshStaleChannels).catch(() => {});
+  sendMessage(MessageType.REFRESH_STALE_CHANNELS).catch(() => {});
 }

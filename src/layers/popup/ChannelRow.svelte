@@ -37,11 +37,11 @@
   }: Props = $props();
 
   const MATCH_WORDING = {
-    [SubscriptionMode.follow]: {
+    [SubscriptionMode.FOLLOW]: {
       matched: "matching",
       inertSummary: "Adds nothing yet"
     },
-    [SubscriptionMode.hide]: {
+    [SubscriptionMode.HIDE]: {
       matched: "hidden",
       inertSummary: "Hides nothing yet"
     }
@@ -84,11 +84,11 @@
     })
   );
   const matchStateById = $derived(
-    new Map(videos.map(video => [video.videoId, judge?.(video) ?? MatchState.doesNotMatch]))
+    new Map(videos.map(video => [video.videoId, judge?.(video) ?? MatchState.DOES_NOT_MATCH]))
   );
   const matchStates = $derived([...matchStateById.values()]);
-  const matchCount = $derived(matchStates.filter(matchState => matchState === MatchState.matches).length);
-  const pendingCount = $derived(matchStates.filter(matchState => matchState === MatchState.pending).length);
+  const matchCount = $derived(matchStates.filter(matchState => matchState === MatchState.MATCHES).length);
+  const pendingCount = $derived(matchStates.filter(matchState => matchState === MatchState.PENDING).length);
   const initial = $derived(getChannelInitial(subscription.title));
   const matchSummary = $derived.by(() => {
     if (isInert) {
@@ -189,12 +189,12 @@
             {#if i > 0}
               <span class="literal__connector">{literal.connector}</span>
             {/if}
-            {#if part.kind === FilterLiteralKind.aiMatch}
+            {#if part.kind === FilterLiteralKind.AI_MATCH}
               <p class={["ai-literal", part.isPaused && "ai-literal--paused"]}>
                 <span class="ai-literal__badge">{AI_LITERAL_PREFIX}</span>
                 <bdi class="ai-literal__description">{part.text}</bdi>
               </p>
-            {:else if part.kind === FilterLiteralKind.regex}
+            {:else if part.kind === FilterLiteralKind.REGEX}
               <code class="filter-literal" dir="ltr">
                 <span class="filter-literal__pattern">{part.text}</span><span class="filter-literal__flags"
                 >{part.flags}</span>

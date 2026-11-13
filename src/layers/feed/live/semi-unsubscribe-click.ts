@@ -67,7 +67,7 @@ function handleClick(e: MouseEvent) {
     return;
   }
 
-  pageMessenger.sendMessage(PageMessage.semiUnsubscribe, { channelId: lastTileChannelId }).catch(() => {});
+  pageMessenger.sendMessage(PageMessage.SEMI_UNSUBSCRIBE, { channelId: lastTileChannelId }).catch(() => {});
 }
 
 export function startSemiUnsubscribeMenu() {

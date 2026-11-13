@@ -28,7 +28,7 @@ function previewTitleFilter({
 function previewAiFilter(options: Omit<Parameters<typeof previewVideoFilter>[0], "mode">) {
   return previewVideoFilter({
     ...options,
-    mode: SubscriptionMode.follow
+    mode: SubscriptionMode.FOLLOW
   });
 }
 
@@ -156,12 +156,12 @@ describe("previewTitleFilter", () => {
   it("counts the videos the filter lets through", () => {
     const preview = previewTitleFilter({
       filter: {
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "tutorial",
         flags: "i"
       },
       videos,
-      mode: SubscriptionMode.follow
+      mode: SubscriptionMode.FOLLOW
     });
     expect(preview.isValid).toBe(true);
     expect(preview.shownRows.map(row => row.video.videoId)).toEqual(["aaaaaaaaaaa", "ccccccccccc"]);
@@ -173,12 +173,12 @@ describe("previewTitleFilter", () => {
   it("lets every video through with an empty pattern", () => {
     const preview = previewTitleFilter({
       filter: {
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "",
         flags: ""
       },
       videos,
-      mode: SubscriptionMode.follow
+      mode: SubscriptionMode.FOLLOW
     });
     expect(preview.shownCount).toBe(videos.length);
     expect(preview.shownRows[1]?.segments).toEqual([
@@ -192,12 +192,12 @@ describe("previewTitleFilter", () => {
   it("matches nothing while the pattern is invalid", () => {
     const preview = previewTitleFilter({
       filter: {
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "(",
         flags: "i"
       },
       videos,
-      mode: SubscriptionMode.follow
+      mode: SubscriptionMode.FOLLOW
     });
     expect(preview.isValid).toBe(false);
     expect(preview.shownRows).toHaveLength(0);
@@ -207,16 +207,16 @@ describe("previewTitleFilter", () => {
   it("highlights the pattern of a filter combined with a length", () => {
     const preview = previewVideoFilter({
       filter: {
-        kind: FilterKind.group,
-        match: FilterMatch.all,
+        kind: FilterKind.GROUP,
+        match: FilterMatch.ALL,
         conditions: [
           {
-            kind: FilterKind.regex,
+            kind: FilterKind.REGEX,
             pattern: "tutorial",
             flags: "i"
           },
           {
-            kind: FilterKind.length,
+            kind: FilterKind.LENGTH,
             maxSeconds: 600
           }
         ]
@@ -225,7 +225,7 @@ describe("previewTitleFilter", () => {
         ...video,
         durationSeconds: i === 0 ? 300 : 900
       })),
-      mode: SubscriptionMode.follow,
+      mode: SubscriptionMode.FOLLOW,
       aiVerdicts: {},
       isAiEnabled: false
     });
@@ -249,12 +249,12 @@ describe("previewTitleFilter in hide mode", () => {
   it("shows the videos it leaves alone, and lists the ones it hides apart", () => {
     const preview = previewTitleFilter({
       filter: {
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "^live",
         flags: "i"
       },
       videos,
-      mode: SubscriptionMode.hide
+      mode: SubscriptionMode.HIDE
     });
     expect(preview.shownRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
     expect(preview.hiddenRows.map(row => row.video.videoId)).toEqual(["aaaaaaaaaaa"]);
@@ -263,12 +263,12 @@ describe("previewTitleFilter in hide mode", () => {
   it("hides nothing with an empty pattern, and still counts as valid", () => {
     const preview = previewTitleFilter({
       filter: {
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "",
         flags: "i"
       },
       videos,
-      mode: SubscriptionMode.hide
+      mode: SubscriptionMode.HIDE
     });
     expect(preview.isValid).toBe(true);
     expect(preview.shownCount).toBe(videos.length);
@@ -278,7 +278,7 @@ describe("previewTitleFilter in hide mode", () => {
 
 describe("previewAiFilter", () => {
   const filter: AiFilter = {
-    kind: FilterKind.aiMatch,
+    kind: FilterKind.AI_MATCH,
     description: "only tutorials"
   };
   const videos = [
@@ -311,8 +311,8 @@ describe("previewAiFilter", () => {
     });
     expect(preview.isValid).toBe(true);
     expect(preview.shownRows.map(row => [row.video.videoId, row.matchState])).toEqual([
-      ["aaaaaaaaaaa", MatchState.matches],
-      ["ccccccccccc", MatchState.pending]
+      ["aaaaaaaaaaa", MatchState.MATCHES],
+      ["ccccccccccc", MatchState.PENDING]
     ]);
     expect(preview.hiddenRows.map(row => row.video.videoId)).toEqual(["bbbbbbbbbbb"]);
     expect(preview.shownCount).toBe(1);
@@ -324,7 +324,7 @@ describe("previewAiFilter", () => {
     [
       "the description is blank",
       {
-        kind: FilterKind.aiMatch,
+        kind: FilterKind.AI_MATCH,
         description: " "
       },
       true
@@ -349,7 +349,7 @@ describe("partitionPreviewRows", () => {
         videoId: "aaaaaaaaaaa",
         title: "Pending"
       }),
-      matchState: MatchState.pending,
+      matchState: MatchState.PENDING,
       segments: []
     },
     {
@@ -357,7 +357,7 @@ describe("partitionPreviewRows", () => {
         videoId: "bbbbbbbbbbb",
         title: "Skipped"
       }),
-      matchState: MatchState.doesNotMatch,
+      matchState: MatchState.DOES_NOT_MATCH,
       segments: []
     },
     {
@@ -365,7 +365,7 @@ describe("partitionPreviewRows", () => {
         videoId: "ccccccccccc",
         title: "Matching"
       }),
-      matchState: MatchState.matches,
+      matchState: MatchState.MATCHES,
       segments: []
     }
   ];
@@ -373,10 +373,10 @@ describe("partitionPreviewRows", () => {
   it("keeps pending videos in the feed but out of the shown count", () => {
     const partition = partitionPreviewRows({
       rows,
-      mode: SubscriptionMode.follow
+      mode: SubscriptionMode.FOLLOW
     });
-    expect(partition.shownRows.map(row => row.matchState)).toEqual([MatchState.pending, MatchState.matches]);
-    expect(partition.hiddenRows.map(row => row.matchState)).toEqual([MatchState.doesNotMatch]);
+    expect(partition.shownRows.map(row => row.matchState)).toEqual([MatchState.PENDING, MatchState.MATCHES]);
+    expect(partition.hiddenRows.map(row => row.matchState)).toEqual([MatchState.DOES_NOT_MATCH]);
     expect(partition.shownCount).toBe(1);
     expect(partition.pendingCount).toBe(1);
   });
@@ -384,10 +384,10 @@ describe("partitionPreviewRows", () => {
   it("shows what a hide filter doesn't match, and keeps a pending video until it is judged", () => {
     const partition = partitionPreviewRows({
       rows,
-      mode: SubscriptionMode.hide
+      mode: SubscriptionMode.HIDE
     });
-    expect(partition.shownRows.map(row => row.matchState)).toEqual([MatchState.pending, MatchState.doesNotMatch]);
-    expect(partition.hiddenRows.map(row => row.matchState)).toEqual([MatchState.matches]);
+    expect(partition.shownRows.map(row => row.matchState)).toEqual([MatchState.PENDING, MatchState.DOES_NOT_MATCH]);
+    expect(partition.hiddenRows.map(row => row.matchState)).toEqual([MatchState.MATCHES]);
   });
 });
 
@@ -395,7 +395,7 @@ describe("getReadableFilterError", () => {
   it("returns null for a valid filter", () => {
     expect(
       getReadableFilterError({
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "a|b",
         flags: "i"
       })
@@ -405,7 +405,7 @@ describe("getReadableFilterError", () => {
   it("drops V8's echo of the pattern", () => {
     expect(
       getReadableFilterError({
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "a/(",
         flags: "i"
       })
@@ -415,7 +415,7 @@ describe("getReadableFilterError", () => {
   it("reports conflicting flags", () => {
     expect(
       getReadableFilterError({
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "a",
         flags: "uv"
       })

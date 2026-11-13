@@ -46,7 +46,7 @@ export function registerSemiSubDialog(context: ContentScriptContext) {
     ui.mount();
   }
 
-  pageMessenger.onMessage(PageMessage.openSemiSubDialog, ({ isSubscribed, ...channel }) => {
+  pageMessenger.onMessage(PageMessage.OPEN_SEMI_SUB_DIALOG, ({ isSubscribed, ...channel }) => {
     openDialog({
       channel,
       isSubscribed

@@ -47,12 +47,12 @@ vi.mock("#feed/channel-natives", async importOriginal => ({
 const OTHER_CHANNEL_ID = "UCalreadysubscribedchan2";
 const PUBLISHED = "2 hours ago";
 const KEEP_FILTER: TitleFilter = {
-  kind: FilterKind.regex,
+  kind: FilterKind.REGEX,
   pattern: "keep",
   flags: "i"
 };
 const AI_FILTER: AiFilter = {
-  kind: FilterKind.aiMatch,
+  kind: FilterKind.AI_MATCH,
   description: "Only reviews"
 };
 
@@ -415,7 +415,7 @@ describe("a title YouTube tests against another", () => {
         isSubscribed: true,
         followedUploads: [],
         hideFilter: {
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "^hide",
           flags: "i"
         }
@@ -438,7 +438,7 @@ describe("a title YouTube tests against another", () => {
 
 describe("findHiddenVideoIds", () => {
   const HIDE_FILTER: TitleFilter = {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "^hide",
     flags: "i"
   };
@@ -600,7 +600,7 @@ describe("findHiddenVideoIds", () => {
       session.findHiddenVideoIds({
         contents,
         state: withSecondChannel({
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "^unboxing",
           flags: "i"
         })
@@ -610,7 +610,7 @@ describe("findHiddenVideoIds", () => {
       session.findHiddenVideoIds({
         contents,
         state: withSecondChannel({
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "live",
           flags: "i"
         })
@@ -679,7 +679,7 @@ describe("findHiddenVideoIds", () => {
 
 describe("hiding in the live feed", () => {
   const HIDE_FILTER: TitleFilter = {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "^hide",
     flags: "i"
   };

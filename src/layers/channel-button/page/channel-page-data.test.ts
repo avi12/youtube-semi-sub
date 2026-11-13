@@ -22,13 +22,13 @@ function parseFixture(json: string) {
 
 describe("getPageKind", () => {
   it.each([
-    ["/watch", PageKind.watch],
-    ["/live/dQw4w9WgXcQ", PageKind.watch],
-    ["/@mkbhd", PageKind.channel],
-    ["/@mkbhd/videos", PageKind.channel],
-    [`/channel/${MKBHD_ID}`, PageKind.channel],
-    ["/c/mkbhd", PageKind.channel],
-    ["/user/marquesbrownlee/featured", PageKind.channel]
+    ["/watch", PageKind.WATCH],
+    ["/live/dQw4w9WgXcQ", PageKind.WATCH],
+    ["/@mkbhd", PageKind.CHANNEL],
+    ["/@mkbhd/videos", PageKind.CHANNEL],
+    [`/channel/${MKBHD_ID}`, PageKind.CHANNEL],
+    ["/c/mkbhd", PageKind.CHANNEL],
+    ["/user/marquesbrownlee/featured", PageKind.CHANNEL]
   ])("reads %s as a %s page", (pathname, kind) => {
     expect(getPageKind(pathname)).toBe(kind);
   });
@@ -116,10 +116,10 @@ describe("readPageChannel", () => {
     expect(
       readPageChannel({
         pageData: parseFixture(json),
-        kind: PageKind.watch
+        kind: PageKind.WATCH
       })
     ).toEqual({
-      kind: PageKind.watch,
+      kind: PageKind.WATCH,
       channel: {
         channelId: RICK_ASTLEY_ID,
         title: "Rick Astley",
@@ -142,10 +142,10 @@ describe("readPageChannel", () => {
     expect(
       readPageChannel({
         pageData: parseFixture(json),
-        kind: PageKind.channel
+        kind: PageKind.CHANNEL
       })
     ).toEqual({
-      kind: PageKind.channel,
+      kind: PageKind.CHANNEL,
       channel: {
         channelId: MKBHD_ID,
         title: "Marques Brownlee",
@@ -164,7 +164,7 @@ describe("readPageChannel", () => {
   it("reads the subscription state of a signed-in channel page from its entity mutations", () => {
     const pageChannel = readPageChannel({
       pageData: parseFixture(desktopChannelSignedInJson),
-      kind: PageKind.channel
+      kind: PageKind.CHANNEL
     });
     expect(pageChannel?.hasSubscribeControl).toBe(true);
     expect(pageChannel?.officialSubscription).toBe(true);
@@ -184,7 +184,7 @@ describe("readPageChannel", () => {
     expect(
       readPageChannel({
         pageData,
-        kind: PageKind.watch
+        kind: PageKind.WATCH
       })?.isOwnedByViewer
     ).toBe(true);
   });
@@ -217,7 +217,7 @@ describe("readPageChannel", () => {
     expect(
       readPageChannel({
         pageData,
-        kind: PageKind.watch
+        kind: PageKind.WATCH
       })?.channel
     ).toEqual({
       channelId: MKBHD_ID,
@@ -305,7 +305,7 @@ describe("readPageChannel", () => {
     };
     const collaborators = readPageChannel({
       pageData,
-      kind: PageKind.watch
+      kind: PageKind.WATCH
     })?.collaborators;
     expect(
       collaborators?.map(({ channelId, title, handle }) => ({
@@ -344,7 +344,7 @@ describe("readPageChannel", () => {
     expect(
       readPageChannel({
         pageData,
-        kind: PageKind.channel
+        kind: PageKind.CHANNEL
       })?.channel
     ).toEqual({
       channelId: MKBHD_ID,
@@ -364,13 +364,13 @@ describe("readPageChannel", () => {
     expect(
       readPageChannel({
         pageData,
-        kind: PageKind.channel
+        kind: PageKind.CHANNEL
       })
     ).toBeNull();
     expect(
       readPageChannel({
         pageData,
-        kind: PageKind.watch
+        kind: PageKind.WATCH
       })
     ).toBeNull();
   });

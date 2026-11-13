@@ -45,12 +45,12 @@ let stopListeningForPick: (() => void) | null = null;
 function buildButton({ label, accessibilityText, isActive }: CollaboratorChoice) {
   const data: ButtonViewModelData = {
     title: label,
-    iconName: isActive ? ButtonViewModelIcon.filter : ButtonViewModelIcon.none,
+    iconName: isActive ? ButtonViewModelIcon.FILTER : ButtonViewModelIcon.NONE,
     accessibilityText,
-    style: ButtonViewModelStyle.mono,
-    type: isActive ? ButtonViewModelType.tonal : ButtonViewModelType.filled,
-    buttonSize: ButtonViewModelSize.default,
-    state: ButtonViewModelState.active,
+    style: ButtonViewModelStyle.MONO,
+    type: isActive ? ButtonViewModelType.TONAL : ButtonViewModelType.FILLED,
+    buttonSize: ButtonViewModelSize.DEFAULT,
+    state: ButtonViewModelState.ACTIVE,
     isFullWidth: false
   };
   return { buttonViewModel: data };
@@ -135,7 +135,7 @@ function listenForPick(choices: CollaboratorChoice[]) {
       stopListeningForPick = null;
       closeDialog(elDialog);
       pageMessenger
-        .sendMessage(PageMessage.openSemiSubDialog, {
+        .sendMessage(PageMessage.OPEN_SEMI_SUB_DIALOG, {
           channelId: choice.channelId,
           title: choice.title,
           handle: choice.handle,

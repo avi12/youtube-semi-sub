@@ -393,12 +393,12 @@ describe("the feed response hook", () => {
 
 describe("the feed response hook, for a subscribed channel with a hide filter", () => {
   const TITLE_HIDE_FILTER: TitleFilter = {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "video 2$",
     flags: "i"
   };
   const AI_HIDE_FILTER: AiFilter = {
-    kind: FilterKind.aiMatch,
+    kind: FilterKind.AI_MATCH,
     description: "Livestreams"
   };
 

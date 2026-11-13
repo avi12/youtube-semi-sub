@@ -116,7 +116,7 @@ describe("planFeedBand", () => {
     });
     expect(first.placements.get(video.videoId)).toEqual({
       videoId: videoId(1),
-      side: AnchorSide.after
+      side: AnchorSide.AFTER
     });
     const flippedContents = [
       desktopFeedItem({
@@ -148,7 +148,7 @@ describe("planFeedBand", () => {
     });
     expect(first.placements.get(video.videoId)).toEqual({
       videoId: videoId(1),
-      side: AnchorSide.before
+      side: AnchorSide.BEFORE
     });
     const { slots } = planFeedBand({
       contents: [

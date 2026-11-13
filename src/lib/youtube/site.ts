@@ -1,6 +1,6 @@
 export enum YouTubeSite {
-  desktop = "desktop",
-  mobile = "mobile"
+  DESKTOP = "desktop",
+  MOBILE = "mobile"
 }
 
 const MOBILE_HOSTNAME = "m.youtube.com";
@@ -16,11 +16,11 @@ export const VIDEO_ID_SOURCE = String.raw`[\w-]{11}`;
 
 /** The InnerTube API paths the extension reads or calls */
 export enum InnerTubePath {
-  browse = `${INNERTUBE_API_PATH}/browse`,
-  next = `${INNERTUBE_API_PATH}/next`,
-  guide = `${INNERTUBE_API_PATH}/guide`,
-  subscribe = `${INNERTUBE_API_PATH}/subscription/subscribe`,
-  unsubscribe = `${INNERTUBE_API_PATH}/subscription/unsubscribe`
+  BROWSE = `${INNERTUBE_API_PATH}/browse`,
+  NEXT = `${INNERTUBE_API_PATH}/next`,
+  GUIDE = `${INNERTUBE_API_PATH}/guide`,
+  SUBSCRIBE = `${INNERTUBE_API_PATH}/subscription/subscribe`,
+  UNSUBSCRIBE = `${INNERTUBE_API_PATH}/subscription/unsubscribe`
 }
 
 /** The query parameter a watch URL carries the video id in */
@@ -61,12 +61,12 @@ export function isShortsUrl(href: string) {
 }
 
 export enum FeedPathname {
-  subscriptions = "/feed/subscriptions",
-  channels = "/feed/channels"
+  SUBSCRIPTIONS = "/feed/subscriptions",
+  CHANNELS = "/feed/channels"
 }
 
 export function getYouTubeSite() {
-  return location.hostname === MOBILE_HOSTNAME ? YouTubeSite.mobile : YouTubeSite.desktop;
+  return location.hostname === MOBILE_HOSTNAME ? YouTubeSite.MOBILE : YouTubeSite.DESKTOP;
 }
 
 export const YOUTUBE_MATCHES = [`${YOUTUBE_ORIGIN}/*`, `https://${MOBILE_HOSTNAME}/*`];

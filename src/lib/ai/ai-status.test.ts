@@ -5,7 +5,7 @@ import { AiEngine, AiUnavailableReason, isAiEngineAvailable, isAiModelReady } fr
 describe("AI status checks", () => {
   it("counts an engine as available whether its model is on disk or not", () => {
     const waiting = {
-      engine: AiEngine.liteRt,
+      engine: AiEngine.LITE_RT,
       isModelReady: false,
       download: null
     } as const;
@@ -14,7 +14,7 @@ describe("AI status checks", () => {
     expect(
       isAiModelReady({
         ...waiting,
-        engine: AiEngine.builtIn,
+        engine: AiEngine.BUILT_IN,
         isModelReady: true
       })
     ).toBe(true);
@@ -23,8 +23,8 @@ describe("AI status checks", () => {
   it("counts no engine, or a status not known yet, as unavailable", () => {
     expect(
       isAiEngineAvailable({
-        engine: AiEngine.none,
-        reason: AiUnavailableReason.noWebGpu
+        engine: AiEngine.NONE,
+        reason: AiUnavailableReason.NO_WEB_GPU
       })
     ).toBe(false);
     expect(isAiEngineAvailable(null)).toBe(false);

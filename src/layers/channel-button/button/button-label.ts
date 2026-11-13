@@ -6,16 +6,16 @@ import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 // accessible description says what the mode does
 
 enum ButtonLabel {
-  semiSubscribe = "Semi-subscribe",
-  semiSubscribed = "Semi-subscribed"
+  SEMI_SUBSCRIBE = "Semi-subscribe",
+  SEMI_SUBSCRIBED = "Semi-subscribed"
 }
 
 const ACCESSIBILITY_TEXT = {
-  [SubscriptionMode.follow]: {
+  [SubscriptionMode.FOLLOW]: {
     accessibilityText: (title: string) => `Semi-subscribe to ${title}`,
     activeAccessibilityText: (title: string) => `Edit your semi-subscription to ${title}`
   },
-  [SubscriptionMode.hide]: {
+  [SubscriptionMode.HIDE]: {
     accessibilityText: (title: string) => `Hide some of ${title}'s videos from your subscriptions feed`,
     activeAccessibilityText: (title: string) => `Edit what's hidden from ${title} in your subscriptions feed`
   }
@@ -45,18 +45,18 @@ export function describeChannelButton({
       }),
       mode
     }) ||
-      (mode === SubscriptionMode.hide && isAllowListHiding(subscription)));
+      (mode === SubscriptionMode.HIDE && isAllowListHiding(subscription)));
   if (!isActive) {
     return {
       isActive,
-      label: ButtonLabel.semiSubscribe,
+      label: ButtonLabel.SEMI_SUBSCRIBE,
       accessibilityText: text.accessibilityText(channelTitle)
     };
   }
 
   return {
     isActive,
-    label: ButtonLabel.semiSubscribed,
+    label: ButtonLabel.SEMI_SUBSCRIBED,
     accessibilityText: text.activeAccessibilityText(channelTitle)
   };
 }

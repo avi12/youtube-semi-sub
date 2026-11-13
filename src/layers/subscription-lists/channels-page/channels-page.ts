@@ -53,7 +53,7 @@ function handleManageButtonClick(e: MouseEvent) {
 export function startChannelsPageList() {
   const scheduleSync = createFrameScheduler(sync);
   const watchPage = createPageWatcher({
-    pathname: FeedPathname.channels,
+    pathname: FeedPathname.CHANNELS,
     observedSelector: PAGE_MANAGER_SELECTOR,
     onChange: scheduleSync
   });

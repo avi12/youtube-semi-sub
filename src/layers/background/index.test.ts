@@ -18,7 +18,7 @@ const SUBSCRIPTION: SemiSubscription = {
   channelId: CHANNEL_ID,
   title: "Marques Brownlee",
   followFilter: {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "",
     flags: "i"
   },
@@ -61,7 +61,7 @@ describe("startBackground", () => {
 
   it("refetches a dropped cache on update before pruning, so its AI verdicts survive", async () => {
     const filter: AiFilter = {
-      kind: FilterKind.aiMatch,
+      kind: FilterKind.AI_MATCH,
       description: "Only reviews"
     };
     const verdicts = {
@@ -118,7 +118,7 @@ describe("startBackground", () => {
       [CHANNEL_ID]: {
         ...subscribed,
         hideFilter: {
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "unboxing",
           flags: "i"
         }

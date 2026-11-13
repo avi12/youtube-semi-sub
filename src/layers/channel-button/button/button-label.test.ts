@@ -28,13 +28,13 @@ describe("describeChannelButton", () => {
     expect(
       labelFor({
         subscription: undefined,
-        mode: SubscriptionMode.follow
+        mode: SubscriptionMode.FOLLOW
       })
     ).toBe("Semi-subscribe");
     expect(
       labelFor({
         subscription: SUBSCRIPTION,
-        mode: SubscriptionMode.follow
+        mode: SubscriptionMode.FOLLOW
       })
     ).toBe("Semi-subscribed");
   });
@@ -46,7 +46,7 @@ describe("describeChannelButton", () => {
           ...SUBSCRIPTION,
           followFilter: null
         },
-        mode: SubscriptionMode.follow
+        mode: SubscriptionMode.FOLLOW
       })
     ).toBe("Semi-subscribe");
   });
@@ -55,13 +55,13 @@ describe("describeChannelButton", () => {
     expect(
       labelFor({
         subscription: undefined,
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       })
     ).toBe("Semi-subscribe");
     expect(
       labelFor({
         subscription: SUBSCRIPTION,
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       })
     ).toBe("Semi-subscribe");
     expect(
@@ -69,12 +69,12 @@ describe("describeChannelButton", () => {
         subscription: {
           ...SUBSCRIPTION,
           hideFilter: {
-            kind: FilterKind.regex,
+            kind: FilterKind.REGEX,
             pattern: "live",
             flags: "i"
           }
         },
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       })
     ).toBe("Semi-subscribed");
   });

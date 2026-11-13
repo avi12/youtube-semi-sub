@@ -22,7 +22,7 @@ const HANDLE_CHANNEL: SemiSubscription = {
   handle: "@MrBeast",
   avatarUrl: "https://yt3.ggpht.com/avatar=s88-c-k-c0x00ffffff-no-rj",
   followFilter: {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "challenge",
     flags: "i"
   },
@@ -34,7 +34,7 @@ const HANDLELESS_CHANNEL: SemiSubscription = {
   channelId: "UCBR8-60-B28hp2BmDPdntcQ",
   title: "YouTube",
   followFilter: {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "",
     flags: "i"
   },

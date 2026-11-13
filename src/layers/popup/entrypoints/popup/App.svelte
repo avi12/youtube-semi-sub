@@ -148,7 +148,7 @@
 
             isRefreshing = true;
             isRefreshFailed = false;
-            await sendMessage(MessageType.refreshAllChannels).catch(() => {
+            await sendMessage(MessageType.REFRESH_ALL_CHANNELS).catch(() => {
               isRefreshFailed = true;
             });
             isRefreshing = false;

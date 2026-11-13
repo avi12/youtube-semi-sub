@@ -11,7 +11,7 @@ const NOW = 1_800_000_000_000;
 const AVATAR_URL = "https://yt3.googleusercontent.com/avatar=s88-c-k-c0x00ffffff-no-rj";
 
 const IPHONE_FILTER: RegexFilter = {
-  kind: FilterKind.regex,
+  kind: FilterKind.REGEX,
   pattern: "iphone",
   flags: "i"
 };
@@ -23,7 +23,7 @@ const PREVIOUS: SemiSubscription = {
   avatarUrl: AVATAR_URL,
   followFilter: IPHONE_FILTER,
   hideFilter: {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "shorts",
     flags: "i"
   },
@@ -32,7 +32,7 @@ const PREVIOUS: SemiSubscription = {
 };
 
 const REVIEW_FILTER: RegexFilter = {
-  kind: FilterKind.regex,
+  kind: FilterKind.REGEX,
   pattern: "review",
   flags: ""
 };
@@ -47,7 +47,7 @@ describe("mergeSemiSubscription", () => {
           title: "Marques Brownlee",
           handle: "@mkbhd"
         },
-        mode: SubscriptionMode.follow,
+        mode: SubscriptionMode.FOLLOW,
         filter: REVIEW_FILTER,
         now: NOW
       })
@@ -70,7 +70,7 @@ describe("mergeSemiSubscription", () => {
           channelId: CHANNEL_ID,
           title: "Marques Brownlee"
         },
-        mode: SubscriptionMode.hide,
+        mode: SubscriptionMode.HIDE,
         filter: REVIEW_FILTER,
         now: NOW
       })
@@ -92,7 +92,7 @@ describe("mergeSemiSubscription", () => {
           channelId: CHANNEL_ID,
           title: "Marques Brownlee"
         },
-        mode: SubscriptionMode.hide,
+        mode: SubscriptionMode.HIDE,
         filter: REVIEW_FILTER,
         now: NOW
       })
@@ -111,7 +111,7 @@ describe("mergeSemiSubscription", () => {
         handle: "@marques",
         avatarUrl: "https://yt3.googleusercontent.com/new=s88"
       },
-      mode: SubscriptionMode.follow,
+      mode: SubscriptionMode.FOLLOW,
       filter: IPHONE_FILTER,
       now: NOW
     });
@@ -132,7 +132,7 @@ describe("mergeSemiSubscription", () => {
           isSubscribed: true
         },
         channel: PREVIOUS,
-        mode: SubscriptionMode.follow,
+        mode: SubscriptionMode.FOLLOW,
         filter: REVIEW_FILTER,
         now: NOW
       }).isSubscribed

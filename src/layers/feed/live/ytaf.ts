@@ -15,35 +15,35 @@ const YTAF_SETTINGS_NAMESPACE = "ytaf-settings";
 
 /** The events @webext-core/messaging's custom-event messenger travels on */
 enum MessengerEvent {
-  request = "@webext-core/messaging/custom-events",
-  response = "@webext-core/messaging/custom-events/response"
+  REQUEST = "@webext-core/messaging/custom-events",
+  RESPONSE = "@webext-core/messaging/custom-events/response"
 }
 
 enum YtafSettingsMessage {
   /** Its bridge's push, on startup and on every change */
-  settingsChanged = "settingsChanged",
+  SETTINGS_CHANGED = "settingsChanged",
   /** Its MAIN world's pull on startup, answered by the bridge */
-  getSettings = "getSettings"
+  GET_SETTINGS = "getSettings"
 }
 
 enum YtafMessageType {
-  subscriptionChange = "subscription-change"
+  SUBSCRIPTION_CHANGE = "subscription-change"
 }
 
 /** What ytaf promises from each contract version on */
 enum YtafContractVersion {
   /** Before ytaf took on the contract: it keeps nothing it didn't fetch itself */
-  none = 0,
+  NONE = 0,
   /** It keeps tagged items YouTube's own feed lacks - Shorts in its shelf too - for as long as a response has them */
-  honorsSemiSubTags = 1,
+  HONORS_SEMI_SUB_TAGS = 1,
   /** It also drops the videos a response lists as hidden (`yssHiddenVideoIds`) at once, and never adds one */
-  dropsHiddenVideos = 2
+  DROPS_HIDDEN_VIDEOS = 2
 }
 
 /** Absent before ytaf took on the contract, `true` for its first version, a number since */
 const contractVersionSchema = z
-  .union([z.literal(true).transform(() => YtafContractVersion.honorsSemiSubTags), z.number().int().nonnegative()])
-  .catch(YtafContractVersion.none);
+  .union([z.literal(true).transform(() => YtafContractVersion.HONORS_SEMI_SUB_TAGS), z.number().int().nonnegative()])
+  .catch(YtafContractVersion.NONE);
 
 const ytafSettingsSchema = z.looseObject({
   isExtensionEnabled: z.boolean()
@@ -52,7 +52,7 @@ const ytafSettingsSchema = z.looseObject({
 const settingsPushSchema = z.looseObject({
   namespace: z.literal(YTAF_SETTINGS_NAMESPACE),
   message: z.looseObject({
-    type: z.literal(YtafSettingsMessage.settingsChanged),
+    type: z.literal(YtafSettingsMessage.SETTINGS_CHANGED),
     data: ytafSettingsSchema
   })
 });
@@ -60,7 +60,7 @@ const settingsPushSchema = z.looseObject({
 const settingsReplySchema = z.looseObject({
   namespace: z.literal(YTAF_SETTINGS_NAMESPACE),
   message: z.looseObject({
-    type: z.literal(YtafSettingsMessage.getSettings)
+    type: z.literal(YtafSettingsMessage.GET_SETTINGS)
   }),
   response: z.looseObject({
     res: ytafSettingsSchema
@@ -84,17 +84,17 @@ function readYouTubeAutoFeedContractVersion() {
  * Shorts of channels outside the user's subscriptions, so they would only flash in and out
  */
 export function isShortsInjectionAllowed() {
-  return !isYouTubeAutoFeedActive() || readYouTubeAutoFeedContractVersion() >= YtafContractVersion.honorsSemiSubTags;
+  return !isYouTubeAutoFeedActive() || readYouTubeAutoFeedContractVersion() >= YtafContractVersion.HONORS_SEMI_SUB_TAGS;
 }
 
 /** Whether ytaf, when installed, reads the hidden videos a feed response lists - its contract version 2 on */
 export function isHiddenVideoListHonored() {
-  return readYouTubeAutoFeedContractVersion() >= YtafContractVersion.dropsHiddenVideos;
+  return readYouTubeAutoFeedContractVersion() >= YtafContractVersion.DROPS_HIDDEN_VIDEOS;
 }
 
 export function nudgeYouTubeAutoFeed() {
   const channel = new BroadcastChannel(YTAF_CHANNEL_NAME);
-  channel.postMessage({ type: YtafMessageType.subscriptionChange });
+  channel.postMessage({ type: YtafMessageType.SUBSCRIPTION_CHANGE });
   channel.close();
 }
 
@@ -122,6 +122,6 @@ export function watchYouTubeAutoFeedSwitch(callback: () => void) {
     callback();
   }
 
-  addEventListener(MessengerEvent.request, handleMessengerEvent);
-  addEventListener(MessengerEvent.response, handleMessengerEvent);
+  addEventListener(MessengerEvent.REQUEST, handleMessengerEvent);
+  addEventListener(MessengerEvent.RESPONSE, handleMessengerEvent);
 }

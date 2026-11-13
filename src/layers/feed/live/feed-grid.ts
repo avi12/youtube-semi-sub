@@ -17,14 +17,14 @@ import { z } from "@/lib/zod";
 const DESKTOP_GRID_SELECTOR = 'ytd-browse[page-subtype="subscriptions"] ytd-rich-grid-renderer';
 /** The elements a feed tile renders as */
 export enum FeedTileTag {
-  desktop = "ytd-rich-item-renderer",
-  mobile = "ytm-rich-item-renderer",
+  DESKTOP = "ytd-rich-item-renderer",
+  MOBILE = "ytm-rich-item-renderer",
   /** m's Shorts shelf lists bare lockups */
-  mobileShort = "ytm-shorts-lockup-view-model"
+  MOBILE_SHORT = "ytm-shorts-lockup-view-model"
 }
 
-const DESKTOP_TILE_SELECTOR = `:scope > #contents > ${FeedTileTag.desktop}`;
-const DESKTOP_SHELF_TILE_SELECTOR = `:scope > #contents > ytd-rich-section-renderer ${FeedTileTag.desktop}`;
+const DESKTOP_TILE_SELECTOR = `:scope > #contents > ${FeedTileTag.DESKTOP}`;
+const DESKTOP_SHELF_TILE_SELECTOR = `:scope > #contents > ytd-rich-section-renderer ${FeedTileTag.DESKTOP}`;
 const MOBILE_GRID_SELECTOR = "ytm-rich-grid-renderer";
 const CONTENTS_PATH = "data.contents";
 
@@ -90,7 +90,7 @@ function findShortsShelfTiles(elGrid: HTMLElement) {
 }
 
 function findGridElement() {
-  const isMobile = getYouTubeSite() === YouTubeSite.mobile;
+  const isMobile = getYouTubeSite() === YouTubeSite.MOBILE;
   return document.querySelector<HTMLElement>(isMobile ? MOBILE_GRID_SELECTOR : DESKTOP_GRID_SELECTOR);
 }
 
@@ -101,8 +101,8 @@ export function findFeedGrid() {
     return null;
   }
 
-  const isMobile = getYouTubeSite() === YouTubeSite.mobile;
-  const tileSelector = isMobile ? FeedTileTag.mobile : DESKTOP_TILE_SELECTOR;
+  const isMobile = getYouTubeSite() === YouTubeSite.MOBILE;
+  const tileSelector = isMobile ? FeedTileTag.MOBILE : DESKTOP_TILE_SELECTOR;
   const grid: FeedGrid = {
     element,
     readContents() {

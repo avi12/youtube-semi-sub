@@ -9,7 +9,7 @@ describe("withMethodCondition", () => {
     expect(
       withMethodCondition({
         conditions: [DEFAULT_LENGTH_FILTER],
-        method: FilterMethod.title,
+        method: FilterMethod.TITLE,
         condition: DEFAULT_TITLE_FILTER
       })
     ).toEqual([DEFAULT_TITLE_FILTER, DEFAULT_LENGTH_FILTER]);
@@ -24,14 +24,14 @@ describe("withMethodCondition", () => {
     expect(
       withMethodCondition({
         conditions,
-        method: FilterMethod.length,
+        method: FilterMethod.LENGTH,
         condition: longer
       })
     ).toEqual([DEFAULT_TITLE_FILTER, longer]);
     expect(
       withMethodCondition({
         conditions,
-        method: FilterMethod.title,
+        method: FilterMethod.TITLE,
         condition: null
       })
     ).toEqual([DEFAULT_LENGTH_FILTER]);

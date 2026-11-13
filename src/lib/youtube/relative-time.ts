@@ -9,13 +9,13 @@ import {
 } from "@/lib/utils/time";
 
 enum TimeUnit {
-  second = "second",
-  minute = "minute",
-  hour = "hour",
-  day = "day",
-  week = "week",
-  month = "month",
-  year = "year"
+  SECOND = "second",
+  MINUTE = "minute",
+  HOUR = "hour",
+  DAY = "day",
+  WEEK = "week",
+  MONTH = "month",
+  YEAR = "year"
 }
 
 const DAYS_PER_WEEK = 7;
@@ -23,49 +23,49 @@ const DAYS_PER_MONTH = 30.436875;
 const DAYS_PER_YEAR = 365.2425;
 
 const MILLISECONDS_BY_UNIT: Record<TimeUnit, number> = {
-  [TimeUnit.second]: MILLISECONDS_PER_SECOND,
-  [TimeUnit.minute]: MILLISECONDS_PER_MINUTE,
-  [TimeUnit.hour]: MILLISECONDS_PER_HOUR,
-  [TimeUnit.day]: MILLISECONDS_PER_DAY,
-  [TimeUnit.week]: MILLISECONDS_PER_DAY * DAYS_PER_WEEK,
-  [TimeUnit.month]: MILLISECONDS_PER_DAY * DAYS_PER_MONTH,
-  [TimeUnit.year]: MILLISECONDS_PER_DAY * DAYS_PER_YEAR
+  [TimeUnit.SECOND]: MILLISECONDS_PER_SECOND,
+  [TimeUnit.MINUTE]: MILLISECONDS_PER_MINUTE,
+  [TimeUnit.HOUR]: MILLISECONDS_PER_HOUR,
+  [TimeUnit.DAY]: MILLISECONDS_PER_DAY,
+  [TimeUnit.WEEK]: MILLISECONDS_PER_DAY * DAYS_PER_WEEK,
+  [TimeUnit.MONTH]: MILLISECONDS_PER_DAY * DAYS_PER_MONTH,
+  [TimeUnit.YEAR]: MILLISECONDS_PER_DAY * DAYS_PER_YEAR
 };
 
 // Long ("hours"), short ("hrs") and compact ("h", "mo") spellings; a lone "m" is minutes, months are "mo"
 const UNIT_BY_SPELLING = new Map<string, TimeUnit>([
-  ["s", TimeUnit.second],
-  ["sec", TimeUnit.second],
-  ["secs", TimeUnit.second],
-  ["second", TimeUnit.second],
-  ["seconds", TimeUnit.second],
-  ["m", TimeUnit.minute],
-  ["min", TimeUnit.minute],
-  ["mins", TimeUnit.minute],
-  ["minute", TimeUnit.minute],
-  ["minutes", TimeUnit.minute],
-  ["h", TimeUnit.hour],
-  ["hr", TimeUnit.hour],
-  ["hrs", TimeUnit.hour],
-  ["hour", TimeUnit.hour],
-  ["hours", TimeUnit.hour],
-  ["d", TimeUnit.day],
-  ["day", TimeUnit.day],
-  ["days", TimeUnit.day],
-  ["w", TimeUnit.week],
-  ["wk", TimeUnit.week],
-  ["wks", TimeUnit.week],
-  ["week", TimeUnit.week],
-  ["weeks", TimeUnit.week],
-  ["mo", TimeUnit.month],
-  ["mos", TimeUnit.month],
-  ["month", TimeUnit.month],
-  ["months", TimeUnit.month],
-  ["y", TimeUnit.year],
-  ["yr", TimeUnit.year],
-  ["yrs", TimeUnit.year],
-  ["year", TimeUnit.year],
-  ["years", TimeUnit.year]
+  ["s", TimeUnit.SECOND],
+  ["sec", TimeUnit.SECOND],
+  ["secs", TimeUnit.SECOND],
+  ["second", TimeUnit.SECOND],
+  ["seconds", TimeUnit.SECOND],
+  ["m", TimeUnit.MINUTE],
+  ["min", TimeUnit.MINUTE],
+  ["mins", TimeUnit.MINUTE],
+  ["minute", TimeUnit.MINUTE],
+  ["minutes", TimeUnit.MINUTE],
+  ["h", TimeUnit.HOUR],
+  ["hr", TimeUnit.HOUR],
+  ["hrs", TimeUnit.HOUR],
+  ["hour", TimeUnit.HOUR],
+  ["hours", TimeUnit.HOUR],
+  ["d", TimeUnit.DAY],
+  ["day", TimeUnit.DAY],
+  ["days", TimeUnit.DAY],
+  ["w", TimeUnit.WEEK],
+  ["wk", TimeUnit.WEEK],
+  ["wks", TimeUnit.WEEK],
+  ["week", TimeUnit.WEEK],
+  ["weeks", TimeUnit.WEEK],
+  ["mo", TimeUnit.MONTH],
+  ["mos", TimeUnit.MONTH],
+  ["month", TimeUnit.MONTH],
+  ["months", TimeUnit.MONTH],
+  ["y", TimeUnit.YEAR],
+  ["yr", TimeUnit.YEAR],
+  ["yrs", TimeUnit.YEAR],
+  ["year", TimeUnit.YEAR],
+  ["years", TimeUnit.YEAR]
 ]);
 
 const RELATIVE_TIME_PATTERN = /(\d+)\s*([a-z]+)\s+ago\b/i;
@@ -100,13 +100,13 @@ export function parseFirstRelativeTime({ texts, now }: { texts: readonly string[
 }
 
 const UNITS_LARGEST_FIRST = [
-  TimeUnit.year,
-  TimeUnit.month,
-  TimeUnit.week,
-  TimeUnit.day,
-  TimeUnit.hour,
-  TimeUnit.minute,
-  TimeUnit.second
+  TimeUnit.YEAR,
+  TimeUnit.MONTH,
+  TimeUnit.WEEK,
+  TimeUnit.DAY,
+  TimeUnit.HOUR,
+  TimeUnit.MINUTE,
+  TimeUnit.SECOND
 ] as const;
 
 const DEFAULT_LOCALE = "en";
@@ -130,7 +130,7 @@ export function formatRelativeTime({
   locale?: string;
 }) {
   const elapsed = Math.max(0, now - time);
-  const unit = UNITS_LARGEST_FIRST.find(candidate => elapsed >= MILLISECONDS_BY_UNIT[candidate]) ?? TimeUnit.second;
+  const unit = UNITS_LARGEST_FIRST.find(candidate => elapsed >= MILLISECONDS_BY_UNIT[candidate]) ?? TimeUnit.SECOND;
   const count = Math.floor(elapsed / MILLISECONDS_BY_UNIT[unit]);
   return createRelativeTimeFormat(locale).format(-count, unit);
 }

@@ -27,7 +27,7 @@
     }
 
     return `Videos that run ${describeLengthRange({
-      kind: FilterKind.length,
+      kind: FilterKind.LENGTH,
       ...parsed.bounds
     })}`;
   });
@@ -36,7 +36,7 @@
   $effect(() => {
     const filterExpression = formatLengthExpression(filter);
     const typedExpression = untrack(() => formatLengthExpression({
-      kind: FilterKind.length,
+      kind: FilterKind.LENGTH,
       ...parsed.bounds
     }));
     if (filterExpression !== typedExpression) {
@@ -48,7 +48,7 @@
   function setExpression(text: string) {
     expression = text;
     const updated: LengthFilter = {
-      kind: FilterKind.length,
+      kind: FilterKind.LENGTH,
       ...parsed.bounds
     };
     filter = updated;

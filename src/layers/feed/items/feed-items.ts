@@ -24,10 +24,10 @@ export function rendererFromContent(content: unknown) {
     return null;
   }
 
-  const lockup = parsed.data[RendererKind.lockupViewModel];
+  const lockup = parsed.data[RendererKind.LOCKUP_VIEW_MODEL];
   if (lockup) {
     const video: VideoRenderer = {
-      kind: RendererKind.lockupViewModel,
+      kind: RendererKind.LOCKUP_VIEW_MODEL,
       renderer: lockup
     };
     return video;
@@ -62,13 +62,15 @@ function videoIdOrNull(value: string | undefined) {
 export function videoIdFromContent(content: unknown) {
   const video = rendererFromContent(content);
   if (video) {
-    const isLockup = video.kind === RendererKind.lockupViewModel;
+    const isLockup = video.kind === RendererKind.LOCKUP_VIEW_MODEL;
     return videoIdOrNull(isLockup ? video.renderer.contentId : video.renderer.videoId);
   }
 
   const parsed = richItemContentSchema.safeParse(content);
   return parsed.success
-    ? videoIdOrNull(parsed.data[RendererKind.shortsLockupViewModel]?.onTap.innertubeCommand.reelWatchEndpoint.videoId)
+    ? videoIdOrNull(
+        parsed.data[RendererKind.SHORTS_LOCKUP_VIEW_MODEL]?.onTap.innertubeCommand.reelWatchEndpoint.videoId
+      )
     : null;
 }
 
@@ -117,7 +119,7 @@ export function videoIdFromShelfItem(item: unknown) {
 /** The Short a shelf item - or a channel's Shorts-tab grid item - shows, or null for any other item */
 export function shortsLockupFromItem(item: unknown) {
   const parsed = richItemContentSchema.safeParse(shelfItemContent(item));
-  return parsed.success ? (parsed.data[RendererKind.shortsLockupViewModel] ?? null) : null;
+  return parsed.success ? (parsed.data[RendererKind.SHORTS_LOCKUP_VIEW_MODEL] ?? null) : null;
 }
 
 /** A root item's shelf - www's rich shelf or m's Shorts shelf - and a copy of it with other items; null for none */
@@ -125,8 +127,8 @@ export function readShelf(item: unknown) {
   const parsed = sectionItemSchema.safeParse(item);
   const section = parsed.success ? parsed.data.richSectionRenderer : undefined;
   const content = section?.content;
-  const richShelf = content?.[ShelfRendererKind.rich];
-  const reelShelf = content?.[ShelfRendererKind.reel];
+  const richShelf = content?.[ShelfRendererKind.RICH];
+  const reelShelf = content?.[ShelfRendererKind.REEL];
   const items = richShelf?.contents ?? reelShelf?.items;
   if (!parsed.success || !section || !content || !items) {
     return null;
@@ -134,18 +136,18 @@ export function readShelf(item: unknown) {
 
   const isRich = !!richShelf?.contents;
   return {
-    kind: isRich ? ShelfRendererKind.rich : ShelfRendererKind.reel,
+    kind: isRich ? ShelfRendererKind.RICH : ShelfRendererKind.REEL,
     items,
     withItems(nextItems: unknown[]) {
       const shelfRenderer = isRich
         ? {
-            [ShelfRendererKind.rich]: {
+            [ShelfRendererKind.RICH]: {
               ...richShelf,
               contents: nextItems
             }
           }
         : {
-            [ShelfRendererKind.reel]: {
+            [ShelfRendererKind.REEL]: {
               ...reelShelf,
               items: nextItems
             }
@@ -192,7 +194,7 @@ export function publishedTextsFromGridItem(item: unknown) {
     return [];
   }
 
-  if (video.kind !== RendererKind.lockupViewModel) {
+  if (video.kind !== RendererKind.LOCKUP_VIEW_MODEL) {
     return [readText(video.renderer.publishedTimeText)];
   }
 
@@ -207,7 +209,7 @@ export function publishedTextsFromGridItem(item: unknown) {
 }
 
 export function titleFromRenderer(video: VideoRenderer) {
-  return video.kind === RendererKind.lockupViewModel
+  return video.kind === RendererKind.LOCKUP_VIEW_MODEL
     ? (video.renderer.metadata?.lockupMetadataViewModel?.title?.content ?? null)
     : readText(video.renderer.title) || null;
 }
@@ -215,14 +217,14 @@ export function titleFromRenderer(video: VideoRenderer) {
 /** The length the renderer's thumbnail badge shows; undefined for a live or upcoming video */
 export function durationFromRenderer(video: VideoRenderer) {
   const durationSeconds =
-    video.kind === RendererKind.lockupViewModel
+    video.kind === RendererKind.LOCKUP_VIEW_MODEL
       ? durationFromLockup(video.renderer)
       : durationFromClassicRenderer(video.renderer);
   return durationSeconds ?? undefined;
 }
 
 export function isMembersOnlyRenderer(video: VideoRenderer) {
-  return video.kind === RendererKind.lockupViewModel
+  return video.kind === RendererKind.LOCKUP_VIEW_MODEL
     ? isMembersOnlyLockup(video.renderer)
     : isMembersOnlyClassicRenderer(video.renderer);
 }
@@ -244,7 +246,7 @@ export function thumbnailUrlFromGridItem(item: unknown) {
   }
 
   const sources =
-    video.kind === RendererKind.lockupViewModel
+    video.kind === RendererKind.LOCKUP_VIEW_MODEL
       ? video.renderer.contentImage?.thumbnailViewModel?.image?.sources
       : video.renderer.thumbnail?.thumbnails;
   return sources?.at(-1)?.url ?? null;

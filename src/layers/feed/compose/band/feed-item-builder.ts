@@ -61,7 +61,7 @@ function detailsFromNative(native: VideoRenderer | null) {
     return {};
   }
 
-  if (native.kind !== RendererKind.lockupViewModel) {
+  if (native.kind !== RendererKind.LOCKUP_VIEW_MODEL) {
     const { renderer } = native;
     return {
       thumbnailSources: renderer.thumbnail?.thumbnails,
@@ -315,7 +315,7 @@ function buildContextRenderer({
   details: VideoDetails;
   publishedText: string;
 }) {
-  const classic = native && native.kind !== RendererKind.lockupViewModel ? native.renderer : undefined;
+  const classic = native && native.kind !== RendererKind.LOCKUP_VIEW_MODEL ? native.renderer : undefined;
   return {
     ...(classic ?? { navigationEndpoint: buildWatchEndpoint(video.videoId) }),
     videoId: video.videoId,
@@ -373,9 +373,9 @@ function renderRenderer({
   publishedText: string;
 }) {
   const details = detailsFromNative(native);
-  if (template.kind === RendererKind.lockupViewModel) {
+  if (template.kind === RendererKind.LOCKUP_VIEW_MODEL) {
     const lockup =
-      native?.kind === RendererKind.lockupViewModel
+      native?.kind === RendererKind.LOCKUP_VIEW_MODEL
         ? native.renderer
         : fabricateLockup({
             video,
@@ -389,7 +389,7 @@ function renderRenderer({
     });
   }
 
-  if (template.kind === RendererKind.videoWithContextRenderer) {
+  if (template.kind === RendererKind.VIDEO_WITH_CONTEXT_RENDERER) {
     return buildContextRenderer({
       video,
       channel,
@@ -407,7 +407,7 @@ export function findTemplate(contents: readonly unknown[]) {
   let fallback: VideoRenderer | null = null;
   for (const item of contents) {
     const video = rendererFromGridItem(item);
-    if (video?.kind === RendererKind.lockupViewModel) {
+    if (video?.kind === RendererKind.LOCKUP_VIEW_MODEL) {
       return video;
     }
 

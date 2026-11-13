@@ -118,9 +118,9 @@ export function startBackground() {
     }).catch(console.error);
   });
 
-  onMessage(MessageType.refreshChannel, ({ channelId }) => refreshChannel(channelId));
+  onMessage(MessageType.REFRESH_CHANNEL, ({ channelId }) => refreshChannel(channelId));
 
-  onMessage(MessageType.refreshAllChannels, async () => {
+  onMessage(MessageType.REFRESH_ALL_CHANNELS, async () => {
     const isRefreshed = await refreshAllChannels({
       isForced: true
     });
@@ -129,7 +129,7 @@ export function startBackground() {
     }
   });
 
-  onMessage(MessageType.refreshStaleChannels, async () => {
+  onMessage(MessageType.REFRESH_STALE_CHANNELS, async () => {
     await refreshAllChannels({
       isForced: false
     });

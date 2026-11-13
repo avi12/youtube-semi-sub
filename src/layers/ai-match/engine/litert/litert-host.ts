@@ -98,7 +98,7 @@ async function streamModelIntoCache({
 
 /** Tells every extension page (the popup, Chromium's service worker) how far the download got, null once it ended */
 function announceDownloadChange(fraction: number | null) {
-  sendMessage(MessageType.aiModelDownloadChanged, { fraction }).catch(() => {});
+  sendMessage(MessageType.AI_MODEL_DOWNLOAD_CHANGED, { fraction }).catch(() => {});
 }
 
 async function runDownload(controller: AbortController) {

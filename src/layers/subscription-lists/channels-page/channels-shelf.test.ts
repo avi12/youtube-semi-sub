@@ -11,7 +11,7 @@ const FOLLOWED: SemiSubscription = {
   handle: "SMii7Y",
   avatarUrl: "https://yt3.ggpht.com/smii7y=s176",
   followFilter: {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "horror",
     flags: "i"
   },
@@ -25,7 +25,7 @@ const FILTERED: SemiSubscription = {
   title: "Storied",
   followFilter: null,
   hideFilter: {
-    kind: FilterKind.aiMatch,
+    kind: FilterKind.AI_MATCH,
     description: "Livestreams"
   },
   createdAt: 2,

@@ -12,7 +12,7 @@ function buildSubscription({ channelId, title }: { channelId: string; title: str
     title,
     handle: `@${title}`,
     followFilter: {
-      kind: FilterKind.regex,
+      kind: FilterKind.REGEX,
       pattern: "news",
       flags: "i"
     },

@@ -155,7 +155,7 @@ export function planFeedBand({
   for (const entry of stillAnchored) {
     const anchor = anchors.get(entry.videoId);
     const iAnchor = band.findIndex(slot => slot.videoId === anchor?.videoId);
-    gaps[anchor?.side === AnchorSide.before ? iAnchor : iAnchor + 1]?.push(entry);
+    gaps[anchor?.side === AnchorSide.BEFORE ? iAnchor : iAnchor + 1]?.push(entry);
   }
 
   const free = pending.filter(entry => !stillAnchored.includes(entry));
@@ -179,11 +179,11 @@ export function planFeedBand({
     const anchor = previous
       ? {
           videoId: previous.videoId,
-          side: AnchorSide.after
+          side: AnchorSide.AFTER
         }
       : next && {
           videoId: next.videoId,
-          side: AnchorSide.before
+          side: AnchorSide.BEFORE
         };
     for (const entry of gap.toSorted((first, second) => second.video.publishedAt - first.video.publishedAt)) {
       slots.push(entry);

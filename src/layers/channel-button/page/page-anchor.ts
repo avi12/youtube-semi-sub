@@ -7,9 +7,9 @@ import { PageKind } from "./channel-page-data";
 
 export enum ButtonPlacement {
   /** Next to the Subscribe button in a watch page's owner row */
-  ownerRow = "owner-row",
+  OWNER_ROW = "owner-row",
   /** One more action in a channel header's action row */
-  headerActions = "header-actions"
+  HEADER_ACTIONS = "header-actions"
 }
 
 export const BUTTON_ROOT_ATTRIBUTE = "data-yss-channel-button";
@@ -36,13 +36,13 @@ const LEADING_ICON_PATTERN = /IconLeading|icon-leading/;
 
 /** Containers YouTube keeps as hidden copies after SPA navigations, so only a visible one counts */
 const CONTAINER_SELECTORS: Record<PageKind, string[]> = {
-  [PageKind.watch]: [
+  [PageKind.WATCH]: [
     "ytd-watch-metadata #owner",
     "ytd-video-secondary-info-renderer #top-row",
     ".slim-video-action-bar-actions",
     "ytm-slim-owner-renderer"
   ],
-  [PageKind.channel]: [
+  [PageKind.CHANNEL]: [
     "yt-page-header-view-model yt-flexible-actions-view-model",
     "ytd-c4-tabbed-header-renderer #buttons",
     "ytm-c4-tabbed-header-renderer"
@@ -50,8 +50,8 @@ const CONTAINER_SELECTORS: Record<PageKind, string[]> = {
 };
 
 enum SubscribeControlTag {
-  desktopRenderer = "YTD-SUBSCRIBE-BUTTON-RENDERER",
-  mobileRenderer = "YTM-SUBSCRIBE-BUTTON-RENDERER"
+  DESKTOP_RENDERER = "YTD-SUBSCRIBE-BUTTON-RENDERER",
+  MOBILE_RENDERER = "YTM-SUBSCRIBE-BUTTON-RENDERER"
 }
 
 const subscribeControlDataSchema = z.looseObject({
@@ -88,7 +88,7 @@ function findReference({ elContainer, elControl }: { elContainer: HTMLElement; e
   if (isHeaderAction) {
     return {
       elReference: elHeaderAction,
-      placement: ButtonPlacement.headerActions,
+      placement: ButtonPlacement.HEADER_ACTIONS,
       wrapperClass: elHeaderAction.getAttribute("class") ?? ""
     };
   }
@@ -97,7 +97,7 @@ function findReference({ elContainer, elControl }: { elContainer: HTMLElement; e
   const isOwnerRowReference = !!elOwnerRowReference && elContainer.contains(elOwnerRowReference);
   return {
     elReference: isOwnerRowReference ? elOwnerRowReference : elControl,
-    placement: ButtonPlacement.ownerRow,
+    placement: ButtonPlacement.OWNER_ROW,
     wrapperClass: ""
   };
 }
@@ -179,8 +179,8 @@ export function readSubscribeControl({
   const parsed = subscribeControlDataSchema.safeParse(elSubscribe);
   const controlData = parsed.success ? parsed.data.data : null;
   const isRenderer =
-    elSubscribe.tagName === SubscribeControlTag.desktopRenderer ||
-    elSubscribe.tagName === SubscribeControlTag.mobileRenderer;
+    elSubscribe.tagName === SubscribeControlTag.DESKTOP_RENDERER ||
+    elSubscribe.tagName === SubscribeControlTag.MOBILE_RENDERER;
   if (!isRenderer) {
     return {
       isForChannel: !controlData || controlData.channelId === channelId,
@@ -190,7 +190,7 @@ export function readSubscribeControl({
   }
 
   const isForChannel = isCollaboration || controlData?.channelId === channelId;
-  if (elSubscribe.tagName === SubscribeControlTag.desktopRenderer) {
+  if (elSubscribe.tagName === SubscribeControlTag.DESKTOP_RENDERER) {
     return {
       isForChannel,
       isLive: true,

@@ -26,8 +26,8 @@ import { fetchText } from "./fetch-text";
 
 /** The grid tabs of a channel that list its uploads the same way: regular videos, and live streams */
 export enum ChannelGridTab {
-  videos = "videos",
-  streams = "streams"
+  VIDEOS = "videos",
+  STREAMS = "streams"
 }
 
 const INTERFACE_LANGUAGE_PARAM = "hl";
@@ -99,12 +99,12 @@ function readVideoRenderer(renderer: ClassicRenderer) {
 function readGridItem(item: unknown) {
   const parsed = gridItemSchema.safeParse(item);
   const content = parsed.success ? parsed.data.richItemRenderer?.content : undefined;
-  const lockup = content?.[RendererKind.lockupViewModel];
+  const lockup = content?.[RendererKind.LOCKUP_VIEW_MODEL];
   if (lockup) {
     return readLockup(lockup);
   }
 
-  const videoRenderer = content?.[RendererKind.videoRenderer];
+  const videoRenderer = content?.[RendererKind.VIDEO_RENDERER];
   return videoRenderer ? readVideoRenderer(videoRenderer) : null;
 }
 
@@ -141,7 +141,7 @@ export function extractInitialData(html: string) {
 export function parseVideosTab({
   response,
   now,
-  tab = ChannelGridTab.videos
+  tab = ChannelGridTab.VIDEOS
 }: {
   response: unknown;
   now: number;
@@ -178,7 +178,7 @@ export function parseVideosTab({
       thumbnailUrl: buildVideoThumbnailUrl(upload.videoId),
       isShort: false,
       isMembersOnly: upload.isMembersOnly,
-      isLiveStream: tab === ChannelGridTab.streams,
+      isLiveStream: tab === ChannelGridTab.STREAMS,
       ...(upload.durationSeconds !== null && {
         durationSeconds: upload.durationSeconds
       })

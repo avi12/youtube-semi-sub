@@ -7,7 +7,7 @@ import { z } from "@/lib/zod";
 
 // MAIN world: what this tab saw the user do with YouTube's own Subscribe button, newest first in line
 
-const SUBSCRIPTION_ENDPOINT_PATHS: ReadonlySet<string> = new Set([InnerTubePath.subscribe, InnerTubePath.unsubscribe]);
+const SUBSCRIPTION_ENDPOINT_PATHS: ReadonlySet<string> = new Set([InnerTubePath.SUBSCRIBE, InnerTubePath.UNSUBSCRIBE]);
 
 const subscriptionRequestSchema = z.looseObject({
   channelIds: z.array(channelIdSchema).min(1)
@@ -64,7 +64,7 @@ export function onObservedOfficialSubscriptionChange(listener: () => void) {
 
 /** The bridge switches the channel's semi-subscription to hiding on a subscribe, and to following on an unsubscribe */
 function reportOfficialSubscription(change: OfficialSubscriptionChange) {
-  pageMessenger.sendMessage(PageMessage.officialSubscriptionChanged, change).catch(() => {});
+  pageMessenger.sendMessage(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, change).catch(() => {});
 }
 
 /**
@@ -150,7 +150,7 @@ async function reportSubscriptionRequest({
     return;
   }
 
-  const isSubscribed = endpointPath === InnerTubePath.subscribe;
+  const isSubscribed = endpointPath === InnerTubePath.SUBSCRIBE;
   for (const channelId of parsed.data.channelIds) {
     const change: OfficialSubscriptionChange = {
       channelId,

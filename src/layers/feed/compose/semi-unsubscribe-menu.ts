@@ -230,11 +230,11 @@ export function withSemiUnsubscribeItem({
   renderer,
   channelId
 }: {
-  kind: VideoRenderer["kind"] | RendererKind.shortsLockupViewModel;
+  kind: VideoRenderer["kind"] | RendererKind.SHORTS_LOCKUP_VIEW_MODEL;
   renderer: object;
   channelId: string;
 }) {
-  if (kind === RendererKind.shortsLockupViewModel) {
+  if (kind === RendererKind.SHORTS_LOCKUP_VIEW_MODEL) {
     return withShortsItem({
       renderer,
       channelId
@@ -242,7 +242,7 @@ export function withSemiUnsubscribeItem({
   }
 
   const parsed = lockupSchema.safeParse(renderer);
-  const isLockup = kind === RendererKind.lockupViewModel && parsed.success;
+  const isLockup = kind === RendererKind.LOCKUP_VIEW_MODEL && parsed.success;
   if (isLockup) {
     return withLockupItem({
       lockup: parsed.data,

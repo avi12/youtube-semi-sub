@@ -12,12 +12,12 @@
 
 <div class="disclosure">
   <YtButton
-    icon={isOpen ? ButtonViewModelIcon.expandLess : ButtonViewModelIcon.expandMore}
+    icon={isOpen ? ButtonViewModelIcon.EXPAND_LESS : ButtonViewModelIcon.EXPAND_MORE}
     {label}
     onclick={() => {
       isOpen = !isOpen;
     }}
-    type={ButtonViewModelType.text} />
+    type={ButtonViewModelType.TEXT} />
   {#if isOpen}
     {@render children()}
   {/if}

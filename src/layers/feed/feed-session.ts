@@ -209,7 +209,7 @@ function judgeResumedChannelVideos({ contents, state }: { contents: readonly unk
 
     const judge = createModeJudge({
       filter: subscription.followFilter,
-      mode: SubscriptionMode.follow,
+      mode: SubscriptionMode.FOLLOW,
       aiVerdicts: state.aiVerdicts,
       isAiEnabled: state.isAiEnabled
     });
@@ -219,7 +219,7 @@ function judgeResumedChannelVideos({ contents, state }: { contents: readonly unk
           title: titleFromGridItem(item) ?? "",
           durationSeconds: durationFromGridItem(item)
         })
-      : MatchState.doesNotMatch;
+      : MatchState.DOES_NOT_MATCH;
     return [
       {
         videoId,
@@ -355,7 +355,7 @@ export function findRemovedVideoIds({ contents, state }: Parameters<typeof judge
     state
   })) {
     // With the extension off nothing semi-subscribed passes
-    const isRejected = matchState === MatchState.doesNotMatch || !state.isExtensionEnabled;
+    const isRejected = matchState === MatchState.DOES_NOT_MATCH || !state.isExtensionEnabled;
     if (isRejected && !desiredIds.has(videoId)) {
       removedIds.add(videoId);
     }
@@ -372,7 +372,7 @@ export function settleResumedChannels({ contents, state }: Parameters<typeof jud
     contents,
     state
   })) {
-    if (matchState === MatchState.matches) {
+    if (matchState === MatchState.MATCHES) {
       insertedVideoIds.add(videoId);
     }
   }

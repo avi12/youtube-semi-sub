@@ -10,7 +10,7 @@ import { applySubscriptionSnapshot } from "./official-subscription";
 // shows (`subscriptionStateEntity`), but only on the way in - the app drops `frameworkUpdates` once it stored them.
 // So it is read from a hard load's `ytInitialData` and from every /browse and /next body, which is never changed here
 
-const SNAPSHOT_PATHNAMES = [InnerTubePath.browse, InnerTubePath.next];
+const SNAPSHOT_PATHNAMES = [InnerTubePath.BROWSE, InnerTubePath.NEXT];
 
 function isSnapshotResponse(response: Response) {
   return SNAPSHOT_PATHNAMES.some(pathname =>

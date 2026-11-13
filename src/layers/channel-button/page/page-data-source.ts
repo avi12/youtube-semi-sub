@@ -47,7 +47,7 @@ export function readPageData() {
 
 /** Signed out, YouTube's Subscribe is only a sign-in prompt, so every channel counts as not subscribed */
 export function readIsSignedIn() {
-  const parsed = isLoggedInSchema.safeParse(readYtcfg(YtcfgKey.isLoggedIn));
+  const parsed = isLoggedInSchema.safeParse(readYtcfg(YtcfgKey.IS_LOGGED_IN));
   return parsed.success && parsed.data;
 }
 

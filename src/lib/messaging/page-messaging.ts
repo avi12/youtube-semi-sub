@@ -33,11 +33,11 @@ const officialSubscriptionChangeSchema = z.object({
 export type OfficialSubscriptionChange = z.infer<typeof officialSubscriptionChangeSchema>;
 
 export enum PageMessage {
-  getPageState = "get-page-state",
-  pageStateChanged = "page-state-changed",
-  openSemiSubDialog = "open-semi-sub-dialog",
-  officialSubscriptionChanged = "official-subscription-changed",
-  semiUnsubscribe = "semi-unsubscribe"
+  GET_PAGE_STATE = "get-page-state",
+  PAGE_STATE_CHANGED = "page-state-changed",
+  OPEN_SEMI_SUB_DIALOG = "open-semi-sub-dialog",
+  OFFICIAL_SUBSCRIPTION_CHANGED = "official-subscription-changed",
+  SEMI_UNSUBSCRIBE = "semi-unsubscribe"
 }
 
 const NO_PAYLOAD = z.undefined();
@@ -46,12 +46,12 @@ const NO_REPLY = z.void();
 /** Every page message's payload and reply: the one source of their types, checked on both ends */
 const PAGE_MESSAGE_SCHEMAS = {
   /** MAIN -> ISOLATED: the current state (null until storage is read) */
-  [PageMessage.getPageState]: {
+  [PageMessage.GET_PAGE_STATE]: {
     request: NO_PAYLOAD,
     reply: pageStateSchema.nullable()
   },
   /** ISOLATED -> MAIN: pushed on every storage change, and once when the bridge is ready */
-  [PageMessage.pageStateChanged]: {
+  [PageMessage.PAGE_STATE_CHANGED]: {
     request: pageStateSchema,
     reply: NO_REPLY
   },
@@ -59,17 +59,17 @@ const PAGE_MESSAGE_SCHEMAS = {
    * MAIN -> ISOLATED: the injected button or a list's manage button was pressed - for this channel, and, from a page
    * that shows it, whether the user is subscribed to it
    */
-  [PageMessage.openSemiSubDialog]: {
+  [PageMessage.OPEN_SEMI_SUB_DIALOG]: {
     request: channelInfoSchema.extend(officialSubscriptionChangeSchema.pick({ isSubscribed: true }).partial().shape),
     reply: NO_REPLY
   },
   /** MAIN -> ISOLATED: the user pressed YouTube's own Subscribe/Unsubscribe and it succeeded */
-  [PageMessage.officialSubscriptionChanged]: {
+  [PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED]: {
     request: officialSubscriptionChangeSchema,
     reply: NO_REPLY
   },
   /** MAIN -> ISOLATED: "Semi-unsubscribe" was picked in an inserted video's menu */
-  [PageMessage.semiUnsubscribe]: {
+  [PageMessage.SEMI_UNSUBSCRIBE]: {
     request: officialSubscriptionChangeSchema.pick({ channelId: true }),
     reply: NO_REPLY
   }

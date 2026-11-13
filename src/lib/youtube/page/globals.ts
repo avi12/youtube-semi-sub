@@ -15,11 +15,11 @@ declare global {
 }
 
 export enum YtcfgKey {
-  innerTubeContext = "INNERTUBE_CONTEXT",
-  clientNameNumber = "INNERTUBE_CONTEXT_CLIENT_NAME",
-  sessionIndex = "SESSION_INDEX",
-  delegatedSessionId = "DELEGATED_SESSION_ID",
-  isLoggedIn = "LOGGED_IN"
+  INNER_TUBE_CONTEXT = "INNERTUBE_CONTEXT",
+  CLIENT_NAME_NUMBER = "INNERTUBE_CONTEXT_CLIENT_NAME",
+  SESSION_INDEX = "SESSION_INDEX",
+  DELEGATED_SESSION_ID = "DELEGATED_SESSION_ID",
+  IS_LOGGED_IN = "LOGGED_IN"
 }
 
 /** A value from the page's config, or undefined until YouTube's scripts have set it up */

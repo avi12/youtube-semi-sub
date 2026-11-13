@@ -10,22 +10,22 @@ describe("describeFilterRule", () => {
     expect(
       describeFilterRule({
         filter: {
-          kind: FilterKind.group,
-          match: FilterMatch.all,
+          kind: FilterKind.GROUP,
+          match: FilterMatch.ALL,
           conditions: [
             {
-              kind: FilterKind.regex,
+              kind: FilterKind.REGEX,
               pattern: "review",
               flags: "i"
             },
             {
-              kind: FilterKind.length,
+              kind: FilterKind.LENGTH,
               minSeconds: 120,
               maxSeconds: 1200
             }
           ]
         },
-        mode: SubscriptionMode.follow
+        mode: SubscriptionMode.FOLLOW
       })
     ).toEqual({
       verb: "Shows",
@@ -39,17 +39,17 @@ describe("describeFilterRule", () => {
   it("reads a Block list as the videos it hides, leaving out an empty pattern", () => {
     const rule = describeFilterRule({
       filter: {
-        kind: FilterKind.group,
-        match: FilterMatch.any,
+        kind: FilterKind.GROUP,
+        match: FilterMatch.ANY,
         conditions: [
           DEFAULT_TITLE_FILTER,
           {
-            kind: FilterKind.length,
+            kind: FilterKind.LENGTH,
             maxSeconds: 60
           }
         ]
       },
-      mode: SubscriptionMode.hide
+      mode: SubscriptionMode.HIDE
     });
     expect(rule.verb).toBe("Hides");
     expect(rule.clauses).toEqual(["run up to 1 min"]);
@@ -60,10 +60,10 @@ describe("describeFilterRule", () => {
     expect(
       describeFilterRule({
         filter: {
-          kind: FilterKind.type,
-          types: [VideoType.liveStream, VideoType.short]
+          kind: FilterKind.TYPE,
+          types: [VideoType.LIVE_STREAM, VideoType.SHORT]
         },
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       }).clauses
     ).toEqual(["are Shorts or live streams"]);
   });
@@ -72,7 +72,7 @@ describe("describeFilterRule", () => {
     expect(
       describeFilterRule({
         filter: DEFAULT_TITLE_FILTER,
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       })
     ).toMatchObject({
       clauses: [],

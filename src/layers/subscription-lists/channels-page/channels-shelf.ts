@@ -21,11 +21,11 @@ const CHANNEL_RENDERER_STYLE = "CHANNEL_RENDERER_STYLE__NARROW_THUMBNAIL_SPACING
 const AVATAR_SIZE_PX = 176;
 
 enum ButtonStyle {
-  standard = "STYLE_DEFAULT"
+  STANDARD = "STYLE_DEFAULT"
 }
 
 enum ButtonSize {
-  standard = "SIZE_DEFAULT"
+  STANDARD = "SIZE_DEFAULT"
 }
 
 const FILTER_ICON = "FILTER";
@@ -55,8 +55,8 @@ function buildManageButton(subscription: SemiSubscription) {
   const { isActive, label, accessibilityText } = describeManageButton(subscription);
   return {
     buttonRenderer: {
-      style: ButtonStyle.standard,
-      size: ButtonSize.standard,
+      style: ButtonStyle.STANDARD,
+      size: ButtonSize.STANDARD,
       isDisabled: false,
       ...(isActive && {
         icon: {

@@ -14,11 +14,11 @@
   const LABEL = "Close";
   const CLOSE_ICON_PATH = "m12.71 12 8.15 8.15-.71.71L12 12.71l-8.15 8.15-.71-.71L11.29 12 3.15 3.85l.71-.71L12 11.29l8.15-8.15.71.71L12.71 12z";
 
-  const isDesktop = getYouTubeSite() === YouTubeSite.desktop;
+  const isDesktop = getYouTubeSite() === YouTubeSite.DESKTOP;
 </script>
 
 {#if isDesktop}
-  <YtButton icon={ButtonViewModelIcon.close} isIconOnly label={LABEL} {onclick} type={ButtonViewModelType.text} />
+  <YtButton icon={ButtonViewModelIcon.CLOSE} isIconOnly label={LABEL} {onclick} type={ButtonViewModelType.TEXT} />
 {:else}
   <button class="icon-button" aria-label={LABEL} {onclick} type="button">
     <svg class="icon-button__icon" aria-hidden="true" viewBox="0 0 24 24">

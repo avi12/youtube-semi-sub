@@ -103,13 +103,13 @@ export function buildShortsItem({
       }
     : fabricated;
   const content = {
-    [RendererKind.shortsLockupViewModel]: withSemiUnsubscribeItem({
-      kind: RendererKind.shortsLockupViewModel,
+    [RendererKind.SHORTS_LOCKUP_VIEW_MODEL]: withSemiUnsubscribeItem({
+      kind: RendererKind.SHORTS_LOCKUP_VIEW_MODEL,
       renderer: lockup,
       channelId: video.channelId
     })
   };
-  const isRichShelf = shelfKind === ShelfRendererKind.rich;
+  const isRichShelf = shelfKind === ShelfRendererKind.RICH;
   // Detached from the cached native, which later responses reuse
   return structuredClone(isRichShelf ? buildSemiSubscribedRichItem(content) : buildSemiSubscribedBareItem(content));
 }

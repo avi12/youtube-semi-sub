@@ -86,7 +86,7 @@ describe("parseVideosTab", () => {
     const videos = parseVideosTab({
       response: extractInitialData(channelVideosPageHtml),
       now: NOW,
-      tab: ChannelGridTab.streams
+      tab: ChannelGridTab.STREAMS
     });
     expect(videos?.every(video => video.isLiveStream)).toBe(true);
   });

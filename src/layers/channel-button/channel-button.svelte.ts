@@ -41,8 +41,8 @@ const SUBSCRIBE_CONTROL_MUTATIONS: MutationObserverInit = {
 
 /** Why there is no target yet: the page is still rendering, or the page gets no button at all */
 enum Unresolved {
-  pending = "pending",
-  noButton = "no-button"
+  PENDING = "pending",
+  NO_BUTTON = "no-button"
 }
 
 const subscriptionChangedDetailSchema = z.boolean();
@@ -76,20 +76,20 @@ function resolveTarget(kind: PageKind) {
     kind
   });
   if (!pageChannel) {
-    return Unresolved.pending;
+    return Unresolved.PENDING;
   }
 
   const urlVideoId = readUrlVideoId();
   const isStaleWatchData =
-    kind === PageKind.watch && !!urlVideoId && !!pageChannel.videoId && pageChannel.videoId !== urlVideoId;
+    kind === PageKind.WATCH && !!urlVideoId && !!pageChannel.videoId && pageChannel.videoId !== urlVideoId;
   if (isStaleWatchData) {
-    return Unresolved.pending;
+    return Unresolved.PENDING;
   }
 
   const isSignedIn = readIsSignedIn();
   const isViewersOwnChannel = pageChannel.isOwnedByViewer || (isSignedIn && !pageChannel.hasSubscribeControl);
   if (isViewersOwnChannel) {
-    return Unresolved.noButton;
+    return Unresolved.NO_BUTTON;
   }
 
   const anchor = findPageAnchor({
@@ -104,7 +104,7 @@ function resolveTarget(kind: PageKind) {
       isCollaboration: pageChannel.collaborators.length > 0
     }).isForChannel;
   if (!anchor || isControlForOtherChannel) {
-    return Unresolved.pending;
+    return Unresolved.PENDING;
   }
 
   const target: Target = {
@@ -210,13 +210,13 @@ function trackPage(kind: PageKind) {
     mounted = null;
     const resolution = resolveTarget(kind);
     const isOutOfMounts = mountCount >= MAX_MOUNTS_PER_PAGE;
-    const isSettledWithoutButton = resolution === Unresolved.noButton || isOutOfMounts;
+    const isSettledWithoutButton = resolution === Unresolved.NO_BUTTON || isOutOfMounts;
     if (isSettledWithoutButton) {
       stop();
       return;
     }
 
-    if (resolution !== Unresolved.pending) {
+    if (resolution !== Unresolved.PENDING) {
       mountCount++;
       mounted = mountButton(resolution);
     }

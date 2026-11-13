@@ -68,7 +68,7 @@ describe("pruneAiVerdicts", () => {
       },
       subscriptions: createSubscriptions({
         [CHANNEL_ID]: {
-          kind: FilterKind.aiMatch,
+          kind: FilterKind.AI_MATCH,
           description: "only reviews"
         }
       }),
@@ -92,11 +92,11 @@ describe("pruneAiVerdicts", () => {
       },
       subscriptions: createSubscriptions({
         [CHANNEL_ID]: {
-          kind: FilterKind.aiMatch,
+          kind: FilterKind.AI_MATCH,
           description: "only reviews"
         },
         [OTHER_CHANNEL_ID]: {
-          kind: FilterKind.aiMatch,
+          kind: FilterKind.AI_MATCH,
           description: "only  reviews"
         }
       }),
@@ -119,7 +119,7 @@ describe("pruneAiVerdicts", () => {
       },
       subscriptions: createSubscriptions({
         [CHANNEL_ID]: {
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "",
           flags: "i"
         }
@@ -148,11 +148,11 @@ describe("pruneAiVerdicts across modes", () => {
             channelId: CHANNEL_ID,
             title: "Channel",
             followFilter: {
-              kind: FilterKind.aiMatch,
+              kind: FilterKind.AI_MATCH,
               description: "only reviews"
             },
             hideFilter: {
-              kind: FilterKind.aiMatch,
+              kind: FilterKind.AI_MATCH,
               description: "only tutorials"
             },
             createdAt: 0,

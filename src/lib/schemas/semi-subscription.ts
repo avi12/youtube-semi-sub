@@ -93,12 +93,12 @@ export function migrateSemiSubscriptionsToV4(stored: unknown) {
 }
 
 const FILTER_KEY_BY_MODE = {
-  [SubscriptionMode.follow]: "followFilter",
-  [SubscriptionMode.hide]: "hideFilter"
+  [SubscriptionMode.FOLLOW]: "followFilter",
+  [SubscriptionMode.HIDE]: "hideFilter"
 } as const satisfies Record<SubscriptionMode, keyof SemiSubscription>;
 
 export function getSubscriptionMode({ isSubscribed }: Pick<SemiSubscription, "isSubscribed">) {
-  return isSubscribed ? SubscriptionMode.hide : SubscriptionMode.follow;
+  return isSubscribed ? SubscriptionMode.HIDE : SubscriptionMode.FOLLOW;
 }
 
 export function getModeFilter({

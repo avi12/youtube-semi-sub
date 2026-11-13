@@ -22,14 +22,14 @@ import { SECONDS_PER_MINUTE } from "@/lib/youtube/video-duration";
 import { z } from "@/lib/zod";
 
 export enum FilterLiteralKind {
-  aiMatch = "ai",
+  AI_MATCH = "ai",
   /** A filter that leaves the feed alone (`isFilterInert`) */
-  inert = "inert",
-  regex = "regex",
-  length = "length",
-  type = "type",
+  INERT = "inert",
+  REGEX = "regex",
+  LENGTH = "length",
+  TYPE = "type",
   /** An empty follow pattern, which lets every video through */
-  anyTitle = "any-title"
+  ANY_TITLE = "any-title"
 }
 
 /** One condition as a list sums it up: a regex part's text is its pattern, with its flags beside it */
@@ -46,8 +46,8 @@ export const PAUSED_LABEL = "paused";
 
 /** The word between a filter's conditions, wherever one is summed up */
 export const FILTER_MATCH_CONNECTOR = {
-  [FilterMatch.all]: "and",
-  [FilterMatch.any]: "or"
+  [FilterMatch.ALL]: "and",
+  [FilterMatch.ANY]: "or"
 } as const satisfies Record<FilterMatch, string>;
 
 const MINUTES_PRECISION = 10;
@@ -59,9 +59,9 @@ function formatMinutes(seconds: number) {
 /** "up to 20 min", "at least 2 min" or "2-20 min" */
 /** Each upload type as a sentence names it */
 const VIDEO_TYPE_NAME = {
-  [VideoType.video]: "regular videos",
-  [VideoType.short]: "Shorts",
-  [VideoType.liveStream]: "live streams"
+  [VideoType.VIDEO]: "regular videos",
+  [VideoType.SHORT]: "Shorts",
+  [VideoType.LIVE_STREAM]: "live streams"
 } as const satisfies Record<VideoType, string>;
 
 /** "Shorts or live streams" */
@@ -94,13 +94,13 @@ function describeEmptyFilter({
   mode: SubscriptionMode;
 }) {
   const part: FilterLiteralPart = {
-    kind: isInert ? FilterLiteralKind.inert : FilterLiteralKind.anyTitle,
+    kind: isInert ? FilterLiteralKind.INERT : FilterLiteralKind.ANY_TITLE,
     text: isInert ? INERT_FILTER_LABEL[mode] : ANY_TITLE_LABEL,
     isPaused: false
   };
   return {
     modeName,
-    connector: FILTER_MATCH_CONNECTOR[FilterMatch.all],
+    connector: FILTER_MATCH_CONNECTOR[FilterMatch.ALL],
     parts: [part]
   };
 }
@@ -123,18 +123,18 @@ export function describeFilterLiteral({
     mode
   });
   const parts = (filter ? listRestrictingConditions(filter) : []).map(condition => {
-    if (condition.kind === FilterKind.aiMatch) {
+    if (condition.kind === FilterKind.AI_MATCH) {
       const part: FilterLiteralPart = {
-        kind: FilterLiteralKind.aiMatch,
+        kind: FilterLiteralKind.AI_MATCH,
         text: condition.description,
         isPaused: !isAiEnabled
       };
       return part;
     }
 
-    if (condition.kind === FilterKind.regex) {
+    if (condition.kind === FilterKind.REGEX) {
       const part: FilterLiteralPart = {
-        kind: FilterLiteralKind.regex,
+        kind: FilterLiteralKind.REGEX,
         text: condition.pattern,
         flags: condition.flags,
         isPaused: false
@@ -143,8 +143,8 @@ export function describeFilterLiteral({
     }
 
     const part: FilterLiteralPart = {
-      kind: condition.kind === FilterKind.length ? FilterLiteralKind.length : FilterLiteralKind.type,
-      text: condition.kind === FilterKind.length ? describeLengthRange(condition) : describeVideoTypes(condition),
+      kind: condition.kind === FilterKind.LENGTH ? FilterLiteralKind.LENGTH : FilterLiteralKind.TYPE,
+      text: condition.kind === FilterKind.LENGTH ? describeLengthRange(condition) : describeVideoTypes(condition),
       isPaused: false
     };
     return part;
@@ -167,11 +167,11 @@ export function describeFilterLiteral({
 type FilterLiteral = ReturnType<typeof describeFilterLiteral>;
 
 function formatLiteralPart({ kind, text, flags, isPaused }: FilterLiteralPart) {
-  if (kind === FilterLiteralKind.regex) {
+  if (kind === FilterLiteralKind.REGEX) {
     return `/${text}/${flags ?? ""}`;
   }
 
-  if (kind !== FilterLiteralKind.aiMatch) {
+  if (kind !== FilterLiteralKind.AI_MATCH) {
     return text;
   }
 
@@ -185,13 +185,13 @@ export function formatFilterLiteral({ parts, connector }: FilterLiteral) {
 
 /** What a mode's filter does to a video it matches, and to every other one */
 const RULE_WORDING = {
-  [SubscriptionMode.follow]: {
+  [SubscriptionMode.FOLLOW]: {
     verb: "Shows",
     otherwise: "Everything else from this channel stays out of your feed",
     pending: "Videos still being checked show once they pass",
     empty: "Shows every video from this channel"
   },
-  [SubscriptionMode.hide]: {
+  [SubscriptionMode.HIDE]: {
     verb: "Hides",
     otherwise: "Everything else stays in your feed",
     pending: "Videos still being checked stay until they're judged",
@@ -201,15 +201,15 @@ const RULE_WORDING = {
 
 /** How a condition reads after "videos that" */
 function describeConditionClause(condition: FilterCondition) {
-  if (condition.kind === FilterKind.aiMatch) {
+  if (condition.kind === FilterKind.AI_MATCH) {
     return `fit "${condition.description.trim()}"`;
   }
 
-  if (condition.kind === FilterKind.length) {
+  if (condition.kind === FilterKind.LENGTH) {
     return `run ${describeLengthRange(condition)}`;
   }
 
-  if (condition.kind === FilterKind.type) {
+  if (condition.kind === FilterKind.TYPE) {
     return `are ${describeVideoTypes(condition)}`;
   }
 
@@ -227,13 +227,13 @@ export function describeFilterRule({ filter, mode }: { filter: VideoFilter; mode
     return {
       verb: wording.verb,
       clauses: [],
-      connector: FILTER_MATCH_CONNECTOR[FilterMatch.all],
+      connector: FILTER_MATCH_CONNECTOR[FilterMatch.ALL],
       otherwise: wording.empty,
       pendingNote: null
     };
   }
 
-  const isJudgedLater = conditions.some(condition => condition.kind !== FilterKind.regex);
+  const isJudgedLater = conditions.some(condition => condition.kind !== FilterKind.REGEX);
   return {
     verb: wording.verb,
     clauses: conditions.map(describeConditionClause),

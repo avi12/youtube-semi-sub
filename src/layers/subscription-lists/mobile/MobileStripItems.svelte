@@ -9,7 +9,7 @@
 
 <!-- m.youtube.com/feed/subscriptions: leads the horizontal channel strip above the feed -->
 {#each listFollowedSubscriptions(listsView.subscriptions) as subscription (subscription.channelId)}
-  <div class="yss-m-strip-item" {@attach markSurface(SemiListSurface.mobileStrip)}>
+  <div class="yss-m-strip-item" {@attach markSurface(SemiListSurface.MOBILE_STRIP)}>
     <a class="yss-m-strip-item__link" href={getChannelPath(subscription)}>
       <ChannelAvatar {subscription} />
       <span class="yss-m-strip-item__title" dir="auto">{subscription.title}</span>

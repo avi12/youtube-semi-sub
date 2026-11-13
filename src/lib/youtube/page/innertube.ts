@@ -7,7 +7,7 @@ import { z } from "@/lib/zod";
 // carries the same renderer shapes the page itself renders (WEB on www.youtube.com, MWEB on m.youtube.com)
 
 export enum InnerTubeEndpoint {
-  browse = `${InnerTubePath.browse}?prettyPrint=false`
+  BROWSE = `${InnerTubePath.BROWSE}?prettyPrint=false`
 }
 
 const APISID_COOKIE_NAMES = ["SAPISID", "__Secure-3PAPISID", "__Secure-1PAPISID"] as const;
@@ -72,7 +72,7 @@ async function buildAuthorization() {
 
 function getInnerTubeContext() {
   return readYtcfgValue({
-    key: YtcfgKey.innerTubeContext,
+    key: YtcfgKey.INNER_TUBE_CONTEXT,
     schema: innerTubeContextSchema
   });
 }
@@ -84,7 +84,7 @@ async function buildHeaders(clientVersion: string) {
     "X-Origin": location.origin,
     "X-Goog-AuthUser": String(
       readYtcfgValue({
-        key: YtcfgKey.sessionIndex,
+        key: YtcfgKey.SESSION_INDEX,
         schema: numberOrStringSchema
       }) ?? DEFAULT_SESSION_INDEX
     ),
@@ -92,7 +92,7 @@ async function buildHeaders(clientVersion: string) {
   };
 
   const clientNameNumber = readYtcfgValue({
-    key: YtcfgKey.clientNameNumber,
+    key: YtcfgKey.CLIENT_NAME_NUMBER,
     schema: numberOrStringSchema
   });
   if (clientNameNumber !== null) {
@@ -105,7 +105,7 @@ async function buildHeaders(clientVersion: string) {
   }
 
   const delegatedSessionId = readYtcfgValue({
-    key: YtcfgKey.delegatedSessionId,
+    key: YtcfgKey.DELEGATED_SESSION_ID,
     schema: delegatedSessionIdSchema
   });
   if (delegatedSessionId !== null) {

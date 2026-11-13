@@ -74,7 +74,7 @@ describe("installSubscriptionWatch", () => {
     await flushReports();
     expect(response.bodyUsed).toBe(false);
     expect(getObservedOfficialSubscription(CHANNEL_ID)).toBe(true);
-    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.officialSubscriptionChanged, {
+    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, {
       channelId: CHANNEL_ID,
       isSubscribed: true
     });
@@ -89,7 +89,7 @@ describe("installSubscriptionWatch", () => {
     );
     await flushReports();
     expect(getObservedOfficialSubscription(OTHER_CHANNEL_ID)).toBe(false);
-    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.officialSubscriptionChanged, {
+    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, {
       channelId: OTHER_CHANNEL_ID,
       isSubscribed: false
     });
@@ -176,11 +176,11 @@ describe("applySubscriptionSnapshot", () => {
       })
     ]);
     expect(pageMessenger.sendMessage).toHaveBeenCalledTimes(2);
-    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.officialSubscriptionChanged, {
+    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, {
       channelId: FOLLOWED_CHANNEL_ID,
       isSubscribed: true
     });
-    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.officialSubscriptionChanged, {
+    expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, {
       channelId: SUBSCRIBED_CHANNEL_ID,
       isSubscribed: false
     });

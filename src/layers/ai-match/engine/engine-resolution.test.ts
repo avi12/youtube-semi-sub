@@ -18,8 +18,8 @@ const OLD_WASM: LiteRtSupport = {
   isWasmRuntimeSupported: false
 };
 
-const BUILT_IN: AiEngineChoice = { engine: AiEngine.builtIn };
-const LITE_RT: AiEngineChoice = { engine: AiEngine.liteRt };
+const BUILT_IN: AiEngineChoice = { engine: AiEngine.BUILT_IN };
+const LITE_RT: AiEngineChoice = { engine: AiEngine.LITE_RT };
 
 function createProbes({
   builtInAvailability,
@@ -38,18 +38,18 @@ function createProbes({
 describe("resolveAiEngine", () => {
   // A browser is just a combination of answers: Chrome with Nano, Edge whose worker lacks LanguageModel, Firefox...
   it.each([
-    ["Chrome with the model on disk", BuiltInAvailability.available, NO_WEBGPU, BUILT_IN],
-    ["Chrome before the download", BuiltInAvailability.downloadable, FULL_SUPPORT, BUILT_IN],
-    ["Chrome mid-download", BuiltInAvailability.downloading, FULL_SUPPORT, BUILT_IN],
-    ["a device that can't run the built-in model", BuiltInAvailability.unavailable, FULL_SUPPORT, LITE_RT],
+    ["Chrome with the model on disk", BuiltInAvailability.AVAILABLE, NO_WEBGPU, BUILT_IN],
+    ["Chrome before the download", BuiltInAvailability.DOWNLOADABLE, FULL_SUPPORT, BUILT_IN],
+    ["Chrome mid-download", BuiltInAvailability.DOWNLOADING, FULL_SUPPORT, BUILT_IN],
+    ["a device that can't run the built-in model", BuiltInAvailability.UNAVAILABLE, FULL_SUPPORT, LITE_RT],
     ["no Prompt API in the worker (Firefox, Edge, Opera...)", null, FULL_SUPPORT, LITE_RT],
     [
       "no Prompt API and no WebGPU",
       null,
       NO_WEBGPU,
       {
-        engine: AiEngine.none,
-        reason: AiUnavailableReason.noWebGpu
+        engine: AiEngine.NONE,
+        reason: AiUnavailableReason.NO_WEB_GPU
       }
     ],
     [
@@ -57,17 +57,17 @@ describe("resolveAiEngine", () => {
       null,
       OLD_WASM,
       {
-        engine: AiEngine.none,
-        reason: AiUnavailableReason.outdatedBrowser
+        engine: AiEngine.NONE,
+        reason: AiUnavailableReason.OUTDATED_BROWSER
       }
     ],
     [
       "an unusable built-in model and no WebGPU",
-      BuiltInAvailability.unavailable,
+      BuiltInAvailability.UNAVAILABLE,
       NO_WEBGPU,
       {
-        engine: AiEngine.none,
-        reason: AiUnavailableReason.noWebGpu
+        engine: AiEngine.NONE,
+        reason: AiUnavailableReason.NO_WEB_GPU
       }
     ]
   ] satisfies [string, BuiltInAvailability | null, LiteRtSupport, AiEngineChoice][])(
@@ -86,7 +86,7 @@ describe("resolveAiEngine", () => {
 
   it("never probes WebGPU when the built-in model is usable", async () => {
     const probes = createProbes({
-      builtInAvailability: BuiltInAvailability.available,
+      builtInAvailability: BuiltInAvailability.AVAILABLE,
       liteRtSupport: FULL_SUPPORT
     });
     await resolveAiEngine(probes);

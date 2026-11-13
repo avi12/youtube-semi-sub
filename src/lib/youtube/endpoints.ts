@@ -3,15 +3,15 @@ import { buildShortsPath, buildWatchPath, InnerTubePath } from "@/lib/youtube/si
 // The navigation endpoints YouTube's router follows, shaped like the ones in its own responses
 
 enum WebPageType {
-  watch = "WEB_PAGE_TYPE_WATCH",
-  shorts = "WEB_PAGE_TYPE_SHORTS",
-  channel = "WEB_PAGE_TYPE_CHANNEL"
+  WATCH = "WEB_PAGE_TYPE_WATCH",
+  SHORTS = "WEB_PAGE_TYPE_SHORTS",
+  CHANNEL = "WEB_PAGE_TYPE_CHANNEL"
 }
 
 enum RootVisualElement {
-  watch = 3832,
-  shorts = 37414,
-  channel = 3611
+  WATCH = 3832,
+  SHORTS = 37414,
+  CHANNEL = 3611
 }
 
 export function buildWatchEndpoint(videoId: string) {
@@ -19,8 +19,8 @@ export function buildWatchEndpoint(videoId: string) {
     commandMetadata: {
       webCommandMetadata: {
         url: buildWatchPath(videoId),
-        webPageType: WebPageType.watch,
-        rootVe: RootVisualElement.watch
+        webPageType: WebPageType.WATCH,
+        rootVe: RootVisualElement.WATCH
       }
     },
     watchEndpoint: {
@@ -35,8 +35,8 @@ export function buildReelWatchEndpoint(videoId: string) {
     commandMetadata: {
       webCommandMetadata: {
         url: buildShortsPath(videoId),
-        webPageType: WebPageType.shorts,
-        rootVe: RootVisualElement.shorts
+        webPageType: WebPageType.SHORTS,
+        rootVe: RootVisualElement.SHORTS
       }
     },
     reelWatchEndpoint: {
@@ -59,9 +59,9 @@ export function buildChannelEndpoint({
     commandMetadata: {
       webCommandMetadata: {
         url,
-        webPageType: WebPageType.channel,
-        rootVe: RootVisualElement.channel,
-        apiUrl: InnerTubePath.browse
+        webPageType: WebPageType.CHANNEL,
+        rootVe: RootVisualElement.CHANNEL,
+        apiUrl: InnerTubePath.BROWSE
       }
     },
     browseEndpoint: {

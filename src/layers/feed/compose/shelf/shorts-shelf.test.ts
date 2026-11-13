@@ -80,13 +80,13 @@ describe("findShortsShelf", () => {
   it("finds the shelf holding Shorts, past a shelf of regular videos", () => {
     const found = findShortsShelf(feedContents());
     expect(found?.iItem).toBe(2);
-    expect(found?.shelf.kind).toBe(ShelfRendererKind.rich);
+    expect(found?.shelf.kind).toBe(ShelfRendererKind.RICH);
     expect(found?.template.onTap.innertubeCommand.reelWatchEndpoint.videoId).toBe(videoId(90));
   });
 
   it("finds m's reel shelf of bare lockups", () => {
     const found = findShortsShelf(feedContents(mobileShortsShelf([90])));
-    expect(found?.shelf.kind).toBe(ShelfRendererKind.reel);
+    expect(found?.shelf.kind).toBe(ShelfRendererKind.REEL);
     expect(found?.shelf.items).toHaveLength(1);
   });
 

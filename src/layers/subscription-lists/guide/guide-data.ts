@@ -21,9 +21,9 @@ const NO_AVATAR_ICON = "ACCOUNT_CIRCLE";
 const PLAIN_PRESENTATION_STYLE = "GUIDE_ENTRY_PRESENTATION_STYLE_NONE";
 
 enum GuideItemKey {
-  section = "guideSectionRenderer",
-  subscriptionsSection = "guideSubscriptionsSectionRenderer",
-  signInPromo = "guideSigninPromoRenderer"
+  SECTION = "guideSectionRenderer",
+  SUBSCRIPTIONS_SECTION = "guideSubscriptionsSectionRenderer",
+  SIGN_IN_PROMO = "guideSigninPromoRenderer"
 }
 
 const guideItemsSchema = z.array(z.unknown());
@@ -41,21 +41,21 @@ const actionHandlingSectionSchema = z.looseObject({
 });
 
 const subscriptionsSectionItemSchema = z.looseObject({
-  [GuideItemKey.subscriptionsSection]: guideSectionSchema
+  [GuideItemKey.SUBSCRIPTIONS_SECTION]: guideSectionSchema
 });
 
 const plainSectionItemSchema = z.looseObject({
-  [GuideItemKey.section]: guideSectionSchema
+  [GuideItemKey.SECTION]: guideSectionSchema
 });
 
 const semiSectionItemSchema = z.looseObject({
-  [GuideItemKey.section]: z.looseObject({
+  [GuideItemKey.SECTION]: z.looseObject({
     [SEMI_SECTION_KEY]: z.literal(true)
   })
 });
 
 const signInPromoItemSchema = z.looseObject({
-  [GuideItemKey.signInPromo]: z.looseObject({})
+  [GuideItemKey.SIGN_IN_PROMO]: z.looseObject({})
 });
 
 /** A `ytd-guide-entry-renderer` element's own `data` - the inner renderer object */
@@ -152,7 +152,7 @@ export function buildSemiGuideEntry(subscription: SemiSubscription) {
 
 function buildSemiSection(entries: unknown[]) {
   return {
-    [GuideItemKey.section]: {
+    [GuideItemKey.SECTION]: {
       formattedTitle: {
         simpleText: SEMI_LIST_TITLE
       },
@@ -210,9 +210,9 @@ function readSubscriptionsSection(item: unknown) {
   const subscriptionsSection = subscriptionsSectionItemSchema.safeParse(item);
   if (subscriptionsSection.success) {
     return {
-      key: GuideItemKey.subscriptionsSection,
+      key: GuideItemKey.SUBSCRIPTIONS_SECTION,
       wrapper: subscriptionsSection.data,
-      section: subscriptionsSection.data[GuideItemKey.subscriptionsSection]
+      section: subscriptionsSection.data[GuideItemKey.SUBSCRIPTIONS_SECTION]
     };
   }
 
@@ -221,7 +221,7 @@ function readSubscriptionsSection(item: unknown) {
     return null;
   }
 
-  const section = plainSection.data[GuideItemKey.section];
+  const section = plainSection.data[GuideItemKey.SECTION];
   const actionHandling = actionHandlingSectionSchema.safeParse(section);
   const isSubscribeHandler =
     actionHandling.success && actionHandling.data.handlerDatas.includes(SUBSCRIBE_ACTION_HANDLER);
@@ -231,7 +231,7 @@ function readSubscriptionsSection(item: unknown) {
   }
 
   return {
-    key: GuideItemKey.section,
+    key: GuideItemKey.SECTION,
     wrapper: plainSection.data,
     section
   };

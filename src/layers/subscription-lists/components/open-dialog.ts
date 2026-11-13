@@ -8,7 +8,7 @@ import { getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-s
 /** Opens the ISOLATED-world dialog (edit the filter, remove the semi-subscription) */
 export function openSemiSubDialog(subscription: SemiSubscription) {
   // The channel's details only: the dialog reads the filters from storage itself
-  pageMessenger.sendMessage(PageMessage.openSemiSubDialog, channelInfoSchema.parse(subscription)).catch(() => {});
+  pageMessenger.sendMessage(PageMessage.OPEN_SEMI_SUB_DIALOG, channelInfoSchema.parse(subscription)).catch(() => {});
 }
 
 /**

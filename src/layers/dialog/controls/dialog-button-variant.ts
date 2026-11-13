@@ -1,6 +1,6 @@
 export enum DialogButtonVariant {
-  filled = "filled",
-  tonal = "tonal",
-  text = "text",
-  danger = "danger"
+  FILLED = "filled",
+  TONAL = "tonal",
+  TEXT = "text",
+  DANGER = "danger"
 }

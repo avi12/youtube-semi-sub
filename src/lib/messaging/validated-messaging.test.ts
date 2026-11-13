@@ -4,16 +4,16 @@ import { defineValidatedMessaging } from "@/lib/messaging/validated-messaging";
 import { z } from "@/lib/zod";
 
 enum TestMessage {
-  double = "double",
-  ping = "ping"
+  DOUBLE = "double",
+  PING = "ping"
 }
 
 const SCHEMAS = {
-  [TestMessage.double]: {
+  [TestMessage.DOUBLE]: {
     request: z.object({ value: z.number() }),
     reply: z.number()
   },
-  [TestMessage.ping]: {
+  [TestMessage.PING]: {
     request: z.undefined(),
     reply: z.literal("pong")
   }
@@ -45,11 +45,11 @@ describe("defineValidatedMessaging", () => {
       schemas: SCHEMAS,
       messenger
     });
-    onMessage(TestMessage.double, ({ value }) => value * 2);
-    onMessage(TestMessage.ping, () => "pong");
+    onMessage(TestMessage.DOUBLE, ({ value }) => value * 2);
+    onMessage(TestMessage.PING, () => "pong");
 
-    expect(await sendMessage(TestMessage.double, { value: 21 })).toBe(42);
-    expect(await sendMessage(TestMessage.ping)).toBe("pong");
+    expect(await sendMessage(TestMessage.DOUBLE, { value: 21 })).toBe(42);
+    expect(await sendMessage(TestMessage.PING)).toBe("pong");
   });
 
   it("rejects a malformed payload before the handler sees it", async () => {
@@ -59,12 +59,12 @@ describe("defineValidatedMessaging", () => {
       messenger
     });
     let isHandled = false;
-    onMessage(TestMessage.double, ({ value }) => {
+    onMessage(TestMessage.DOUBLE, ({ value }) => {
       isHandled = true;
       return value;
     });
 
-    await expect(messenger.sendMessage(TestMessage.double, { value: "21" })).rejects.toThrow();
+    await expect(messenger.sendMessage(TestMessage.DOUBLE, { value: "21" })).rejects.toThrow();
     expect(isHandled).toBe(false);
   });
 
@@ -74,8 +74,8 @@ describe("defineValidatedMessaging", () => {
       schemas: SCHEMAS,
       messenger
     });
-    messenger.onMessage(TestMessage.ping, () => "not pong");
+    messenger.onMessage(TestMessage.PING, () => "not pong");
 
-    await expect(sendMessage(TestMessage.ping)).rejects.toThrow();
+    await expect(sendMessage(TestMessage.PING)).rejects.toThrow();
   });
 });

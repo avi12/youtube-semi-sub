@@ -36,7 +36,7 @@ const HIDE_LENGTH_HINTS: PreviewHints = {
 };
 
 export const MODE_COPY = {
-  [SubscriptionMode.follow]: {
+  [SubscriptionMode.FOLLOW]: {
     aiLabel: "Describe the videos you want",
     matchLegend: "Show videos that match",
     regexPlaceholder: "tutorial|review",
@@ -50,7 +50,7 @@ export const MODE_COPY = {
     lengthHints: FOLLOW_LENGTH_HINTS,
     pausedAiInvalid: "Turn on AI match to see what's added to your feed"
   },
-  [SubscriptionMode.hide]: {
+  [SubscriptionMode.HIDE]: {
     aiLabel: "Describe the videos to hide",
     matchLegend: "Hide videos that match",
     regexPlaceholder: "live|reaction",

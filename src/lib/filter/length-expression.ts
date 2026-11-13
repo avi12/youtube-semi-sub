@@ -31,46 +31,46 @@ const UNIT_SECONDS: Readonly<Record<string, number>> = {
 };
 
 enum Comparison {
-  lessThan = "<",
-  atMost = "<=",
-  moreThan = ">",
-  atLeast = ">=",
-  exactly = "="
+  LESS_THAN = "<",
+  AT_MOST = "<=",
+  MORE_THAN = ">",
+  AT_LEAST = ">=",
+  EXACTLY = "="
 }
 
 /** Every way to write a comparison, symbols and words, longest first so "<=" wins over "<" */
 const COMPARISON_PHRASES: readonly (readonly [string, Comparison])[] = [
-  ["no more than", Comparison.atMost],
-  ["no longer than", Comparison.atMost],
-  ["no less than", Comparison.atLeast],
-  ["no shorter than", Comparison.atLeast],
-  ["shorter than", Comparison.lessThan],
-  ["longer than", Comparison.moreThan],
-  ["less than", Comparison.lessThan],
-  ["fewer than", Comparison.lessThan],
-  ["more than", Comparison.moreThan],
-  ["at most", Comparison.atMost],
-  ["at least", Comparison.atLeast],
-  ["up to", Comparison.atMost],
-  ["maximum", Comparison.atMost],
-  ["minimum", Comparison.atLeast],
-  ["within", Comparison.atMost],
-  ["exactly", Comparison.exactly],
-  ["under", Comparison.lessThan],
-  ["below", Comparison.lessThan],
-  ["over", Comparison.moreThan],
-  ["above", Comparison.moreThan],
-  ["max", Comparison.atMost],
-  ["<=", Comparison.atMost],
-  [">=", Comparison.atLeast],
-  ["=<", Comparison.atMost],
-  ["=>", Comparison.atLeast],
-  ["==", Comparison.exactly],
-  ["≤", Comparison.atMost],
-  ["≥", Comparison.atLeast],
-  ["<", Comparison.lessThan],
-  [">", Comparison.moreThan],
-  ["=", Comparison.exactly]
+  ["no more than", Comparison.AT_MOST],
+  ["no longer than", Comparison.AT_MOST],
+  ["no less than", Comparison.AT_LEAST],
+  ["no shorter than", Comparison.AT_LEAST],
+  ["shorter than", Comparison.LESS_THAN],
+  ["longer than", Comparison.MORE_THAN],
+  ["less than", Comparison.LESS_THAN],
+  ["fewer than", Comparison.LESS_THAN],
+  ["more than", Comparison.MORE_THAN],
+  ["at most", Comparison.AT_MOST],
+  ["at least", Comparison.AT_LEAST],
+  ["up to", Comparison.AT_MOST],
+  ["maximum", Comparison.AT_MOST],
+  ["minimum", Comparison.AT_LEAST],
+  ["within", Comparison.AT_MOST],
+  ["exactly", Comparison.EXACTLY],
+  ["under", Comparison.LESS_THAN],
+  ["below", Comparison.LESS_THAN],
+  ["over", Comparison.MORE_THAN],
+  ["above", Comparison.MORE_THAN],
+  ["max", Comparison.AT_MOST],
+  ["<=", Comparison.AT_MOST],
+  [">=", Comparison.AT_LEAST],
+  ["=<", Comparison.AT_MOST],
+  ["=>", Comparison.AT_LEAST],
+  ["==", Comparison.EXACTLY],
+  ["≤", Comparison.AT_MOST],
+  ["≥", Comparison.AT_LEAST],
+  ["<", Comparison.LESS_THAN],
+  [">", Comparison.MORE_THAN],
+  ["=", Comparison.EXACTLY]
 ];
 
 const RANGE_SEPARATORS: ReadonlySet<string> = new Set(["-", "–", "—", "..", "to", "and", "~"]);
@@ -80,9 +80,9 @@ const OPEN_ENDED_MARK = "+";
 const SYMBOL_CHARACTERS = "<>=≤≥-–—~,;&+.";
 
 enum TokenKind {
-  number = "number",
-  word = "word",
-  symbol = "symbol"
+  NUMBER = "number",
+  WORD = "word",
+  SYMBOL = "symbol"
 }
 
 const tokenSchema = z.object({
@@ -143,10 +143,10 @@ function readTokenKind({ text, i }: { text: string; i: number }) {
   const character = text.charAt(i);
   const isNumberStart = isDigit(character) || (character === "." && isDigit(text.charAt(i + 1)));
   if (isNumberStart) {
-    return TokenKind.number;
+    return TokenKind.NUMBER;
   }
 
-  return isLetter(character) ? TokenKind.word : TokenKind.symbol;
+  return isLetter(character) ? TokenKind.WORD : TokenKind.SYMBOL;
 }
 
 /** Splits the text into numbers ("69", "1.5", "1:30"), words and runs of symbols ("<=", "..") */
@@ -165,7 +165,7 @@ function tokenize(text: string) {
     });
 
     const iEnd =
-      kind === TokenKind.number
+      kind === TokenKind.NUMBER
         ? readNumberEnd({
             text,
             iStart: i
@@ -174,7 +174,7 @@ function tokenize(text: string) {
             readWhile({
               text,
               iStart: i,
-              isPart: kind === TokenKind.word ? isLetter : isSymbolPart
+              isPart: kind === TokenKind.WORD ? isLetter : isSymbolPart
             }),
             i + 1
           );
@@ -248,7 +248,7 @@ function takeDuration(cursor: Cursor) {
   let seconds = 0;
   let unitSeconds: number | null = null;
   let unitlessValue: number | null = null;
-  while (cursor.peek()?.kind === TokenKind.number && unitlessValue === null) {
+  while (cursor.peek()?.kind === TokenKind.NUMBER && unitlessValue === null) {
     const number = readNumber(cursor.take()?.text ?? "");
     if (number.isClockTime) {
       seconds += number.seconds;
@@ -256,7 +256,7 @@ function takeDuration(cursor: Cursor) {
       continue;
     }
 
-    const unit = cursor.peek()?.kind === TokenKind.word ? UNIT_SECONDS[cursor.peek()?.text ?? ""] : undefined;
+    const unit = cursor.peek()?.kind === TokenKind.WORD ? UNIT_SECONDS[cursor.peek()?.text ?? ""] : undefined;
     if (unit === undefined) {
       unitlessValue = number.seconds;
       continue;
@@ -296,19 +296,19 @@ function requireDuration({ cursor, after }: { cursor: Cursor; after: string }) {
 
 function boundsOfComparison({ comparison, seconds }: { comparison: Comparison; seconds: number }) {
   const bounds: Bounds = {
-    [Comparison.lessThan]: {
+    [Comparison.LESS_THAN]: {
       maxSeconds: seconds - 1
     },
-    [Comparison.atMost]: {
+    [Comparison.AT_MOST]: {
       maxSeconds: seconds
     },
-    [Comparison.moreThan]: {
+    [Comparison.MORE_THAN]: {
       minSeconds: seconds + 1
     },
-    [Comparison.atLeast]: {
+    [Comparison.AT_LEAST]: {
       minSeconds: seconds
     },
-    [Comparison.exactly]: {
+    [Comparison.EXACTLY]: {
       minSeconds: seconds,
       maxSeconds: seconds
     }
@@ -372,7 +372,7 @@ function takeClause(cursor: Cursor) {
   if (next === OPEN_ENDED_MARK) {
     cursor.take();
     return boundsOfComparison({
-      comparison: Comparison.atLeast,
+      comparison: Comparison.AT_LEAST,
       seconds: toSeconds({
         duration,
         fallbackUnitSeconds: DEFAULT_UNIT_SECONDS

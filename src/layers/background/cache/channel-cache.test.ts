@@ -45,7 +45,7 @@ function createSubscriptions(channelIds: string[]) {
       channelId,
       title: "Channel",
       followFilter: {
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "",
         flags: "i"
       },
@@ -225,7 +225,7 @@ describe("pruneChannelCaches", () => {
 
   it("drops AI verdicts of filters no longer in use and of videos no longer cached", async () => {
     const aiFilter: AiFilter = {
-      kind: FilterKind.aiMatch,
+      kind: FilterKind.AI_MATCH,
       description: "only reviews"
     };
     const key = getAiFilterKey(aiFilter);

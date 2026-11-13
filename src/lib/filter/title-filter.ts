@@ -6,45 +6,45 @@ import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";
 
 export enum FilterKind {
-  regex = "regex",
+  REGEX = "regex",
   /** A plain-language description a model judges per video */
-  aiMatch = "ai",
+  AI_MATCH = "ai",
   /** How long a video runs */
-  length = "length",
+  LENGTH = "length",
   /** Whether a video is a regular one, a Short or a live stream */
-  type = "type",
+  TYPE = "type",
   /** Several conditions, all or any of which a video has to meet */
-  group = "group"
+  GROUP = "group"
 }
 
 /** What a condition judges a video by - a filter holds at most one condition per method */
 export enum FilterMethod {
-  title = "title",
-  length = "length",
-  type = "type"
+  TITLE = "title",
+  LENGTH = "length",
+  TYPE = "type"
 }
 
 /** What kind of upload a video is - a premiere counts as a regular video, as YouTube lists it on the Videos tab */
 export enum VideoType {
-  video = "video",
-  short = "short",
-  liveStream = "live-stream"
+  VIDEO = "video",
+  SHORT = "short",
+  LIVE_STREAM = "live-stream"
 }
 
 /** The ways a title condition can be written */
-export const TITLE_FILTER_KINDS = [FilterKind.regex, FilterKind.aiMatch] as const;
+export const TITLE_FILTER_KINDS = [FilterKind.REGEX, FilterKind.AI_MATCH] as const;
 
 /** How a group's conditions combine */
 export enum FilterMatch {
-  all = "all",
-  any = "any"
+  ALL = "all",
+  ANY = "any"
 }
 
 /** Tri-state so a filter that judges videos asynchronously can show a video before its verdict arrives */
 export enum MatchState {
-  matches = "matches",
-  doesNotMatch = "does-not-match",
-  pending = "pending"
+  MATCHES = "matches",
+  DOES_NOT_MATCH = "does-not-match",
+  PENDING = "pending"
 }
 
 /** YouTube's cap on a Short, so a Short of unknown length is known to run no longer than this */
@@ -56,14 +56,14 @@ const FILTER_FLAGS_PATTERN = new RegExp(`^[${ALLOWED_FILTER_FLAGS.join("")}]*$`)
 export const AI_DESCRIPTION_MAX_LENGTH = 300;
 
 const regexFilterSchema = z.object({
-  kind: z.literal(FilterKind.regex),
+  kind: z.literal(FilterKind.REGEX),
   pattern: z.string(),
   flags: z.string().regex(FILTER_FLAGS_PATTERN)
 });
 export type RegexFilter = z.infer<typeof regexFilterSchema>;
 
 export const aiFilterSchema = z.object({
-  kind: z.literal(FilterKind.aiMatch),
+  kind: z.literal(FilterKind.AI_MATCH),
   description: z.string().trim().min(1).max(AI_DESCRIPTION_MAX_LENGTH)
 });
 export type AiFilter = z.infer<typeof aiFilterSchema>;
@@ -75,7 +75,7 @@ const durationBoundSchema = z.number().int().nonnegative();
 
 /** A length range: either bound may be left open */
 const lengthFilterSchema = z.object({
-  kind: z.literal(FilterKind.length),
+  kind: z.literal(FilterKind.LENGTH),
   minSeconds: durationBoundSchema.optional(),
   maxSeconds: durationBoundSchema.optional()
 });
@@ -83,7 +83,7 @@ export type LengthFilter = z.infer<typeof lengthFilterSchema>;
 
 /** The upload types a video has to be one of */
 const typeFilterSchema = z.object({
-  kind: z.literal(FilterKind.type),
+  kind: z.literal(FilterKind.TYPE),
   types: z.array(z.enum(VideoType))
 });
 export type TypeFilter = z.infer<typeof typeFilterSchema>;
@@ -97,7 +97,7 @@ const filterConditionSchema = z.discriminatedUnion("kind", [
 export type FilterCondition = z.infer<typeof filterConditionSchema>;
 
 const filterGroupSchema = z.object({
-  kind: z.literal(FilterKind.group),
+  kind: z.literal(FilterKind.GROUP),
   match: z.enum(FilterMatch),
   conditions: z.array(filterConditionSchema)
 });
@@ -116,30 +116,30 @@ export const videoFilterSchema = z.discriminatedUnion("kind", [
 export type VideoFilter = z.infer<typeof videoFilterSchema>;
 
 export const FILTER_METHOD_BY_KIND = {
-  [FilterKind.regex]: FilterMethod.title,
-  [FilterKind.aiMatch]: FilterMethod.title,
-  [FilterKind.length]: FilterMethod.length,
-  [FilterKind.type]: FilterMethod.type
+  [FilterKind.REGEX]: FilterMethod.TITLE,
+  [FilterKind.AI_MATCH]: FilterMethod.TITLE,
+  [FilterKind.LENGTH]: FilterMethod.LENGTH,
+  [FilterKind.TYPE]: FilterMethod.TYPE
 } as const satisfies Record<FilterCondition["kind"], FilterMethod>;
 
 /** A filter saved before filters had a `kind`, when every filter was a RegExp, read as today's RegExp filter */
 export const legacyRegexFilterSchema = regexFilterSchema.omit({ kind: true }).transform(filter => {
   const upgraded: RegexFilter = {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     ...filter
   };
   return upgraded;
 });
 
 export const DEFAULT_TITLE_FILTER: RegexFilter = {
-  kind: FilterKind.regex,
+  kind: FilterKind.REGEX,
   pattern: "",
   flags: "i"
 };
 
 /** Where the editor starts when switching a filter to AI match */
 export const EMPTY_AI_FILTER: AiFilter = {
-  kind: FilterKind.aiMatch,
+  kind: FilterKind.AI_MATCH,
   description: ""
 };
 
@@ -147,17 +147,17 @@ const DEFAULT_MAX_LENGTH_SECONDS = 20 * 60;
 
 /** Where the editor starts when a length condition is added */
 export const DEFAULT_LENGTH_FILTER: LengthFilter = {
-  kind: FilterKind.length,
+  kind: FilterKind.LENGTH,
   maxSeconds: DEFAULT_MAX_LENGTH_SECONDS
 };
 
 export function listFilterConditions(filter: VideoFilter) {
-  const conditions: FilterCondition[] = filter.kind === FilterKind.group ? filter.conditions : [filter];
+  const conditions: FilterCondition[] = filter.kind === FilterKind.GROUP ? filter.conditions : [filter];
   return conditions;
 }
 
 export function getFilterMatch(filter: VideoFilter) {
-  return filter.kind === FilterKind.group ? filter.match : FilterMatch.all;
+  return filter.kind === FilterKind.GROUP ? filter.match : FilterMatch.ALL;
 }
 
 /** The one way a filter is put together: a single condition stands alone, more are grouped */
@@ -169,7 +169,7 @@ export function buildVideoFilter({ conditions, match }: { conditions: FilterCond
   }
 
   const filter: VideoFilter = {
-    kind: FilterKind.group,
+    kind: FilterKind.GROUP,
     match,
     conditions
   };
@@ -179,7 +179,7 @@ export function buildVideoFilter({ conditions, match }: { conditions: FilterCond
 /** A filter's AI conditions - what the model judges for it */
 export function listAiFilters(filter: VideoFilter | null) {
   const conditions = filter ? listFilterConditions(filter) : [];
-  return conditions.filter(condition => condition.kind === FilterKind.aiMatch);
+  return conditions.filter(condition => condition.kind === FilterKind.AI_MATCH);
 }
 
 const UNSUPPORTED_FLAGS_ERROR = `Only the ${ALLOWED_FILTER_FLAGS.join(", ")} flags work in a title filter`;
@@ -224,15 +224,15 @@ function isLengthRangeValid({ minSeconds = 0, maxSeconds = Infinity }: LengthFil
 }
 
 export function isFilterConditionValid(condition: FilterCondition) {
-  if (condition.kind === FilterKind.regex) {
+  if (condition.kind === FilterKind.REGEX) {
     return compileTitleFilter(condition) !== null;
   }
 
-  if (condition.kind === FilterKind.type) {
+  if (condition.kind === FilterKind.TYPE) {
     return typeFilterSchema.safeParse(condition).success && condition.types.length > 0;
   }
 
-  if (condition.kind === FilterKind.length) {
+  if (condition.kind === FilterKind.LENGTH) {
     const isSchemaValid = lengthFilterSchema.safeParse(condition).success;
     return isSchemaValid && isLengthFilterSet(condition) && isLengthRangeValid(condition);
   }
@@ -259,24 +259,24 @@ type JudgedVideo = Pick<FeedVideo, "videoId" | "title"> &
 /** A video's upload type, or null while its channel's tabs haven't told whether it is a live stream */
 function readVideoType({ isShort, isLiveStream }: Pick<JudgedVideo, "isShort" | "isLiveStream">) {
   if (isShort) {
-    return VideoType.short;
+    return VideoType.SHORT;
   }
 
   if (isLiveStream === undefined) {
     return null;
   }
 
-  return isLiveStream ? VideoType.liveStream : VideoType.video;
+  return isLiveStream ? VideoType.LIVE_STREAM : VideoType.VIDEO;
 }
 
 function createTypeJudge({ types }: TypeFilter) {
   return function judgeByType(video: JudgedVideo) {
     const type = readVideoType(video);
     if (type === null) {
-      return MatchState.pending;
+      return MatchState.PENDING;
     }
 
-    return types.includes(type) ? MatchState.matches : MatchState.doesNotMatch;
+    return types.includes(type) ? MatchState.MATCHES : MatchState.DOES_NOT_MATCH;
   };
 }
 
@@ -287,7 +287,7 @@ function createRegexJudge(filter: RegexFilter) {
   }
 
   return function judgeByTitle(video: JudgedVideo) {
-    return regex.test(video.title) ? MatchState.matches : MatchState.doesNotMatch;
+    return regex.test(video.title) ? MatchState.MATCHES : MatchState.DOES_NOT_MATCH;
   };
 }
 
@@ -301,10 +301,10 @@ function createAiJudge({ filter, aiVerdicts, isAiEnabled }: AiJudgeContext & { f
   return function judgeByVerdict(video: JudgedVideo) {
     const verdict = verdicts[video.videoId];
     if (verdict === undefined) {
-      return MatchState.pending;
+      return MatchState.PENDING;
     }
 
-    return verdict ? MatchState.matches : MatchState.doesNotMatch;
+    return verdict ? MatchState.MATCHES : MatchState.DOES_NOT_MATCH;
   };
 }
 
@@ -318,24 +318,24 @@ function createLengthJudge({ minSeconds = 0, maxSeconds = Infinity }: LengthFilt
     const shortest = durationSeconds ?? 0;
     const longest = durationSeconds ?? (isShort ? SHORT_MAX_DURATION_SECONDS : Infinity);
     if (shortest >= minSeconds && longest <= maxSeconds) {
-      return MatchState.matches;
+      return MatchState.MATCHES;
     }
 
     const isOutOfRange = longest < minSeconds || shortest > maxSeconds;
-    return isOutOfRange ? MatchState.doesNotMatch : MatchState.pending;
+    return isOutOfRange ? MatchState.DOES_NOT_MATCH : MatchState.PENDING;
   };
 }
 
 function createConditionJudge({ condition, ...context }: AiJudgeContext & { condition: FilterCondition }) {
-  if (condition.kind === FilterKind.regex) {
+  if (condition.kind === FilterKind.REGEX) {
     return createRegexJudge(condition);
   }
 
-  if (condition.kind === FilterKind.length) {
+  if (condition.kind === FilterKind.LENGTH) {
     return createLengthJudge(condition);
   }
 
-  if (condition.kind === FilterKind.type) {
+  if (condition.kind === FilterKind.TYPE) {
     return createTypeJudge(condition);
   }
 
@@ -347,15 +347,15 @@ function createConditionJudge({ condition, ...context }: AiJudgeContext & { cond
 
 /** A condition that lets every video through - an empty pattern, a length range with no bound - so it is left out */
 function isConditionUnrestricting(condition: FilterCondition) {
-  if (condition.kind === FilterKind.regex) {
+  if (condition.kind === FilterKind.REGEX) {
     return condition.pattern === "";
   }
 
-  if (condition.kind === FilterKind.length) {
+  if (condition.kind === FilterKind.LENGTH) {
     return !isLengthFilterSet(condition);
   }
 
-  if (condition.kind === FilterKind.type) {
+  if (condition.kind === FilterKind.TYPE) {
     return Object.values(VideoType).every(type => condition.types.includes(type));
   }
 
@@ -369,20 +369,20 @@ export function listRestrictingConditions(filter: VideoFilter) {
 
 /** All: one miss decides, any: one match does; short of that, a pending condition keeps the whole pending */
 function combineMatchStates({ matchStates, match }: { matchStates: MatchState[]; match: FilterMatch }) {
-  const decisiveState = match === FilterMatch.all ? MatchState.doesNotMatch : MatchState.matches;
+  const decisiveState = match === FilterMatch.ALL ? MatchState.DOES_NOT_MATCH : MatchState.MATCHES;
   if (matchStates.includes(decisiveState)) {
     return decisiveState;
   }
 
-  if (matchStates.includes(MatchState.pending)) {
-    return MatchState.pending;
+  if (matchStates.includes(MatchState.PENDING)) {
+    return MatchState.PENDING;
   }
 
-  return match === FilterMatch.all ? MatchState.matches : MatchState.doesNotMatch;
+  return match === FilterMatch.ALL ? MatchState.MATCHES : MatchState.DOES_NOT_MATCH;
 }
 
 function judgeMatch() {
-  return MatchState.matches;
+  return MatchState.MATCHES;
 }
 
 /**
@@ -403,7 +403,7 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
       ...context
     })
   );
-  const isPatternBroken = conditions.some((condition, i) => condition.kind === FilterKind.regex && !judges[i]);
+  const isPatternBroken = conditions.some((condition, i) => condition.kind === FilterKind.REGEX && !judges[i]);
   const workingJudges = judges.filter(judge => judge !== null);
   if (isPatternBroken || workingJudges.length === 0) {
     return null;
@@ -414,7 +414,7 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
   return function judgeVideo(video: JudgedVideo) {
     const matchStates = workingJudges.map(judge => judge(video));
     if (isPausedConditionLeft) {
-      matchStates.push(MatchState.pending);
+      matchStates.push(MatchState.PENDING);
     }
 
     return combineMatchStates({
@@ -436,7 +436,7 @@ export function isFilterInert({ filter, mode }: { filter: VideoFilter | null; mo
     return true;
   }
 
-  return mode === SubscriptionMode.hide && listRestrictingConditions(filter).length === 0;
+  return mode === SubscriptionMode.HIDE && listRestrictingConditions(filter).length === 0;
 }
 
 /**
@@ -454,11 +454,11 @@ export function isAllowListRestricting(filter: VideoFilter | null) {
 /** Whether a filter judges videos by what only a channel's tabs tell: their length, or whether they are live streams */
 export function isTabDetailFiltered(filter: VideoFilter | null) {
   const conditions = filter ? listRestrictingConditions(filter) : [];
-  return conditions.some(condition => condition.kind === FilterKind.length || condition.kind === FilterKind.type);
+  return conditions.some(condition => condition.kind === FilterKind.LENGTH || condition.kind === FilterKind.TYPE);
 }
 
 function judgeNoMatch() {
-  return MatchState.doesNotMatch;
+  return MatchState.DOES_NOT_MATCH;
 }
 
 /** `createVideoJudge` for a mode's filter: an inert one (`isFilterInert`) matches no video */
@@ -518,7 +518,7 @@ export function selectFeedVideos({
       isFollowed &&
       createModeJudge({
         filter: subscription.followFilter,
-        mode: SubscriptionMode.follow,
+        mode: SubscriptionMode.FOLLOW,
         ...context
       });
     if (!judge) {
@@ -530,7 +530,7 @@ export function selectFeedVideos({
         video,
         isMember: subscription?.isMember
       });
-      if (!isLocked && judge(video) === MatchState.matches) {
+      if (!isLocked && judge(video) === MatchState.MATCHES) {
         selectedById.set(video.videoId, video);
       }
     }
@@ -555,13 +555,13 @@ export function createSubscribedHideCheck({
 
   const isBlockListInert = isFilterInert({
     filter: subscription.hideFilter,
-    mode: SubscriptionMode.hide
+    mode: SubscriptionMode.HIDE
   });
   const blockJudge = isBlockListInert
     ? null
     : createModeJudge({
         filter: subscription.hideFilter,
-        mode: SubscriptionMode.hide,
+        mode: SubscriptionMode.HIDE,
         ...context
       });
   const { followFilter } = subscription;
@@ -577,7 +577,7 @@ export function createSubscribedHideCheck({
   }
 
   return function isHidden(video: JudgedVideo) {
-    return blockJudge?.(video) === MatchState.matches || allowJudge?.(video) === MatchState.doesNotMatch;
+    return blockJudge?.(video) === MatchState.MATCHES || allowJudge?.(video) === MatchState.DOES_NOT_MATCH;
   };
 }
 

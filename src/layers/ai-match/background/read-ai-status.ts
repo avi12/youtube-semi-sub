@@ -15,10 +15,10 @@ const BACKGROUND_PROBES: AiEngineProbes = {
 async function readBuiltInStatus() {
   const availability = await readBuiltInAvailability();
   const status: AiStatus = {
-    engine: AiEngine.builtIn,
-    isModelReady: availability === BuiltInAvailability.available,
+    engine: AiEngine.BUILT_IN,
+    isModelReady: availability === BuiltInAvailability.AVAILABLE,
     download:
-      availability === BuiltInAvailability.downloading
+      availability === BuiltInAvailability.DOWNLOADING
         ? {
             fraction: null
           }
@@ -30,7 +30,7 @@ async function readBuiltInStatus() {
 async function readLiteRtStatus() {
   const [isModelReady, fraction] = await Promise.all([isLiteRtModelCached(), readLocalModelDownloadFraction()]);
   const status: AiStatus = {
-    engine: AiEngine.liteRt,
+    engine: AiEngine.LITE_RT,
     isModelReady,
     download:
       fraction === null
@@ -45,11 +45,11 @@ async function readLiteRtStatus() {
 /** The engine this browser uses for AI match and whether its model is on disk - probed fresh on every call */
 export async function readAiStatus() {
   const choice = await resolveAiEngine(BACKGROUND_PROBES);
-  if (choice.engine === AiEngine.builtIn) {
+  if (choice.engine === AiEngine.BUILT_IN) {
     return await readBuiltInStatus();
   }
 
-  if (choice.engine === AiEngine.liteRt) {
+  if (choice.engine === AiEngine.LITE_RT) {
     return await readLiteRtStatus();
   }
 

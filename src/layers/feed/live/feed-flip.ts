@@ -46,7 +46,7 @@ async function fadeOutLeavingTiles({ grid, removedIds }: { grid: FeedGrid; remov
     videoIds: removedIds
   }).filter(isInViewport);
   for (const elTile of elLeaving) {
-    elTile.classList.add(FeedMotionClass.leaving);
+    elTile.classList.add(FeedMotionClass.LEAVING);
   }
   await Promise.all(elLeaving.map(whenMotionFinishes));
 }
@@ -70,7 +70,7 @@ async function waitForEnteringTiles({ grid, insertedIds }: { grid: FeedGrid; ins
       videoIds: insertedIds
     });
     for (const elTile of elStamped) {
-      elTile.classList.add(FeedMotionClass.pending);
+      elTile.classList.add(FeedMotionClass.PENDING);
     }
     return elStamped.length >= insertedIds.size;
   }
@@ -135,26 +135,26 @@ function hideRevealedShelfTiles({
     return !!videoId && !insertedIds.has(videoId) && !oldRects.has(videoId) && isInViewport(elTile);
   });
   for (const elTile of elRevealed) {
-    elTile.classList.add(FeedMotionClass.pending);
+    elTile.classList.add(FeedMotionClass.PENDING);
   }
   return elRevealed;
 }
 
 async function enter(elTile: HTMLElement) {
-  elTile.classList.remove(FeedMotionClass.pending);
+  elTile.classList.remove(FeedMotionClass.PENDING);
 
   if (!isInViewport(elTile)) {
     return;
   }
 
-  elTile.classList.add(FeedMotionClass.entering);
+  elTile.classList.add(FeedMotionClass.ENTERING);
   await whenMotionFinishes(elTile);
-  elTile.classList.remove(FeedMotionClass.entering);
+  elTile.classList.remove(FeedMotionClass.ENTERING);
 }
 
 function clearMotionClasses(grid: FeedGrid) {
   for (const elTile of grid.findTiles()) {
-    elTile.classList.remove(FeedMotionClass.leaving, FeedMotionClass.pending);
+    elTile.classList.remove(FeedMotionClass.LEAVING, FeedMotionClass.PENDING);
   }
 }
 

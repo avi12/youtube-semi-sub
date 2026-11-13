@@ -23,8 +23,8 @@
   const { isAiEnabled, aiFilterCount }: Props = $props();
 
   const UNAVAILABLE_REASONS = {
-    [AiUnavailableReason.noWebGpu]: "Not available here - this browser has no built-in AI, and no WebGPU to run a model of its own",
-    [AiUnavailableReason.outdatedBrowser]: "Not available here - update your browser to run the on-device model"
+    [AiUnavailableReason.NO_WEB_GPU]: "Not available here - this browser has no built-in AI, and no WebGPU to run a model of its own",
+    [AiUnavailableReason.OUTDATED_BROWSER]: "Not available here - update your browser to run the on-device model"
   } satisfies Record<AiUnavailableReason, string>;
 
   const status = $derived(aiMatchSetup.status);
@@ -39,15 +39,15 @@
     return "Describe videos in plain words, and a model on your device picks the ones to add or hide";
   });
   const engineText = $derived.by(() => {
-    if (status?.engine === AiEngine.builtIn) {
+    if (status?.engine === AiEngine.BUILT_IN) {
       return "Uses your browser's built-in AI, right on your device. If its model isn't there yet, your browser downloads it once";
     }
 
-    if (status?.engine === AiEngine.liteRt) {
+    if (status?.engine === AiEngine.LITE_RT) {
       return `Runs Gemma on your device through WebGPU. Turning this on downloads the model once (${LITERT_MODEL_SIZE_LABEL}), turning it off deletes it`;
     }
 
-    if (status?.engine === AiEngine.none) {
+    if (status?.engine === AiEngine.NONE) {
       return UNAVAILABLE_REASONS[status.reason];
     }
 
@@ -93,7 +93,7 @@
 
     {#if status}
       <li class="ai__details">
-        <p class={["ai__engine", status.engine === AiEngine.none && "ai__engine--unavailable"]}>{engineText}</p>
+        <p class={["ai__engine", status.engine === AiEngine.NONE && "ai__engine--unavailable"]}>{engineText}</p>
 
         {#if download}
           <div class="download">
@@ -120,7 +120,7 @@
             <p class="ai__note">The model isn't on this device yet</p>
             <Button onclick={() => turnOnAiMatch()} size="s" variant="tonal">Download</Button>
           </div>
-        {:else if isAiEnabled && status.engine !== AiEngine.none}
+        {:else if isAiEnabled && status.engine !== AiEngine.NONE}
           <p class="ai__note">Ready - AI filters are judged on your device</p>
         {:else if aiFilterCount > 0 && isAvailable}
           <p class="ai__note">{pausedText}</p>

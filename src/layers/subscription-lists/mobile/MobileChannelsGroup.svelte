@@ -11,7 +11,7 @@
 </script>
 
 <!-- m.youtube.com/feed/channels: above YouTube's own "All channels" shelf. m.youtube.com routes plain links itself -->
-<section class="yss-m-channels" {@attach markSurface(SemiListSurface.mobileChannels)} aria-labelledby={titleId}>
+<section class="yss-m-channels" {@attach markSurface(SemiListSurface.MOBILE_CHANNELS)} aria-labelledby={titleId}>
   <h2 id={titleId} class="yss-m-channels__title">{SEMI_LIST_TITLE}</h2>
   <ul class="yss-m-channels__list">
     {#each listsView.subscriptions as subscription (subscription.channelId)}

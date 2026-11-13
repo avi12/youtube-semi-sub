@@ -82,7 +82,7 @@ function lockupWithMenu(menuButton: unknown) {
 
 function addItem({
   renderer,
-  kind = RendererKind.lockupViewModel
+  kind = RendererKind.LOCKUP_VIEW_MODEL
 }: {
   renderer: object;
   kind?: Parameters<typeof withSemiUnsubscribeItem>[0]["kind"];
@@ -197,7 +197,7 @@ describe("withSemiUnsubscribeItem", () => {
           }
         }
       },
-      kind: RendererKind.videoWithContextRenderer
+      kind: RendererKind.VIDEO_WITH_CONTEXT_RENDERER
     });
     expect(withMenu).toEqual({
       videoId: videoId(1),
@@ -213,7 +213,7 @@ describe("withSemiUnsubscribeItem", () => {
       renderer: {
         videoId: videoId(1)
       },
-      kind: RendererKind.videoWithContextRenderer
+      kind: RendererKind.VIDEO_WITH_CONTEXT_RENDERER
     });
     expect(withoutMenu).toEqual({
       videoId: videoId(1),
@@ -229,7 +229,7 @@ describe("withSemiUnsubscribeItem", () => {
     const original = shortsLockup({ index: 50 });
     const built = addItem({
       renderer: original,
-      kind: RendererKind.shortsLockupViewModel
+      kind: RendererKind.SHORTS_LOCKUP_VIEW_MODEL
     });
     const hideItem =
       original.menuOnTap.innertubeCommand.showSheetCommand.panelLoadingStrategy.inlineContent.sheetViewModel.content
@@ -260,7 +260,7 @@ describe("withSemiUnsubscribeItem", () => {
     const { menuOnTap, ...withoutMenu } = shortsLockup({ index: 50 });
     const built = addItem({
       renderer: withoutMenu,
-      kind: RendererKind.shortsLockupViewModel
+      kind: RendererKind.SHORTS_LOCKUP_VIEW_MODEL
     });
     expect(menuOnTap).toBeDefined();
     expect(built).toMatchObject({

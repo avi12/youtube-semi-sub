@@ -31,7 +31,7 @@ const OTHER_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
 const HOUR_MS = 3_600_000;
 
 const AI_FILTER: AiFilter = {
-  kind: FilterKind.aiMatch,
+  kind: FilterKind.AI_MATCH,
   description: "only reviews"
 };
 
@@ -69,7 +69,7 @@ function createSubscriptions(filter: TitleFilter | null) {
 
 function createRegexSubscriptions(pattern: string) {
   return createSubscriptions({
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern,
     flags: "i"
   });
@@ -79,7 +79,7 @@ describe("compileTitleFilter", () => {
   it("compiles a valid pattern", () => {
     expect(
       compileTitleFilter({
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "review",
         flags: "i"
       })?.test("iPhone REVIEW")
@@ -89,7 +89,7 @@ describe("compileTitleFilter", () => {
   it("rejects an invalid pattern", () => {
     expect(
       compileTitleFilter({
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "(",
         flags: ""
       })
@@ -99,7 +99,7 @@ describe("compileTitleFilter", () => {
   it("rejects stateful flags", () => {
     expect(
       compileTitleFilter({
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "a",
         flags: "g"
       })
@@ -111,7 +111,7 @@ describe("getTitleFilterError", () => {
   it("is null for a valid pattern", () => {
     expect(
       getTitleFilterError({
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "a|b",
         flags: "i"
       })
@@ -121,7 +121,7 @@ describe("getTitleFilterError", () => {
   it("describes an invalid pattern", () => {
     expect(
       getTitleFilterError({
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "[",
         flags: ""
       })
@@ -130,7 +130,7 @@ describe("getTitleFilterError", () => {
 
   it("explains a flag that would make the filter stateful, as compileTitleFilter refuses it", () => {
     const filter = {
-      kind: FilterKind.regex,
+      kind: FilterKind.REGEX,
       pattern: "review",
       flags: "g"
     } as const;
@@ -144,21 +144,21 @@ describe("isVideoFilterValid", () => {
     [AI_FILTER, true],
     [
       {
-        kind: FilterKind.aiMatch,
+        kind: FilterKind.AI_MATCH,
         description: "   "
       },
       false
     ],
     [
       {
-        kind: FilterKind.aiMatch,
+        kind: FilterKind.AI_MATCH,
         description: "x".repeat(301)
       },
       false
     ],
     [
       {
-        kind: FilterKind.regex,
+        kind: FilterKind.REGEX,
         pattern: "(",
         flags: ""
       },
@@ -166,20 +166,20 @@ describe("isVideoFilterValid", () => {
     ],
     [
       {
-        kind: FilterKind.length,
+        kind: FilterKind.LENGTH,
         maxSeconds: 600
       },
       true
     ],
     [
       {
-        kind: FilterKind.length
+        kind: FilterKind.LENGTH
       },
       false
     ],
     [
       {
-        kind: FilterKind.length,
+        kind: FilterKind.LENGTH,
         minSeconds: 600,
         maxSeconds: 60
       },
@@ -187,8 +187,8 @@ describe("isVideoFilterValid", () => {
     ],
     [
       {
-        kind: FilterKind.group,
-        match: FilterMatch.any,
+        kind: FilterKind.GROUP,
+        match: FilterMatch.ANY,
         conditions: []
       },
       false
@@ -200,7 +200,7 @@ describe("isVideoFilterValid", () => {
 
 describe("createVideoJudge by length", () => {
   const UP_TO_TEN_MINUTES: VideoFilter = {
-    kind: FilterKind.length,
+    kind: FilterKind.LENGTH,
     maxSeconds: 600
   };
 
@@ -222,38 +222,38 @@ describe("createVideoJudge by length", () => {
   }
 
   it("matches a video inside the range and rejects one outside it", () => {
-    expect(judgeLength({ durationSeconds: 300 })).toBe(MatchState.matches);
-    expect(judgeLength({ durationSeconds: 601 })).toBe(MatchState.doesNotMatch);
+    expect(judgeLength({ durationSeconds: 300 })).toBe(MatchState.MATCHES);
+    expect(judgeLength({ durationSeconds: 601 })).toBe(MatchState.DOES_NOT_MATCH);
   });
 
   it("keeps a video of unknown length pending, unless it is a Short the range covers", () => {
-    expect(judgeLength({})).toBe(MatchState.pending);
-    expect(judgeLength({ isShort: true })).toBe(MatchState.matches);
+    expect(judgeLength({})).toBe(MatchState.PENDING);
+    expect(judgeLength({ isShort: true })).toBe(MatchState.MATCHES);
     expect(
       judgeLength({
         isShort: true,
         filter: {
-          kind: FilterKind.length,
+          kind: FilterKind.LENGTH,
           minSeconds: 300
         }
       })
-    ).toBe(MatchState.doesNotMatch);
+    ).toBe(MatchState.DOES_NOT_MATCH);
     expect(
       judgeLength({
         isShort: true,
         filter: {
-          kind: FilterKind.length,
+          kind: FilterKind.LENGTH,
           maxSeconds: 60
         }
       })
-    ).toBe(MatchState.pending);
+    ).toBe(MatchState.PENDING);
   });
 });
 
 describe("createVideoJudge by upload type", () => {
   const NO_SHORTS_OR_STREAMS: VideoFilter = {
-    kind: FilterKind.type,
-    types: [VideoType.video]
+    kind: FilterKind.TYPE,
+    types: [VideoType.VIDEO]
   };
 
   function judgeType(video: Partial<Pick<FeedVideo, "isShort" | "isLiveStream">>) {
@@ -274,28 +274,28 @@ describe("createVideoJudge by upload type", () => {
         isShort: false,
         isLiveStream: false
       })
-    ).toBe(MatchState.matches);
-    expect(judgeType({ isShort: true })).toBe(MatchState.doesNotMatch);
+    ).toBe(MatchState.MATCHES);
+    expect(judgeType({ isShort: true })).toBe(MatchState.DOES_NOT_MATCH);
     expect(
       judgeType({
         isShort: false,
         isLiveStream: true
       })
-    ).toBe(MatchState.doesNotMatch);
+    ).toBe(MatchState.DOES_NOT_MATCH);
   });
 
   it("keeps a video pending until a channel tab tells whether it is a live stream", () => {
-    expect(judgeType({ isShort: false })).toBe(MatchState.pending);
+    expect(judgeType({ isShort: false })).toBe(MatchState.PENDING);
   });
 
   it("leaves out a condition that picks every type", () => {
     expect(
       isFilterInert({
         filter: {
-          kind: FilterKind.type,
+          kind: FilterKind.TYPE,
           types: Object.values(VideoType)
         },
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       })
     ).toBe(true);
   });
@@ -304,16 +304,16 @@ describe("createVideoJudge by upload type", () => {
 describe("createVideoJudge with combined conditions", () => {
   function createGroup(match: FilterMatch) {
     const filter: VideoFilter = {
-      kind: FilterKind.group,
+      kind: FilterKind.GROUP,
       match,
       conditions: [
         {
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "review",
           flags: "i"
         },
         {
-          kind: FilterKind.length,
+          kind: FilterKind.LENGTH,
           maxSeconds: 600
         }
       ]
@@ -343,69 +343,69 @@ describe("createVideoJudge with combined conditions", () => {
   it("needs every condition with all", () => {
     expect(
       judge({
-        match: FilterMatch.all,
+        match: FilterMatch.ALL,
         title: "Phone review",
         durationSeconds: 300
       })
-    ).toBe(MatchState.matches);
+    ).toBe(MatchState.MATCHES);
     expect(
       judge({
-        match: FilterMatch.all,
+        match: FilterMatch.ALL,
         title: "Phone review",
         durationSeconds: 900
       })
-    ).toBe(MatchState.doesNotMatch);
+    ).toBe(MatchState.DOES_NOT_MATCH);
     expect(
       judge({
-        match: FilterMatch.all,
+        match: FilterMatch.ALL,
         title: "Phone review"
       })
-    ).toBe(MatchState.pending);
+    ).toBe(MatchState.PENDING);
     expect(
       judge({
-        match: FilterMatch.all,
+        match: FilterMatch.ALL,
         title: "Vlog"
       })
-    ).toBe(MatchState.doesNotMatch);
+    ).toBe(MatchState.DOES_NOT_MATCH);
   });
 
   it("needs one condition with any", () => {
     expect(
       judge({
-        match: FilterMatch.any,
+        match: FilterMatch.ANY,
         title: "Phone review"
       })
-    ).toBe(MatchState.matches);
+    ).toBe(MatchState.MATCHES);
     expect(
       judge({
-        match: FilterMatch.any,
+        match: FilterMatch.ANY,
         title: "Vlog",
         durationSeconds: 300
       })
-    ).toBe(MatchState.matches);
+    ).toBe(MatchState.MATCHES);
     expect(
       judge({
-        match: FilterMatch.any,
+        match: FilterMatch.ANY,
         title: "Vlog",
         durationSeconds: 900
       })
-    ).toBe(MatchState.doesNotMatch);
+    ).toBe(MatchState.DOES_NOT_MATCH);
     expect(
       judge({
-        match: FilterMatch.any,
+        match: FilterMatch.ANY,
         title: "Vlog"
       })
-    ).toBe(MatchState.pending);
+    ).toBe(MatchState.PENDING);
   });
 
   it("leaves out an empty pattern, so a hide filter hides by length alone", () => {
     const filter: VideoFilter = {
-      kind: FilterKind.group,
-      match: FilterMatch.any,
+      kind: FilterKind.GROUP,
+      match: FilterMatch.ANY,
       conditions: [
         DEFAULT_TITLE_FILTER,
         {
-          kind: FilterKind.length,
+          kind: FilterKind.LENGTH,
           maxSeconds: 60
         }
       ]
@@ -413,7 +413,7 @@ describe("createVideoJudge with combined conditions", () => {
     expect(
       isFilterInert({
         filter,
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       })
     ).toBe(false);
     expect(
@@ -426,17 +426,17 @@ describe("createVideoJudge with combined conditions", () => {
         title: "Anything",
         durationSeconds: 600
       })
-    ).toBe(MatchState.doesNotMatch);
+    ).toBe(MatchState.DOES_NOT_MATCH);
   });
 
   it("counts a paused AI condition as pending beside a working one", () => {
     const filter: VideoFilter = {
-      kind: FilterKind.group,
-      match: FilterMatch.any,
+      kind: FilterKind.GROUP,
+      match: FilterMatch.ANY,
       conditions: [
         AI_FILTER,
         {
-          kind: FilterKind.length,
+          kind: FilterKind.LENGTH,
           maxSeconds: 600
         }
       ]
@@ -452,14 +452,14 @@ describe("createVideoJudge with combined conditions", () => {
         title: "Vlog",
         durationSeconds: 300
       })
-    ).toBe(MatchState.matches);
+    ).toBe(MatchState.MATCHES);
     expect(
       pausedJudge?.({
         videoId: "aaaaaaaaaaa",
         title: "Vlog",
         durationSeconds: 900
       })
-    ).toBe(MatchState.pending);
+    ).toBe(MatchState.PENDING);
   });
 });
 
@@ -468,17 +468,17 @@ describe("buildVideoFilter", () => {
     expect(
       buildVideoFilter({
         conditions: [AI_FILTER],
-        match: FilterMatch.any
+        match: FilterMatch.ANY
       })
     ).toEqual(AI_FILTER);
     expect(
       buildVideoFilter({
         conditions: [AI_FILTER, DEFAULT_TITLE_FILTER],
-        match: FilterMatch.any
+        match: FilterMatch.ANY
       })
     ).toEqual({
-      kind: FilterKind.group,
-      match: FilterMatch.any,
+      kind: FilterKind.GROUP,
+      match: FilterMatch.ANY,
       conditions: [AI_FILTER, DEFAULT_TITLE_FILTER]
     });
   });
@@ -489,13 +489,13 @@ describe("isFilterInert", () => {
     expect(
       isFilterInert({
         filter: null,
-        mode: SubscriptionMode.follow
+        mode: SubscriptionMode.FOLLOW
       })
     ).toBe(true);
     expect(
       isFilterInert({
         filter: null,
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       })
     ).toBe(true);
   });
@@ -504,19 +504,19 @@ describe("isFilterInert", () => {
     expect(
       isFilterInert({
         filter: DEFAULT_TITLE_FILTER,
-        mode: SubscriptionMode.hide
+        mode: SubscriptionMode.HIDE
       })
     ).toBe(true);
     expect(
       isFilterInert({
         filter: DEFAULT_TITLE_FILTER,
-        mode: SubscriptionMode.follow
+        mode: SubscriptionMode.FOLLOW
       })
     ).toBe(false);
   });
 
   it("acts on a pattern or an AI description in either mode", () => {
-    for (const mode of [SubscriptionMode.follow, SubscriptionMode.hide]) {
+    for (const mode of [SubscriptionMode.FOLLOW, SubscriptionMode.HIDE]) {
       expect(
         isFilterInert({
           filter: AI_FILTER,
@@ -620,7 +620,7 @@ describe("selectFeedVideos", () => {
           channelId: CHANNEL_ID,
           title: "Channel",
           followFilter: {
-            kind: FilterKind.regex,
+            kind: FilterKind.REGEX,
             pattern: "",
             flags: ""
           },
@@ -689,7 +689,7 @@ describe("selectFeedVideos", () => {
     it("reads verdicts by the normalized description", () => {
       const selected = selectFeedVideos({
         subscriptions: createSubscriptions({
-          kind: FilterKind.aiMatch,
+          kind: FilterKind.AI_MATCH,
           description: "  only   reviews "
         }),
         videosByChannel: {
@@ -758,7 +758,7 @@ describe("selectHiddenVideoIds", () => {
     expect(
       selectHiddenVideoIds({
         subscriptions: subscribedWith({
-          kind: FilterKind.regex,
+          kind: FilterKind.REGEX,
           pattern: "vlog|live",
           flags: "i"
         }),
@@ -834,7 +834,7 @@ describe("createSubscribedHideCheck", () => {
     isAiEnabled: false
   };
   const tutorials: RegexFilter = {
-    kind: FilterKind.regex,
+    kind: FilterKind.REGEX,
     pattern: "tutorial",
     flags: "i"
   };

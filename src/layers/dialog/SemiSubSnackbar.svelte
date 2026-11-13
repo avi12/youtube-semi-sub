@@ -16,7 +16,7 @@
   const SNACKBAR_DURATION_MS = 4000;
   const SNACKBAR_CONTAINER_SELECTOR = "snackbar-container";
 
-  const isMobile = getYouTubeSite() === YouTubeSite.mobile;
+  const isMobile = getYouTubeSite() === YouTubeSite.MOBILE;
 
   let isEntered = $state(false);
   let isClosing = $state(false);
@@ -48,7 +48,7 @@
   /** Starts `out`, so m's transition slides it in on the next frame, and back out when it closes */
   function attachMobileToastDirection(elToast: HTMLElement) {
     const isShown = isEntered && !isClosing;
-    elToast.setAttribute("dir", isShown ? MobileToastDirection.entering : MobileToastDirection.leaving);
+    elToast.setAttribute("dir", isShown ? MobileToastDirection.ENTERING : MobileToastDirection.LEAVING);
   }
 
   onMount(() => {

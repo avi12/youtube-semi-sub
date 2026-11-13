@@ -26,7 +26,7 @@ export function toDownloadPercent(fraction: number) {
 }
 
 export async function refreshAiStatus() {
-  const status = await sendMessage(MessageType.getAiStatus).catch(() => null);
+  const status = await sendMessage(MessageType.GET_AI_STATUS).catch(() => null);
   aiMatchSetup.status = status;
   // A download that outlived an earlier popup (or runs in the browser) shows up here when this one opens
   const isDownloadedByThisPopup = builtInDownload !== null;
@@ -37,7 +37,7 @@ export async function refreshAiStatus() {
 
 /** The local model's progress, broadcast by the page downloading it; null means it ended */
 export function followModelDownload() {
-  return onMessage(MessageType.aiModelDownloadChanged, ({ fraction }) => {
+  return onMessage(MessageType.AI_MODEL_DOWNLOAD_CHANGED, ({ fraction }) => {
     if (fraction !== null) {
       aiMatchSetup.download = { fraction };
       return;
@@ -65,7 +65,7 @@ async function downloadLocal() {
   aiMatchSetup.download = { fraction: 0 };
   // The background only downloads for a user who has switched AI match on - so the switch is stored first
   await isAiEnabledItem.setValue(true);
-  return await sendMessage(MessageType.downloadAiModel).catch(() => false);
+  return await sendMessage(MessageType.DOWNLOAD_AI_MODEL).catch(() => false);
 }
 
 /**
@@ -88,7 +88,7 @@ export async function turnOnAiMatch() {
   }
 
   let isDownloaded: boolean;
-  if (status.engine === AiEngine.builtIn) {
+  if (status.engine === AiEngine.BUILT_IN) {
     const download = downloadBuiltIn();
     await isAiEnabledItem.setValue(true);
     isDownloaded = await download;

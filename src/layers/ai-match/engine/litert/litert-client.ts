@@ -19,7 +19,7 @@ export async function downloadLocalModel() {
     return await downloadLiteRtModel();
   }
 
-  return await sendToOffscreenDocument(() => sendMessage(MessageType.offscreenAiDownload)).catch(() => false);
+  return await sendToOffscreenDocument(() => sendMessage(MessageType.OFFSCREEN_AI_DOWNLOAD)).catch(() => false);
 }
 
 /** 0..1 while a download runs, null otherwise. Never creates the offscreen page just to ask */
@@ -32,7 +32,7 @@ export async function readLocalModelDownloadFraction() {
     return null;
   }
 
-  return await sendToOffscreenDocument(() => sendMessage(MessageType.offscreenAiDownloadFraction)).catch(() => null);
+  return await sendToOffscreenDocument(() => sendMessage(MessageType.OFFSCREEN_AI_DOWNLOAD_FRACTION)).catch(() => null);
 }
 
 export async function inferLocally(messages: ChatMessage[]) {
@@ -40,7 +40,9 @@ export async function inferLocally(messages: ChatMessage[]) {
     return await inferWithLiteRt(messages);
   }
 
-  return await sendToOffscreenDocument(() => sendMessage(MessageType.offscreenAiInfer, { messages })).catch(() => null);
+  return await sendToOffscreenDocument(() => sendMessage(MessageType.OFFSCREEN_AI_INFER, { messages })).catch(
+    () => null
+  );
 }
 
 /** Opt-out: stops a running download, frees the engine and deletes the model */

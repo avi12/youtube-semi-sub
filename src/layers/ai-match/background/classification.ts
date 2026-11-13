@@ -92,7 +92,7 @@ async function openReadyJudge() {
     return null;
   }
 
-  if (status.engine === AiEngine.builtIn) {
+  if (status.engine === AiEngine.BUILT_IN) {
     return createBuiltInJudge(() => openBuiltInSession(buildPrefaceMessages()));
   }
 

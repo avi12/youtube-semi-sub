@@ -59,7 +59,7 @@ export function mergeSemiSubscription({
     followFilter: previous?.followFilter ?? null,
     hideFilter: previous?.hideFilter ?? null,
     createdAt: previous?.createdAt ?? now,
-    isSubscribed: previous?.isSubscribed ?? mode === SubscriptionMode.hide,
+    isSubscribed: previous?.isSubscribed ?? mode === SubscriptionMode.HIDE,
     ...readCarriedFields({
       previous,
       channel,

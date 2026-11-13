@@ -42,7 +42,7 @@ function recordOpenedMenu(e: Event) {
 
   const elAnchor = elDropdown.positionTarget;
   const elButton = elAnchor.matches("button") ? elAnchor : elAnchor.querySelector("button");
-  const elTile = elButton?.closest<HTMLElement>(FeedTileTag.desktop);
+  const elTile = elButton?.closest<HTMLElement>(FeedTileTag.DESKTOP);
   const parsed = openMenuSchema.safeParse({
     elDropdown,
     elAnchor,
@@ -84,7 +84,7 @@ function findMenuTarget({ menu, menuRect }: { menu: OpenMenu; menuRect: DOMRect 
   const isTileShowingVideo = elTile.isConnected && videoIdFromTile(elTile) === videoId;
   const elCandidates = isTileShowingVideo
     ? [elTile]
-    : [...document.querySelectorAll<HTMLElement>(FeedTileTag.desktop)].filter(
+    : [...document.querySelectorAll<HTMLElement>(FeedTileTag.DESKTOP)].filter(
         elCandidate => videoIdFromTile(elCandidate) === videoId
       );
   function distanceFromMenu({ elButton }: MenuTarget) {
@@ -118,7 +118,7 @@ function lineUpMenu({ menu, target }: { menu: OpenMenu; target: MenuTarget }) {
   const { elDropdown } = menu;
   const { elButton, elTile } = target;
   // The refit offsets the menu's own glide, so a glide left in flight would carry it off the button
-  elDropdown.classList.remove(FeedMotionClass.gliding);
+  elDropdown.classList.remove(FeedMotionClass.GLIDING);
   elDropdown.style.translate = "";
   elDropdown.positionTarget = elButton;
   elDropdown.refit();
@@ -193,7 +193,7 @@ function reanchorOpenMenu() {
 
 async function followMenuThroughResize({ elDropdown, elTile }: OpenMenu) {
   isFollowingThroughResize = true;
-  elDropdown.classList.remove(FeedMotionClass.gliding);
+  elDropdown.classList.remove(FeedMotionClass.GLIDING);
   elDropdown.style.translate = "";
   try {
     while (isInGlide(elTile) && trackedOpenMenu()) {

@@ -22,8 +22,8 @@ export type FeedSlot = z.infer<typeof feedSlotSchema>;
 
 /** Which side of its anchor item a placed video stands on */
 export enum AnchorSide {
-  after = "after",
-  before = "before"
+  AFTER = "after",
+  BEFORE = "before"
 }
 
 /** The band item a placed video stands next to: the one before it, or the one after it at the band's start */

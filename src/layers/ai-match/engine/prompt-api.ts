@@ -3,10 +3,10 @@ import type { ChatMessage } from "@/lib/ai/chat-message";
 import { z } from "@/lib/zod";
 
 export enum BuiltInAvailability {
-  unavailable = "unavailable",
-  downloadable = "downloadable",
-  downloading = "downloading",
-  available = "available"
+  UNAVAILABLE = "unavailable",
+  DOWNLOADABLE = "downloadable",
+  DOWNLOADING = "downloading",
+  AVAILABLE = "available"
 }
 
 const SESSION_TIMEOUT_MS = 30_000;
@@ -87,7 +87,7 @@ export async function readBuiltInAvailability() {
 
   const availability = await languageModel.availability(LANGUAGE_MODEL_OPTIONS).catch(() => null);
   const parsed = builtInAvailabilitySchema.safeParse(availability);
-  return parsed.success ? parsed.data : BuiltInAvailability.unavailable;
+  return parsed.success ? parsed.data : BuiltInAvailability.UNAVAILABLE;
 }
 
 /**
@@ -97,7 +97,7 @@ export async function readBuiltInAvailability() {
 export async function openBuiltInSession(initialPrompts: ChatMessage[]) {
   const languageModel = getLanguageModel();
   const availability = await readBuiltInAvailability();
-  const isModelOnDisk = availability === BuiltInAvailability.available;
+  const isModelOnDisk = availability === BuiltInAvailability.AVAILABLE;
   if (!languageModel || !isModelOnDisk) {
     return null;
   }

@@ -26,29 +26,29 @@ export interface AiEngineProbes {
  */
 export async function resolveAiEngine(probes: AiEngineProbes) {
   const builtInAvailability = await probes.readBuiltInAvailability();
-  const isBuiltInUsable = builtInAvailability !== null && builtInAvailability !== BuiltInAvailability.unavailable;
+  const isBuiltInUsable = builtInAvailability !== null && builtInAvailability !== BuiltInAvailability.UNAVAILABLE;
   if (isBuiltInUsable) {
-    const choice: AiEngineChoice = { engine: AiEngine.builtIn };
+    const choice: AiEngineChoice = { engine: AiEngine.BUILT_IN };
     return choice;
   }
 
   const { isWebGpuAvailable, isWasmRuntimeSupported } = await probes.probeLiteRtSupport();
   if (!isWebGpuAvailable) {
     const choice: AiEngineChoice = {
-      engine: AiEngine.none,
-      reason: AiUnavailableReason.noWebGpu
+      engine: AiEngine.NONE,
+      reason: AiUnavailableReason.NO_WEB_GPU
     };
     return choice;
   }
 
   if (!isWasmRuntimeSupported) {
     const choice: AiEngineChoice = {
-      engine: AiEngine.none,
-      reason: AiUnavailableReason.outdatedBrowser
+      engine: AiEngine.NONE,
+      reason: AiUnavailableReason.OUTDATED_BROWSER
     };
     return choice;
   }
 
-  const choice: AiEngineChoice = { engine: AiEngine.liteRt };
+  const choice: AiEngineChoice = { engine: AiEngine.LITE_RT };
   return choice;
 }

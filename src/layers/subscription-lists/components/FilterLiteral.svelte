@@ -20,7 +20,7 @@
   {#if i > 0}
     <span class="yss-filter-literal__connector">{literal.connector}</span>
   {/if}
-  {#if part.kind === FilterLiteralKind.aiMatch}
+  {#if part.kind === FilterLiteralKind.AI_MATCH}
     <span class={["yss-filter-literal", "yss-filter-literal--ai", part.isPaused && "yss-filter-literal--paused"]}>
       <span class="yss-filter-literal__badge">{AI_LITERAL_PREFIX}</span>
       <bdi>{part.text}</bdi>
@@ -28,7 +28,7 @@
         <span class="yss-filter-literal__paused">{PAUSED_LABEL}</span>
       {/if}
     </span>
-  {:else if part.kind === FilterLiteralKind.regex}
+  {:else if part.kind === FilterLiteralKind.REGEX}
     <code class="yss-filter-literal" dir="ltr">/{part.text}/{part.flags}</code>
   {:else}
     <span class="yss-filter-literal yss-filter-literal--any">{part.text}</span>

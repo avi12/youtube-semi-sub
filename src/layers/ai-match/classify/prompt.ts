@@ -211,7 +211,7 @@ const WORKED_EXAMPLES: WorkedExample[] = [
 export function buildPrefaceMessages() {
   const messages: ChatMessage[] = [
     {
-      role: ChatRole.system,
+      role: ChatRole.SYSTEM,
       content: SYSTEM_PROMPT
     }
   ];
@@ -223,14 +223,14 @@ export function buildPrefaceMessages() {
     }));
     messages.push(
       {
-        role: ChatRole.user,
+        role: ChatRole.USER,
         content: buildBatchPrompt({
           description: filter,
           videos
         })
       },
       {
-        role: ChatRole.assistant,
+        role: ChatRole.ASSISTANT,
         content: JSON.stringify({ verdicts: exampleReply })
       }
     );

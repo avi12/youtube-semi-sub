@@ -42,15 +42,15 @@ function findStripPlacement() {
 
 export function startMobileLists() {
   startSemiListSurface({
-    surface: SemiListSurface.mobileChannels,
-    pathname: FeedPathname.channels,
+    surface: SemiListSurface.MOBILE_CHANNELS,
+    pathname: FeedPathname.CHANNELS,
     observedSelector: APP_SELECTOR,
     findPlacement: findChannelsPlacement,
     component: MobileChannelsGroup
   });
   startSemiListSurface({
-    surface: SemiListSurface.mobileStrip,
-    pathname: FeedPathname.subscriptions,
+    surface: SemiListSurface.MOBILE_STRIP,
+    pathname: FeedPathname.SUBSCRIPTIONS,
     observedSelector: APP_SELECTOR,
     findPlacement: findStripPlacement,
     component: MobileStripItems,

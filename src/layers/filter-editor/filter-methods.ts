@@ -17,16 +17,16 @@ import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 export const FILTER_METHODS = Object.values(FilterMethod);
 
 export const FILTER_METHOD_LABEL = {
-  [FilterMethod.title]: "Title",
-  [FilterMethod.length]: "Length",
-  [FilterMethod.type]: "Type"
+  [FilterMethod.TITLE]: "Title",
+  [FilterMethod.LENGTH]: "Length",
+  [FilterMethod.TYPE]: "Type"
 } as const satisfies Record<FilterMethod, string>;
 
 /** Each upload type as its toggle names it */
 export const VIDEO_TYPE_LABEL = {
-  [VideoType.video]: "Videos",
-  [VideoType.short]: "Shorts",
-  [VideoType.liveStream]: "Live streams"
+  [VideoType.VIDEO]: "Videos",
+  [VideoType.SHORT]: "Shorts",
+  [VideoType.LIVE_STREAM]: "Live streams"
 } as const satisfies Record<VideoType, string>;
 
 /**
@@ -34,18 +34,18 @@ export const VIDEO_TYPE_LABEL = {
  * Shorts - the two asks this method exists for
  */
 const DEFAULT_TYPES_BY_MODE = {
-  [SubscriptionMode.follow]: [VideoType.video],
-  [SubscriptionMode.hide]: [VideoType.short]
+  [SubscriptionMode.FOLLOW]: [VideoType.VIDEO],
+  [SubscriptionMode.HIDE]: [VideoType.SHORT]
 } as const satisfies Record<SubscriptionMode, readonly VideoType[]>;
 
 export const TITLE_KIND_LABEL = {
-  [FilterKind.regex]: "RegExp",
-  [FilterKind.aiMatch]: "AI match"
-} as const satisfies Record<FilterKind.regex | FilterKind.aiMatch, string>;
+  [FilterKind.REGEX]: "RegExp",
+  [FilterKind.AI_MATCH]: "AI match"
+} as const satisfies Record<FilterKind.REGEX | FilterKind.AI_MATCH, string>;
 
 export const FILTER_MATCH_LABEL = {
-  [FilterMatch.all]: "All of these",
-  [FilterMatch.any]: "Any of these"
+  [FilterMatch.ALL]: "All of these",
+  [FilterMatch.ANY]: "Any of these"
 } as const satisfies Record<FilterMatch, string>;
 
 export const FILTER_MATCHES = Object.values(FilterMatch);
@@ -57,14 +57,14 @@ export function getConditionMethod(condition: FilterCondition) {
 /** Where a newly picked method starts */
 export function createDefaultCondition({ method, mode }: { method: FilterMethod; mode: SubscriptionMode }) {
   const conditionByMethod = {
-    [FilterMethod.title]: {
+    [FilterMethod.TITLE]: {
       ...DEFAULT_TITLE_FILTER
     },
-    [FilterMethod.length]: {
+    [FilterMethod.LENGTH]: {
       ...DEFAULT_LENGTH_FILTER
     },
-    [FilterMethod.type]: {
-      kind: FilterKind.type,
+    [FilterMethod.TYPE]: {
+      kind: FilterKind.TYPE,
       types: [...DEFAULT_TYPES_BY_MODE[mode]]
     }
   } satisfies Record<FilterMethod, FilterCondition>;

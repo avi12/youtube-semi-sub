@@ -28,7 +28,7 @@ const SUBSCRIPTIONS: SemiSubscriptions = {
     channelId: CHANNEL_ID,
     title: "Semi Channel (subscribed name)",
     followFilter: {
-      kind: FilterKind.regex,
+      kind: FilterKind.REGEX,
       pattern: "",
       flags: "i"
     },

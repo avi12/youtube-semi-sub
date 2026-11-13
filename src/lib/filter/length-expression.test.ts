@@ -78,7 +78,7 @@ describe("formatLengthExpression", () => {
       { maxSeconds: 5430 }
     ]) {
       const expression = formatLengthExpression({
-        kind: FilterKind.length,
+        kind: FilterKind.LENGTH,
         ...bounds
       });
       expect(parseLengthExpression(expression).bounds).toEqual(bounds);

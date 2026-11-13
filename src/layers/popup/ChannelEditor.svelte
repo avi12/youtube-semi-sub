@@ -42,7 +42,7 @@
     }
 
     isFetching = true;
-    await sendMessage(MessageType.refreshChannel, { channelId: subscription.channelId }).catch(() => {});
+    await sendMessage(MessageType.REFRESH_CHANNEL, { channelId: subscription.channelId }).catch(() => {});
     isFetching = false;
   });
 
