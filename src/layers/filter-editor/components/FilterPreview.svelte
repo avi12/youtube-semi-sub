@@ -201,7 +201,7 @@
   }
 
   .feed--stale {
-    opacity: 45%;
+    opacity: 0.45;
   }
 
   .feed__empty {
@@ -223,7 +223,7 @@
   }
 
   .tile[data-match-state="pending"] {
-    opacity: 55%;
+    opacity: 0.55;
 
     @media (prefers-reduced-motion: no-preference) {
       animation: placeholder-pulse 1200ms ease-in-out infinite alternate;
@@ -308,7 +308,7 @@
 
   @keyframes placeholder-pulse {
     to {
-      opacity: 45%;
+      opacity: 0.45;
     }
   }
 
@@ -331,7 +331,7 @@
     grid-template-columns: 72px minmax(0, 1fr);
     gap: 10px;
     align-items: center;
-    opacity: 60%;
+    opacity: 0.6;
 
     & .video__thumbnail {
       border-radius: 6px;

@@ -321,8 +321,8 @@
     --fallback-text-secondary: #606060;
     --fallback-accent: #065fd4;
     --fallback-error: #c30027;
-    --fallback-outline: rgb(0 0 0 / 10%);
-    --fallback-additive: rgb(0 0 0 / 5%);
+    --fallback-outline: rgb(0 0 0 / 0.1);
+    --fallback-additive: rgb(0 0 0 / 0.05);
     --surface:
       var(
         --yt-sys-color-baseline--raised-background,
@@ -367,11 +367,11 @@
     font-family: var(--font);
     font-size: 14px;
     line-height: 1.4;
-    box-shadow: 0 4px 32px rgb(0 0 0 / 10%);
+    box-shadow: 0 4px 32px rgb(0 0 0 / 0.1);
 
     @media (prefers-reduced-motion: no-preference) {
       @starting-style {
-        opacity: 0%;
+        opacity: 0;
         scale: 0.96;
       }
 
@@ -396,7 +396,7 @@
     /* A bottom sheet on phone widths, like m.youtube.com's own */
     @media (width <= 600px) and (prefers-reduced-motion: no-preference) {
       @starting-style {
-        opacity: 100%;
+        opacity: 1;
         scale: 1;
         translate: 0 100%;
       }
@@ -408,14 +408,14 @@
       --fallback-text-secondary: #aaaaaa;
       --fallback-accent: #3ea6ff;
       --fallback-error: #ff8b8b;
-      --fallback-outline: rgb(255 255 255 / 20%);
-      --fallback-additive: rgb(255 255 255 / 10%);
+      --fallback-outline: rgb(255 255 255 / 0.2);
+      --fallback-additive: rgb(255 255 255 / 0.1);
 
       color-scheme: dark;
     }
 
     &::backdrop {
-      background: var(--yt-sys-color-baseline--overlay-background-medium, rgb(0 0 0 / 60%));
+      background: var(--yt-sys-color-baseline--overlay-background-medium, rgb(0 0 0 / 0.6));
     }
   }
 

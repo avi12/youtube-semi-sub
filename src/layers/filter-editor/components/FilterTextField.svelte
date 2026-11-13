@@ -82,7 +82,7 @@
 
     &::placeholder {
       color: var(--editor-muted);
-      opacity: 60%;
+      opacity: 0.6;
     }
 
     &:focus-visible {

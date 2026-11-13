@@ -65,7 +65,7 @@
     }
 
     &:disabled {
-      opacity: 40%;
+      opacity: 0.4;
       cursor: default;
     }
   }

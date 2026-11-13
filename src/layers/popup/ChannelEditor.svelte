@@ -102,7 +102,7 @@
 
     @media (prefers-reduced-motion: no-preference) {
       @starting-style {
-        opacity: 0%;
+        opacity: 0;
         translate: 0 -6px;
       }
 
