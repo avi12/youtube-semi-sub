@@ -111,7 +111,7 @@ describe("withSemiUnsubscribeItem", () => {
 
   it("gives a lockup without a menu one holding only the item", () => {
     const { metadata, ...lockup } = desktopChannelTabLockup(1);
-    const { menuButton: _menuButton, ...lockupMetadataViewModel } = metadata.lockupMetadataViewModel;
+    const { menuButton: menuButton, ...lockupMetadataViewModel } = metadata.lockupMetadataViewModel;
     const built = addItem({
       renderer: {
         ...lockup,

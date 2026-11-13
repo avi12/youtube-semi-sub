@@ -314,8 +314,8 @@ function withoutCachedFlyout(item: unknown) {
 
   const collapsible = parsed.data.guideCollapsibleSectionEntryRenderer;
   const {
-    mouseEnterEndpoint: _flyout,
-    mouseLeaveEndpoint: _flyoutClose,
+    mouseEnterEndpoint: flyout,
+    mouseLeaveEndpoint: flyoutClose,
     ...headerEntry
   } = collapsible.headerEntry.guideEntryRenderer;
   return {

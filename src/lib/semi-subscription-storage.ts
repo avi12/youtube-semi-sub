@@ -101,7 +101,7 @@ export function removeSemiSubscription(channelId: string) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
     mutator(subscriptions) {
-      const { [channelId]: _removed, ...rest } = subscriptions;
+      const { [channelId]: removed, ...rest } = subscriptions;
       return rest;
     }
   });
@@ -137,7 +137,7 @@ export function setSemiSubscriptionFilter({
         return subscriptions;
       }
 
-      const { isMember: _previousMembership, ...rest } = withModeFilter({
+      const { isMember: previousMembership, ...rest } = withModeFilter({
         subscription: current,
         mode,
         filter

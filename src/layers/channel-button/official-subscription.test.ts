@@ -116,10 +116,10 @@ describe("installSubscriptionWatch", () => {
 });
 
 describe("applySubscriptionSnapshot", () => {
-  const FOLLOWED_CHANNEL_ID = "UCX6OQ3DkcsbYNE6H8uQQuVA";
-  const SUBSCRIBED_CHANNEL_ID = "UCBR8-60-B28hp2BmDPdntcQ";
-  const UNMENTIONED_CHANNEL_ID = "UC4REwc30LXHzKSkpqSwhR-Q";
-  const OBSERVED_CHANNEL_ID = "UCjkyfFH-MWZhasolgds05EA";
+  const followedChannelId = "UCX6OQ3DkcsbYNE6H8uQQuVA";
+  const subscribedChannelId = "UCBR8-60-B28hp2BmDPdntcQ";
+  const unmentionedChannelId = "UC4REwc30LXHzKSkpqSwhR-Q";
+  const observedChannelId = "UCjkyfFH-MWZhasolgds05EA";
 
   function buildSubscription({ channelId, isSubscribed }: Pick<SemiSubscription, "channelId" | "isSubscribed">) {
     const subscription: SemiSubscription = {
@@ -155,50 +155,50 @@ describe("applySubscriptionSnapshot", () => {
 
   it("switches what the snapshot shows subscribed to hiding and the rest to following, once the state is known", () => {
     const snapshot = new Map([
-      [FOLLOWED_CHANNEL_ID, true],
-      [SUBSCRIBED_CHANNEL_ID, false]
+      [followedChannelId, true],
+      [subscribedChannelId, false]
     ]);
     applySubscriptionSnapshot(channelId => snapshot.get(channelId));
     expect(pageMessenger.sendMessage).not.toHaveBeenCalled();
 
     deliverPageState([
       buildSubscription({
-        channelId: FOLLOWED_CHANNEL_ID,
+        channelId: followedChannelId,
         isSubscribed: false
       }),
       buildSubscription({
-        channelId: SUBSCRIBED_CHANNEL_ID,
+        channelId: subscribedChannelId,
         isSubscribed: true
       }),
       buildSubscription({
-        channelId: UNMENTIONED_CHANNEL_ID,
+        channelId: unmentionedChannelId,
         isSubscribed: true
       })
     ]);
     expect(pageMessenger.sendMessage).toHaveBeenCalledTimes(2);
     expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, {
-      channelId: FOLLOWED_CHANNEL_ID,
+      channelId: followedChannelId,
       isSubscribed: true
     });
     expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, {
-      channelId: SUBSCRIBED_CHANNEL_ID,
+      channelId: subscribedChannelId,
       isSubscribed: false
     });
   });
 
   it("leaves channels that already match, and those this tab saw the user subscribe to or leave", () => {
     setObservedOfficialSubscription({
-      channelId: OBSERVED_CHANNEL_ID,
+      channelId: observedChannelId,
       isSubscribed: false
     });
     applySubscriptionSnapshot(() => true);
     deliverPageState([
       buildSubscription({
-        channelId: SUBSCRIBED_CHANNEL_ID,
+        channelId: subscribedChannelId,
         isSubscribed: true
       }),
       buildSubscription({
-        channelId: OBSERVED_CHANNEL_ID,
+        channelId: observedChannelId,
         isSubscribed: false
       })
     ]);

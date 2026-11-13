@@ -37,7 +37,7 @@
   const { initialState }: Props = $props();
 
   const UNDO_SNACKBAR_TIMEOUT_MS = 10_000;
-  const isMotionAllowed = !prefersReducedMotion();
+  const IS_MOTION_ALLOWED = !prefersReducedMotion();
 
   let storedState = $state.raw(untrack(() => initialState));
   const { subscriptions, channelVideos, aiVerdicts, isAiEnabled, isExtensionEnabled, isAnimationsEnabled } = $derived(
@@ -155,7 +155,7 @@
           }}
           size="s"
           variant="tonal">
-          {#if isRefreshing && isMotionAllowed}
+          {#if isRefreshing && IS_MOTION_ALLOWED}
             <LoadingIndicator aria-label="Refreshing" center={false} size={LOADING_INDICATOR_SIZE} />
           {:else}
             <Icon icon={REFRESH_ICON} />

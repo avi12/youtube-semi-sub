@@ -324,7 +324,7 @@ describe("withoutCachedSubscriptionsFlyout", () => {
     ];
   }
 
-  const CACHED_FLYOUT = {
+  const cachedFlyout = {
     mouseEnterEndpoint: {
       showSheetCommand: {
         panelLoadingStrategy: {
@@ -346,7 +346,7 @@ describe("withoutCachedSubscriptionsFlyout", () => {
   };
 
   it("drops the flyout the mini guide cached on the Subscriptions header so it gets rebuilt", () => {
-    const cleared = withoutCachedSubscriptionsFlyout(buildSubscriptionsSection(CACHED_FLYOUT));
+    const cleared = withoutCachedSubscriptionsFlyout(buildSubscriptionsSection(cachedFlyout));
 
     expect(cleared).toEqual(buildSubscriptionsSection({}));
   });
@@ -360,15 +360,15 @@ describe("withoutCachedSubscriptionsFlyout", () => {
 });
 
 describe("readGuideSubscriptions", () => {
-  const SHOWN_CHANNEL_ID = "UC4REwc30LXHzKSkpqSwhR-Q";
-  const UNDER_SHOW_MORE_CHANNEL_ID = "UCjkyfFH-MWZhasolgds05EA";
-  const UNLISTED_CHANNEL_ID = "UCX6OQ3DkcsbYNE6H8uQQuVA";
+  const shownChannelId = "UC4REwc30LXHzKSkpqSwhR-Q";
+  const underShowMoreChannelId = "UCjkyfFH-MWZhasolgds05EA";
+  const unlistedChannelId = "UCX6OQ3DkcsbYNE6H8uQQuVA";
 
   it("reads every listed subscription, those under Show more too, and nothing else as subscribed", () => {
     const readIsSubscribed = readGuideSubscriptions(signedInGuide);
-    expect(readIsSubscribed?.(SHOWN_CHANNEL_ID)).toBe(true);
-    expect(readIsSubscribed?.(UNDER_SHOW_MORE_CHANNEL_ID)).toBe(true);
-    expect(readIsSubscribed?.(UNLISTED_CHANNEL_ID)).toBe(false);
+    expect(readIsSubscribed?.(shownChannelId)).toBe(true);
+    expect(readIsSubscribed?.(underShowMoreChannelId)).toBe(true);
+    expect(readIsSubscribed?.(unlistedChannelId)).toBe(false);
   });
 
   it("never counts the channels the extension added", () => {
@@ -404,8 +404,8 @@ describe("readGuideSubscriptions", () => {
       ]
     };
     const readIsSubscribed = readGuideSubscriptions(cutShort);
-    expect(readIsSubscribed?.(SHOWN_CHANNEL_ID)).toBe(true);
-    expect(readIsSubscribed?.(UNLISTED_CHANNEL_ID)).toBeUndefined();
+    expect(readIsSubscribed?.(shownChannelId)).toBe(true);
+    expect(readIsSubscribed?.(unlistedChannelId)).toBeUndefined();
   });
 
   it("says nothing signed out", () => {

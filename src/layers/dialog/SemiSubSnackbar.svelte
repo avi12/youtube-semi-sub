@@ -16,7 +16,7 @@
   const SNACKBAR_DURATION_MS = 4000;
   const SNACKBAR_CONTAINER_SELECTOR = "snackbar-container";
 
-  const isMobile = getYouTubeSite() === YouTubeSite.MOBILE;
+  const IS_MOBILE = getYouTubeSite() === YouTubeSite.MOBILE;
 
   let isEntered = $state(false);
   let isClosing = $state(false);
@@ -60,7 +60,7 @@
   });
 </script>
 
-{#if isMobile}
+{#if IS_MOBILE}
   <c3-toast
     {@attach attachToBody}
     {@attach attachMobileToastDirection}

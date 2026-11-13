@@ -61,8 +61,8 @@
   } as const satisfies Record<SubscriptionMode, string>;
 
   const id = $props.id();
-  const titleId = `${id}-title`;
-  const descriptionId = `${id}-description`;
+  const TITLE_ID = `${id}-title`;
+  const DESCRIPTION_ID = `${id}-description`;
   const isDarkTheme = isPageDarkTheme();
 
   let elDialog = $state<HTMLDialogElement>();
@@ -163,8 +163,8 @@
 <dialog
   bind:this={elDialog}
   class="dialog"
-  aria-describedby={descriptionId}
-  aria-labelledby={titleId}
+  aria-describedby={DESCRIPTION_ID}
+  aria-labelledby={TITLE_ID}
   closedby="any"
   data-theme={isDarkTheme ? "dark" : "light"}
   onclose={() => {
@@ -203,7 +203,7 @@
       }
     }}>
     <header class="dialog__header">
-      <h2 id={titleId} class="dialog__title">{SUBSCRIPTION_MODE_NAME[mode]}</h2>
+      <h2 id={TITLE_ID} class="dialog__title">{SUBSCRIPTION_MODE_NAME[mode]}</h2>
       <DialogCloseButton onclick={() => elDialog?.close()} />
     </header>
 
@@ -235,7 +235,7 @@
         <span class="modes__effect">{MODE_LIST_EFFECT[mode]}</span>
       </fieldset>
 
-      <p id={descriptionId} class="dialog__description">
+      <p id={DESCRIPTION_ID} class="dialog__description">
         {modeText.description}
         {#if !isModeActive}
           <span class="dialog__inactive">- {INACTIVE_NOTE[mode]}</span>

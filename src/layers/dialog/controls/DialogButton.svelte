@@ -25,10 +25,10 @@
     [DialogButtonVariant.DANGER]: ButtonViewModelType.TEXT
   } as const satisfies Record<DialogButtonVariant, ButtonViewModelType>;
 
-  const isDesktop = getYouTubeSite() === YouTubeSite.DESKTOP;
+  const IS_DESKTOP = getYouTubeSite() === YouTubeSite.DESKTOP;
 </script>
 
-{#if isDesktop}
+{#if IS_DESKTOP}
   <YtButton {isDisabled} {isSubmit} {label} {onclick} type={BUTTON_TYPE_BY_VARIANT[variant]} />
 {:else}
   <button

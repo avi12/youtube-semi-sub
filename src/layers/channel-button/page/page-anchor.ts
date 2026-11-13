@@ -150,16 +150,16 @@ function readViewModelSubscription(elSubscribe: HTMLElement) {
 
 function readMobileRendererSubscription({
   elSubscribe,
-  dataSubscribed
+  isDataSubscribed
 }: {
   elSubscribe: HTMLElement;
-  dataSubscribed: boolean | undefined;
+  isDataSubscribed: boolean | undefined;
 }) {
   if (elSubscribe.classList.contains(SUBSCRIBED_CLASS)) {
     return true;
   }
 
-  return elSubscribe.classList.contains(UNSUBSCRIBED_CLASS) ? false : dataSubscribed;
+  return elSubscribe.classList.contains(UNSUBSCRIBED_CLASS) ? false : isDataSubscribed;
 }
 
 /**
@@ -203,7 +203,7 @@ export function readSubscribeControl({
     isLive: true,
     isSubscribed: readMobileRendererSubscription({
       elSubscribe,
-      dataSubscribed: controlData?.subscribed
+      isDataSubscribed: controlData?.subscribed
     })
   };
 }

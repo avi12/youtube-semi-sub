@@ -297,7 +297,7 @@ describe("a semi-subscription switched back to following by an official unsubscr
 });
 
 describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", () => {
-  const SHORT = {
+  const short = {
     ...feedVideo({
       index: 60,
       hours: 2,
@@ -310,11 +310,11 @@ describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", (
     session.trackSubscriptionTransitions(
       pageState({
         isSubscribed: false,
-        followedUploads: [SHORT]
+        followedUploads: [short]
       })
     );
     session.recordFeedChange({
-      insertedIds: [SHORT.videoId],
+      insertedIds: [short.videoId],
       removedIds: []
     });
     const subscribed = pageState({
@@ -345,11 +345,11 @@ describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", (
         contents: [],
         state: resumed
       })
-    ).toEqual(new Set([SHORT.videoId]));
+    ).toEqual(new Set([short.videoId]));
   });
 
   it("manages a passing Short again after the resume, so a later filter edit takes it out", () => {
-    const { resumed } = subscribeAndUnsubscribe([SHORT]);
+    const { resumed } = subscribeAndUnsubscribe([short]);
     expect(
       session.findRemovedVideoIds({
         contents: [],
@@ -371,7 +371,7 @@ describe("a semi-subscription's Shorts across a subscribe and an unsubscribe", (
         contents: [],
         state: editedFilter
       })
-    ).toEqual(new Set([SHORT.videoId]));
+    ).toEqual(new Set([short.videoId]));
   });
 });
 
@@ -437,7 +437,7 @@ describe("a title YouTube tests against another", () => {
 });
 
 describe("findHiddenVideoIds", () => {
-  const HIDE_FILTER: TitleFilter = {
+  const hideFilter: TitleFilter = {
     kind: FilterKind.REGEX,
     pattern: "^hide",
     flags: "i"
@@ -456,7 +456,7 @@ describe("findHiddenVideoIds", () => {
           channelId: CHANNEL_ID,
           title: "Subscribed Channel",
           followFilter: KEEP_FILTER,
-          hideFilter: HIDE_FILTER,
+          hideFilter: hideFilter,
           createdAt: 1,
           isSubscribed: true
         }
@@ -678,7 +678,7 @@ describe("findHiddenVideoIds", () => {
 });
 
 describe("hiding in the live feed", () => {
-  const HIDE_FILTER: TitleFilter = {
+  const hideFilter: TitleFilter = {
     kind: FilterKind.REGEX,
     pattern: "^hide",
     flags: "i"
@@ -688,7 +688,7 @@ describe("hiding in the live feed", () => {
     const state = pageState({
       isSubscribed: true,
       followedUploads: [],
-      hideFilter: HIDE_FILTER
+      hideFilter: hideFilter
     });
     expect(
       session.findRemovedVideoIds({
@@ -724,7 +724,7 @@ describe("hiding in the live feed", () => {
       pageState({
         isSubscribed: true,
         followedUploads: [],
-        hideFilter: HIDE_FILTER
+        hideFilter: hideFilter
       })
     );
     expect(session.takeHideSettingsChange()).toBe(true);
@@ -734,7 +734,7 @@ describe("hiding in the live feed", () => {
       pageState({
         isSubscribed: false,
         followedUploads: [],
-        hideFilter: HIDE_FILTER
+        hideFilter: hideFilter
       })
     );
     expect(session.takeHideSettingsChange()).toBe(true);

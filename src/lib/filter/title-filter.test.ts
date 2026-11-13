@@ -199,13 +199,13 @@ describe("isVideoFilterValid", () => {
 });
 
 describe("createVideoJudge by length", () => {
-  const UP_TO_TEN_MINUTES: VideoFilter = {
+  const upToTenMinutes: VideoFilter = {
     kind: FilterKind.LENGTH,
     maxSeconds: 600
   };
 
   function judgeLength({
-    filter = UP_TO_TEN_MINUTES,
+    filter = upToTenMinutes,
     ...video
   }: Partial<Pick<FeedVideo, "durationSeconds" | "isShort">> & {
     filter?: VideoFilter;
@@ -251,14 +251,14 @@ describe("createVideoJudge by length", () => {
 });
 
 describe("createVideoJudge by upload type", () => {
-  const NO_SHORTS_OR_STREAMS: VideoFilter = {
+  const noShortsOrStreams: VideoFilter = {
     kind: FilterKind.TYPE,
     types: [VideoType.VIDEO]
   };
 
   function judgeType(video: Partial<Pick<FeedVideo, "isShort" | "isLiveStream">>) {
     return createVideoJudge({
-      filter: NO_SHORTS_OR_STREAMS,
+      filter: noShortsOrStreams,
       aiVerdicts: {},
       isAiEnabled: false
     })?.({

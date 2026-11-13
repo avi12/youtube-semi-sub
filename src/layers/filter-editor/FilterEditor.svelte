@@ -73,9 +73,9 @@
   setEditorControls(untrack(() => controls));
 
   const id = $props.id();
-  const titleInputId = `${id}-title`;
-  const lengthInputId = `${id}-length`;
-  const ruleId = `${id}-rule`;
+  const TITLE_INPUT_ID = `${id}-title`;
+  const LENGTH_INPUT_ID = `${id}-length`;
+  const RULE_ID = `${id}-rule`;
   const MEMBERSHIP_LABEL = "I'm a member of this channel";
   const PREVIEW_LABEL = "Shows in your feed";
 
@@ -260,7 +260,7 @@
 
     return "Members-only videos are left out, since only members can watch them";
   });
-  const previewInputId = $derived(regexFilter || aiFilter ? titleInputId : lengthInputId);
+  const previewInputId = $derived(regexFilter || aiFilter ? TITLE_INPUT_ID : LENGTH_INPUT_ID);
 </script>
 
 <div class="filter-editor">
@@ -297,17 +297,17 @@
               })} />
           {:else if condition.kind === FilterKind.LENGTH}
             <header class="condition__header">
-              <label class="condition__label" for={lengthInputId}>{FILTER_METHOD_LABEL[FilterMethod.LENGTH]}</label>
+              <label class="condition__label" for={LENGTH_INPUT_ID}>{FILTER_METHOD_LABEL[FilterMethod.LENGTH]}</label>
             </header>
             <LengthFilterFields
-              inputId={lengthInputId}
+              inputId={LENGTH_INPUT_ID}
               bind:filter={() => condition, edited => setCondition({
                 method: FilterMethod.LENGTH,
                 condition: edited
               })} />
           {:else}
             <header class="condition__header">
-              <label class="condition__label" for={titleInputId}>
+              <label class="condition__label" for={TITLE_INPUT_ID}>
                 {#if condition.kind === FilterKind.AI_MATCH}
                   {copy.aiLabel}
                 {:else}
@@ -324,7 +324,7 @@
             {#if condition.kind === FilterKind.REGEX}
               <RegexFilterFields
                 emptyPatternHint={isCombined ? "Leave it empty to judge by the other filters only" : copy.emptyPatternHint}
-                inputId={titleInputId}
+                inputId={TITLE_INPUT_ID}
                 placeholder={copy.regexPlaceholder}
                 bind:filter={() => condition, edited => setCondition({
                   method: FilterMethod.TITLE,
@@ -333,7 +333,7 @@
             {:else}
               <AiFilterFields
                 hint={copy.aiHint}
-                inputId={titleInputId}
+                inputId={TITLE_INPUT_ID}
                 placeholder={copy.aiPlaceholder}
                 bind:filter={() => condition, edited => setCondition({
                   method: FilterMethod.TITLE,
@@ -346,7 +346,7 @@
     {/each}
   </ol>
 
-  <FilterRule id={ruleId} {filter} inputIds="{titleInputId} {lengthInputId}" {mode} />
+  <FilterRule id={RULE_ID} {filter} inputIds="{TITLE_INPUT_ID} {LENGTH_INPUT_ID}" {mode} />
 
   {#if isMembershipAsked}
     <controls.Checkbox

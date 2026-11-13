@@ -48,7 +48,7 @@
   } as const;
 
   const id = $props.id();
-  const editorId = `${id}-editor`;
+  const EDITOR_ID = `${id}-editor`;
   let elEditToggle = $state<HTMLInputElement>();
 
   const mode = $derived(getSubscriptionMode(subscription));
@@ -157,7 +157,7 @@
     <Button iconType="left" label size="xs" variant="tonal">
       <input
         bind:this={elEditToggle}
-        aria-controls={editorId}
+        aria-controls={EDITOR_ID}
         type="checkbox"
         bind:checked={() => isEditing, isChecked => {
           if (isChecked) {
@@ -174,7 +174,7 @@
 
   {#if isEditing}
     <ChannelEditor
-      id={editorId}
+      id={EDITOR_ID}
       isCached={channelVideos !== undefined}
       {mode}
       onClose={closeEditor}

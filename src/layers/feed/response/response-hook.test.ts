@@ -392,12 +392,12 @@ describe("the feed response hook", () => {
 });
 
 describe("the feed response hook, for a subscribed channel with a hide filter", () => {
-  const TITLE_HIDE_FILTER: TitleFilter = {
+  const titleHideFilter: TitleFilter = {
     kind: FilterKind.REGEX,
     pattern: "video 2$",
     flags: "i"
   };
-  const AI_HIDE_FILTER: AiFilter = {
+  const aiHideFilter: AiFilter = {
     kind: FilterKind.AI_MATCH,
     description: "Livestreams"
   };
@@ -440,13 +440,13 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
   }
 
   it("takes a video its title matches out of the Latest band, still inserting semi-sub videos", async () => {
-    hideWith({ hideFilter: TITLE_HIDE_FILTER });
+    hideWith({ hideFilter: titleHideFilter });
     expect(feedIds(await readFeed())).toEqual([videoId(1), videoId(50), null]);
   });
 
   it("takes a hidden Short out of the Shorts shelf by the channel's cached uploads, as Shorts name no channel", async () => {
     hideWith({
-      hideFilter: TITLE_HIDE_FILTER,
+      hideFilter: titleHideFilter,
       hiddenVideoIds: [videoId(90)]
     });
     const data = await readFeedWithShelf();
@@ -456,16 +456,16 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
 
   it("keeps a video still waiting for its AI verdict, and hides it once the verdict says it matches", async () => {
     hideWith({
-      hideFilter: AI_HIDE_FILTER,
+      hideFilter: aiHideFilter,
       isAiEnabled: true
     });
     expect(feedIds(await readFeed())).toContain(videoId(2));
 
     hideWith({
-      hideFilter: AI_HIDE_FILTER,
+      hideFilter: aiHideFilter,
       isAiEnabled: true,
       aiVerdicts: {
-        [getAiFilterKey(AI_HIDE_FILTER)]: {
+        [getAiFilterKey(aiHideFilter)]: {
           [videoId(2)]: true
         }
       }
@@ -489,7 +489,7 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
     async (version, isListed) => {
       vi.stubGlobal(YTAF_CONTRACT_VERSION_GLOBAL, version);
       hideWith({
-        hideFilter: TITLE_HIDE_FILTER,
+        hideFilter: titleHideFilter,
         hiddenVideoIds: [videoId(90)]
       });
       const data = await readFeedWithShelf();
@@ -504,13 +504,13 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
   });
 
   it("takes hidden videos out of www's hard-load ytInitialData, adding nothing there", () => {
-    hideWith({ hideFilter: TITLE_HIDE_FILTER });
+    hideWith({ hideFilter: titleHideFilter });
     globalThis.ytInitialData = feedResponseBody();
     expect(feedIds(globalThis.ytInitialData)).toEqual([videoId(1), null]);
   });
 
   it("takes hidden videos out of www's later pages too, adding nothing there", async () => {
-    hideWith({ hideFilter: TITLE_HIDE_FILTER });
+    hideWith({ hideFilter: titleHideFilter });
     const data = await responseAt({
       url: BROWSE_URL,
       body: JSON.stringify(
