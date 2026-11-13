@@ -456,7 +456,7 @@ describe("findHiddenVideoIds", () => {
           channelId: CHANNEL_ID,
           title: "Subscribed Channel",
           followFilter: KEEP_FILTER,
-          hideFilter: hideFilter,
+          hideFilter,
           createdAt: 1,
           isSubscribed: true
         }
@@ -688,7 +688,7 @@ describe("hiding in the live feed", () => {
     const state = pageState({
       isSubscribed: true,
       followedUploads: [],
-      hideFilter: hideFilter
+      hideFilter
     });
     expect(
       session.findRemovedVideoIds({
@@ -724,7 +724,7 @@ describe("hiding in the live feed", () => {
       pageState({
         isSubscribed: true,
         followedUploads: [],
-        hideFilter: hideFilter
+        hideFilter
       })
     );
     expect(session.takeHideSettingsChange()).toBe(true);
@@ -734,7 +734,7 @@ describe("hiding in the live feed", () => {
       pageState({
         isSubscribed: false,
         followedUploads: [],
-        hideFilter: hideFilter
+        hideFilter
       })
     );
     expect(session.takeHideSettingsChange()).toBe(true);

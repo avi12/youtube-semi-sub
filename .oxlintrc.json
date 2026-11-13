@@ -12,7 +12,7 @@
         "allowedPatterns": [
           {
             "reason": "WXT keeps each storage item's version under a key suffixed with a dollar sign",
-            "pattern": "^[a-zA-Z]+\$$"
+            "pattern": "^[a-zA-Z]+[$]$"
           }
         ]
       }
