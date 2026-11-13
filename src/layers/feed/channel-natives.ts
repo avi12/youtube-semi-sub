@@ -109,7 +109,8 @@ function isEntryFresh(entry: CacheEntry) {
 function loadTab(request: TabRequest) {
   const key = cacheKey(request);
   const cached = cacheByTab.get(key);
-  if (cached && isEntryFresh(cached)) {
+  const isCachedFresh = cached && isEntryFresh(cached);
+  if (isCachedFresh) {
     return cached.natives;
   }
 

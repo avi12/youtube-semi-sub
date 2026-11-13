@@ -10,7 +10,8 @@ const JSON_START_PATTERN = /[[{]/;
  */
 function sliceJsonValue({ text, start }: { text: string; start: number }) {
   const opening = text[start];
-  if (opening === undefined || !JSON_OPENING_BRACKETS.has(opening)) {
+  const isWithoutOpeningBracket = opening === undefined || !JSON_OPENING_BRACKETS.has(opening);
+  if (isWithoutOpeningBracket) {
     return null;
   }
 
@@ -35,12 +36,14 @@ function sliceJsonValue({ text, start }: { text: string; start: number }) {
       continue;
     }
 
-    if (character !== undefined && JSON_OPENING_BRACKETS.has(character)) {
+    const isOpeningBracket = character !== undefined && JSON_OPENING_BRACKETS.has(character);
+    if (isOpeningBracket) {
       depth++;
       continue;
     }
 
-    if (character === undefined || !JSON_CLOSING_BRACKETS.has(character)) {
+    const isWithoutClosingBracket = character === undefined || !JSON_CLOSING_BRACKETS.has(character);
+    if (isWithoutClosingBracket) {
       continue;
     }
 

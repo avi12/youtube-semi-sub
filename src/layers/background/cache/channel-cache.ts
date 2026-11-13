@@ -27,7 +27,7 @@ function keepSubscribedChannels<Value>({
   subscriptions: SemiSubscriptions;
 }) {
   const kept: Record<string, Value> = {};
-  for (const channelId in record) {
+  for (const channelId of Object.keys(record)) {
     const value = record[channelId];
     const isKept = value !== undefined && Object.hasOwn(subscriptions, channelId);
     if (isKept) {
@@ -44,7 +44,7 @@ function hasUnsubscribedChannels({
   record: Record<string, unknown>;
   subscriptions: SemiSubscriptions;
 }) {
-  for (const channelId in record) {
+  for (const channelId of Object.keys(record)) {
     if (!Object.hasOwn(subscriptions, channelId)) {
       return true;
     }

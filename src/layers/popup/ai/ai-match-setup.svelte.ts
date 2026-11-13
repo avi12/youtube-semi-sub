@@ -30,7 +30,8 @@ export async function refreshAiStatus() {
   aiMatchSetup.status = status;
   // A download that outlived an earlier popup (or runs in the browser) shows up here when this one opens
   const isDownloadedByThisPopup = builtInDownload !== null;
-  if (isAiEngineAvailable(status) && !isDownloadedByThisPopup) {
+  const isDownloadable = isAiEngineAvailable(status) && !isDownloadedByThisPopup;
+  if (isDownloadable) {
     aiMatchSetup.download = status.download;
   }
 }

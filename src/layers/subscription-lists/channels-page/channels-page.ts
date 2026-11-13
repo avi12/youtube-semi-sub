@@ -21,7 +21,8 @@ const CHANNEL_BUTTON_SELECTOR = `${CHANNEL_RENDERER_SELECTOR} #subscribe-button 
 
 function syncChannelsSection() {
   const elSectionList = document.querySelector(SECTION_LIST_SELECTOR);
-  if (!elSectionList || !isPolymerElement(elSectionList)) {
+  const isWithoutSectionList = !elSectionList || !isPolymerElement(elSectionList);
+  if (isWithoutSectionList) {
     return;
   }
 
@@ -39,7 +40,8 @@ function syncChannelsSection() {
 function handleManageButtonClick(event: MouseEvent) {
   const elButton = event.target instanceof Element ? event.target.closest(CHANNEL_BUTTON_SELECTOR) : null;
   const elChannel = elButton?.closest(CHANNEL_RENDERER_SELECTOR);
-  const channelId = elChannel && isPolymerElement(elChannel) ? readSemiChannelId(elChannel.data) : null;
+  const isPolymerChannel = elChannel && isPolymerElement(elChannel);
+  const channelId = isPolymerChannel ? readSemiChannelId(elChannel.data) : null;
   const subscription = listsView.subscriptions.find(listed => listed.channelId === channelId);
   if (!subscription) {
     return;

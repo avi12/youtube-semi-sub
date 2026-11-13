@@ -317,7 +317,8 @@ function createLengthJudge({ minSeconds = 0, maxSeconds = Infinity }: LengthFilt
   return function judgeByLength({ durationSeconds, isShort }: JudgedVideo) {
     const shortest = durationSeconds ?? 0;
     const longest = durationSeconds ?? (isShort ? SHORT_MAX_DURATION_SECONDS : Infinity);
-    if (shortest >= minSeconds && longest <= maxSeconds) {
+    const isWithinBounds = shortest >= minSeconds && longest <= maxSeconds;
+    if (isWithinBounds) {
       return MatchState.MATCHES;
     }
 
@@ -511,7 +512,7 @@ export function selectFeedVideos({
   videosByChannel: VideosByChannel;
 }) {
   const selectedById = new Map<string, FeedVideo>();
-  for (const channelId in subscriptions) {
+  for (const channelId of Object.keys(subscriptions)) {
     const subscription = subscriptions[channelId];
     const isFollowed = subscription && !subscription.isSubscribed;
     const judge =
@@ -565,13 +566,13 @@ export function createSubscribedHideCheck({
         ...context
       });
   const { followFilter } = subscription;
-  const allowJudge =
-    followFilter && isAllowListRestricting(followFilter)
-      ? createVideoJudge({
-          filter: followFilter,
-          ...context
-        })
-      : null;
+  const isAllowListActive = followFilter && isAllowListRestricting(followFilter);
+  const allowJudge = isAllowListActive
+    ? createVideoJudge({
+        filter: followFilter,
+        ...context
+      })
+    : null;
   if (!blockJudge && !allowJudge) {
     return null;
   }
@@ -592,7 +593,7 @@ export function selectHiddenVideoIds({
   ...context
 }: Parameters<typeof selectFeedVideos>[0]) {
   const hiddenIds = new Set<string>();
-  for (const channelId in subscriptions) {
+  for (const channelId of Object.keys(subscriptions)) {
     const subscription = subscriptions[channelId];
     const isHidden =
       subscription &&

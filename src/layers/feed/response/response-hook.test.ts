@@ -1,4 +1,3 @@
-import type * as SiteNamespace from "@/lib/youtube/site";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
@@ -33,6 +32,7 @@ import { browseResponseSchema } from "#feed/items/feed-schemas";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
+import type * as SiteNamespace from "@/lib/youtube/site";
 
 import { readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
 

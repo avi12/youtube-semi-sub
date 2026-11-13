@@ -28,7 +28,7 @@ function createVideo(videoId: string) {
 
 function createSubscriptions(filtersByChannel: Record<string, TitleFilter>) {
   const subscriptions: SemiSubscriptions = {};
-  for (const channelId in filtersByChannel) {
+  for (const channelId of Object.keys(filtersByChannel)) {
     const filter = filtersByChannel[channelId];
     if (filter) {
       subscriptions[channelId] = {

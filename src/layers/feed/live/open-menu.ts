@@ -36,7 +36,11 @@ let isFollowingThroughResize = false;
 
 function recordOpenedMenu(event: Event) {
   const [elDropdown] = event.composedPath();
-  if (!isIronDropdown(elDropdown) || !elDropdown.positionTarget) {
+  if (!isIronDropdown(elDropdown)) {
+    return;
+  }
+
+  if (!elDropdown.positionTarget) {
     return;
   }
 
@@ -59,12 +63,17 @@ function recordOpenedMenu(event: Event) {
 
 /** The dropdown is shared by every popup, so it is still this menu only while it is lined up where it was left */
 function trackedOpenMenu() {
-  if (!openMenu || isYouTubeAutoFeedActive()) {
+  if (!openMenu) {
+    return null;
+  }
+
+  if (isYouTubeAutoFeedActive()) {
     return null;
   }
 
   const { elDropdown, elAnchor } = openMenu;
-  return elDropdown.opened && elDropdown.positionTarget === elAnchor ? openMenu : null;
+  const isStillOpen = elDropdown.opened && elDropdown.positionTarget === elAnchor;
+  return isStillOpen ? openMenu : null;
 }
 
 function distanceBetweenCenters({ left, right }: { left: DOMRect; right: DOMRect }) {
@@ -173,7 +182,8 @@ function followMenuVideo() {
 /** Lines the menu up with its video's button where it stands now, unless a glide is carrying it there */
 function reanchorOpenMenu() {
   const menu = trackedOpenMenu();
-  if (!menu || isInGlide(menu.elDropdown)) {
+  const isMenuGone = !menu || isInGlide(menu.elDropdown);
+  if (isMenuGone) {
     return;
   }
 

@@ -71,7 +71,7 @@ export function collectClassificationJobs({
     addVideos(request);
   }
 
-  for (const channelId in subscriptions) {
+  for (const channelId of Object.keys(subscriptions)) {
     const subscription = subscriptions[channelId];
     const filters = subscription ? getJudgingFilters(subscription) : [];
     for (const filter of filters.flatMap(listAiFilters)) {

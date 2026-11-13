@@ -81,7 +81,8 @@ export function applySubscriptionSnapshot(readIsSubscribed: (channelId: string) 
     for (const { channelId, isSubscribed: isStoredSubscribed } of Object.values(subscriptions)) {
       const isSubscribed = readIsSubscribed(channelId);
       const isSeenInThisTab = subscribedByChannel.has(channelId);
-      if (isSubscribed === undefined || isSubscribed === isStoredSubscribed || isSeenInThisTab) {
+      const isUnchanged = isSubscribed === undefined || isSubscribed === isStoredSubscribed || isSeenInThisTab;
+      if (isUnchanged) {
         continue;
       }
 

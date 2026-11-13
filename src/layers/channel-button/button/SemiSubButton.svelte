@@ -1,6 +1,6 @@
 <script lang="ts">
   import { describeChannelButton } from "./button-label";
-  import { type CollaboratorChoice, openCollaboratorsPopup } from "./collaborators-popup";
+  import { openCollaboratorsPopup } from "./collaborators-popup";
   import type { NativeButtonClasses } from "./native-button-classes";
   import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
   import { getPageState, onPageState } from "@/lib/page/page-state";
@@ -112,7 +112,7 @@
     return elRoot?.isConnected ?? false;
   }
 
-  function describeCollaborator(collaborator: (typeof collaborators)[number]): CollaboratorChoice {
+  function describeCollaborator(collaborator: (typeof collaborators)[number]) {
     const isSubscribed = getObservedOfficialSubscription(collaborator.channelId) ?? collaborator.isSubscribed;
     const { isActive: isCollaboratorActive, ...words } = describeChannelButton({
       channelTitle: collaborator.title,

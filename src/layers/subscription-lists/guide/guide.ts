@@ -143,7 +143,8 @@ function syncEntryActions() {
   for (const elEntry of document.querySelectorAll(GUIDE_ENTRY_SELECTOR)) {
     const channelId = readEntryChannelId(elEntry);
     const isMounted = mountedActionByEntry.has(elEntry);
-    if (!channelId || isMounted || !listedChannelIds.has(channelId)) {
+    const isSkipped = !channelId || isMounted || !listedChannelIds.has(channelId);
+    if (isSkipped) {
       continue;
     }
 

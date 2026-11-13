@@ -73,11 +73,11 @@ const COMPARISON_PHRASES: readonly (readonly [string, Comparison])[] = [
   ["=", Comparison.EXACTLY]
 ];
 
-const RANGE_SEPARATORS: ReadonlySet<string> = new Set(["-", "–", "—", "..", "to", "and", "~"]);
+const RANGE_SEPARATORS: ReadonlySet<string> = new Set(["-", "\u2013", "\u2014", "..", "to", "and", "~"]);
 const CLAUSE_JOINERS: ReadonlySet<string> = new Set([",", ";", "and", "&", "&&"]);
 const BETWEEN_WORD = "between";
 const OPEN_ENDED_MARK = "+";
-const SYMBOL_CHARACTERS = "<>=≤≥-–—~,;&+.";
+const SYMBOL_CHARACTERS = "<>=≤≥-\u2013\u2014~,;&+.";
 
 enum TokenKind {
   NUMBER = "number",
@@ -122,7 +122,8 @@ function readNumberEnd({ text, iStart }: { text: string; iStart: number }) {
   while (iEnd < text.length) {
     const character = text.charAt(iEnd);
     const isPoint = character === "." && !isPointSeen && isDigit(text.charAt(iEnd + 1));
-    if (!isDigit(character) && character !== ":" && !isPoint) {
+    const isNumberEnd = !isDigit(character) && character !== ":" && !isPoint;
+    if (isNumberEnd) {
       break;
     }
 
@@ -424,7 +425,8 @@ export function parseLengthExpression(text: string) {
   try {
     const bounds = parseClauses(text);
     const isEmptyRange = (bounds.maxSeconds ?? Infinity) < (bounds.minSeconds ?? 0);
-    if (isEmptyRange || (bounds.maxSeconds !== undefined && bounds.maxSeconds < 0)) {
+    const isInvalidRange = isEmptyRange || (bounds.maxSeconds !== undefined && bounds.maxSeconds < 0);
+    if (isInvalidRange) {
       return {
         bounds: null,
         error: "No video can be that long and that short at once"
@@ -452,15 +454,13 @@ function formatLengthValue(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
   const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
   const seconds = totalSeconds % SECONDS_PER_MINUTE;
-  if (seconds !== 0 && totalSeconds >= SECONDS_PER_MINUTE) {
+  const hasRemainder = seconds !== 0 && totalSeconds >= SECONDS_PER_MINUTE;
+  if (hasRemainder) {
     return formatDuration(totalSeconds);
   }
 
-  const parts = [
-    hours > 0 ? `${hours}h` : "",
-    minutes > 0 ? `${minutes}m` : "",
-    seconds > 0 || totalSeconds === 0 ? `${seconds}s` : ""
-  ];
+  const hasSeconds = seconds > 0 || totalSeconds === 0;
+  const parts = [hours > 0 ? `${hours}h` : "", minutes > 0 ? `${minutes}m` : "", hasSeconds ? `${seconds}s` : ""];
   return parts.join("");
 }
 

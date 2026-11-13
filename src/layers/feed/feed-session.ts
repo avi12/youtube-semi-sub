@@ -356,7 +356,8 @@ export function findRemovedVideoIds({ contents, state }: Parameters<typeof judge
   })) {
     // With the extension off nothing semi-subscribed passes
     const isRejected = matchState === MatchState.DOES_NOT_MATCH || !state.isExtensionEnabled;
-    if (isRejected && !desiredIds.has(videoId)) {
+    const isRemovable = isRejected && !desiredIds.has(videoId);
+    if (isRemovable) {
       removedIds.add(videoId);
     }
   }

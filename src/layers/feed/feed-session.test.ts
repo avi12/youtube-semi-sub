@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type * as ChannelNativesNamespace from "#feed/channel-natives";
+import type * as FeedSessionNamespace from "#feed/feed-session";
 import {
   CHANNEL_ID,
   desktopFeedItem,
@@ -14,8 +16,6 @@ import { rendererFromGridItem } from "#feed/items/feed-items";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
-import type * as ChannelNativesNamespace from "#feed/channel-natives";
-import type * as FeedSessionNamespace from "#feed/feed-session";
 
 type FeedSession = typeof FeedSessionNamespace;
 

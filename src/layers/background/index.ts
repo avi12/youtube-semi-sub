@@ -40,7 +40,7 @@ async function handleInstalled() {
 
 /** An AI filter was edited away or removed, so the verdicts judged under it may have no user left */
 function hasDroppedAiFilter({ subscriptions, previousSubscriptions }: Parameters<typeof handleSubscriptionsChange>[0]) {
-  for (const channelId in previousSubscriptions) {
+  for (const channelId of Object.keys(previousSubscriptions)) {
     const keys = collectAiFilterKeys(subscriptions[channelId]);
     const isDropped = [...collectAiFilterKeys(previousSubscriptions[channelId])].some(key => !keys.has(key));
     if (isDropped) {

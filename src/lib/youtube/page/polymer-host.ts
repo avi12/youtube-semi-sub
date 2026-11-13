@@ -83,7 +83,8 @@ function syncHost(elHost: Element) {
   });
   const dataJson = elHost.getAttribute(DATA_ATTRIBUTE);
   const data = dataJson === null ? null : parseJson(dataJson);
-  if (data !== null && appliedDataByElement.get(elPolymer) !== dataJson) {
+  const isNewData = data !== null && appliedDataByElement.get(elPolymer) !== dataJson;
+  if (isNewData) {
     appliedDataByElement.set(elPolymer, dataJson ?? "");
     Object.assign(elPolymer, { data });
   }

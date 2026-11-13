@@ -56,7 +56,8 @@ export function rendererFromGridItem(item: unknown) {
 }
 
 function videoIdOrNull(value: string | undefined) {
-  return value && VIDEO_ID_PATTERN.test(value) ? value : null;
+  const isVideoId = value && VIDEO_ID_PATTERN.test(value);
+  return isVideoId ? value : null;
 }
 
 export function videoIdFromContent(content: unknown) {

@@ -101,7 +101,8 @@ function pinSurvivors({
   const elPinned: HTMLElement[] = [];
   for (const elTile of grid.findTiles().filter(isInReflowZone)) {
     const videoId = videoIdFromTile(elTile);
-    const oldRect = videoId && !insertedIds.has(videoId) ? oldRects.get(videoId) : undefined;
+    const isExisting = videoId && !insertedIds.has(videoId);
+    const oldRect = isExisting ? oldRects.get(videoId) : undefined;
     if (!oldRect) {
       continue;
     }

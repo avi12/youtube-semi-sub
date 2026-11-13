@@ -51,7 +51,7 @@ export type VideosByChannel = Partial<Record<string, FeedVideo[]>>;
 
 export function videosByChannelFromCache(cache: ChannelVideosCache) {
   const videosByChannel: VideosByChannel = {};
-  for (const channelId in cache) {
+  for (const channelId of Object.keys(cache)) {
     videosByChannel[channelId] = cache[channelId]?.videos;
   }
   return videosByChannel;

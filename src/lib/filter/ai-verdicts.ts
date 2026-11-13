@@ -32,7 +32,7 @@ function collectReferencedVideoIds({
   channelVideos: ChannelVideosCache;
 }) {
   const videoIdsByKey = new Map<string, Set<string>>();
-  for (const channelId in subscriptions) {
+  for (const channelId of Object.keys(subscriptions)) {
     for (const key of collectAiFilterKeys(subscriptions[channelId])) {
       const videoIds = videoIdsByKey.get(key) ?? new Set();
       for (const video of channelVideos[channelId]?.videos ?? []) {
@@ -62,7 +62,7 @@ export function pruneAiVerdicts({
     channelVideos
   });
   const pruned: AiVerdicts = {};
-  for (const key in aiVerdicts) {
+  for (const key of Object.keys(aiVerdicts)) {
     const videoIds = referencedVideoIds.get(key);
     const verdicts = aiVerdicts[key];
     if (!videoIds || !verdicts) {
@@ -70,7 +70,7 @@ export function pruneAiVerdicts({
     }
 
     const keptVerdicts: VideoVerdicts = {};
-    for (const videoId in verdicts) {
+    for (const videoId of Object.keys(verdicts)) {
       const verdict = verdicts[videoId];
       const isKept = verdict !== undefined && videoIds.has(videoId);
       if (isKept) {
@@ -88,7 +88,7 @@ export function pruneAiVerdicts({
 
 export function countAiVerdicts(aiVerdicts: AiVerdicts) {
   let count = 0;
-  for (const key in aiVerdicts) {
+  for (const key of Object.keys(aiVerdicts)) {
     count += Object.keys(aiVerdicts[key] ?? {}).length;
   }
   return count;

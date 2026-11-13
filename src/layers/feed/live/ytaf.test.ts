@@ -1,5 +1,6 @@
-import type * as YtafModuleNamespace from "#feed/live/ytaf";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import type * as YtafModuleNamespace from "#feed/live/ytaf";
 
 type YtafModule = typeof YtafModuleNamespace;
 

@@ -152,7 +152,8 @@ function nudgeYouTubeAutoFeedOnce(key: string) {
 
 async function reconcile() {
   const state = getPageState();
-  if (!state || !isOnFeedPage()) {
+  const isOffFeed = !state || !isOnFeedPage();
+  if (isOffFeed) {
     return;
   }
 
@@ -209,7 +210,8 @@ async function reconcile() {
 
   const currentState = getPageState() ?? state;
   const currentContents = grid.readContents();
-  if (!currentContents || !isOnFeedPage()) {
+  const isFeedGone = !currentContents || !isOnFeedPage();
+  if (isFeedGone) {
     return;
   }
 

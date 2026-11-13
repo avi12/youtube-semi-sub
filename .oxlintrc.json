@@ -1,24 +1,15 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "extends": [
-    "./node_modules/oxlint-config-avi12/wxt.json",
-    "./node_modules/oxlint-plugin-naming/preset.json"
-  ],
+  "extends": ["./node_modules/oxlint-config-avi12/wxt.json", "./node_modules/oxlint-plugin-naming/preset.json"],
   "rules": {
     "naming/convention": [
       "error",
       {
-        "presets": [
-          "webextension-manifest",
-          "webextension-messages",
-          "hook-names"
-        ],
+        "presets": ["webextension-manifest", "webextension-messages", "hook-names"],
         "allowedNames": [
           {
             "reason": "Chrome's built-in AI global, declared as the browser spells it",
-            "names": [
-              "LanguageModel"
-            ]
+            "names": ["LanguageModel"]
           }
         ],
         "allowedPatterns": [
@@ -30,18 +21,10 @@
       }
     ]
   },
-  "ignorePatterns": [
-    "node_modules/**",
-    ".output/**",
-    ".wxt/**",
-    "user-profiles/**",
-    "patches/**"
-  ],
+  "ignorePatterns": ["node_modules/**", ".output/**", ".wxt/**", "user-profiles/**", "patches/**"],
   "overrides": [
     {
-      "files": [
-        "src/layers/filter-editor/preview/tile-motion.ts"
-      ],
+      "files": ["src/layers/filter-editor/preview/tile-motion.ts"],
       "rules": {
         "house/positional-parameters": "off"
       }

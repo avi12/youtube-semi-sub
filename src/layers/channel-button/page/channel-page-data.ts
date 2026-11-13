@@ -192,11 +192,12 @@ function findValueByKey({
   for (let next = pending.pop(); next; next = pending.pop()) {
     const { value, depth } = next;
     const isTooDeep = depth > MAX_SEARCH_DEPTH;
-    if (!isRecord(value) || isTooDeep) {
+    const isUnsearchable = !isRecord(value) || isTooDeep;
+    if (isUnsearchable) {
       continue;
     }
 
-    for (const key in value) {
+    for (const key of Object.keys(value)) {
       const child = value[key];
       const isWantedMatch = keys.includes(key) && isMatch(child);
       if (isWantedMatch) {

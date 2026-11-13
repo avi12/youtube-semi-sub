@@ -27,7 +27,8 @@ async function handleLocalModelDownloadEnded() {
   }
 
   const isAnotherDownloadRunning = (await readLocalModelDownloadFraction()) !== null;
-  if (!isAnotherDownloadRunning && (await isAiEnabledItem.getValue())) {
+  const shouldDisableAi = !isAnotherDownloadRunning && (await isAiEnabledItem.getValue());
+  if (shouldDisableAi) {
     await isAiEnabledItem.setValue(false);
   }
 }

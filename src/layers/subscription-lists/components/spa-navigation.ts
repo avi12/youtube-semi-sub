@@ -13,7 +13,8 @@ const PRIMARY_BUTTON = 0;
 export function followsChannelLink(subscription: SemiSubscription) {
   return function attach(elLink: HTMLElement) {
     return on(elLink, "click", event => {
-      const isPlainClick = event.button === PRIMARY_BUTTON && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+      const isPlainClick =
+        event.button === PRIMARY_BUTTON && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
       if (!isPlainClick) {
         return;
       }

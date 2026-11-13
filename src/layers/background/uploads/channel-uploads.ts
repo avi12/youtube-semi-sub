@@ -126,7 +126,8 @@ export async function withVideosTabDetails({
   });
   const isFromRss = uploads.source === UploadsSource.RSS;
   for (const tab of Object.values(ChannelGridTab)) {
-    if (!isFromRss || !videos.some(isTabDetailMissing)) {
+    const isNothingToFetch = !isFromRss || !videos.some(isTabDetailMissing);
+    if (isNothingToFetch) {
       break;
     }
 
