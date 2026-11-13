@@ -98,8 +98,8 @@ export function nudgeYouTubeAutoFeed() {
   channel.close();
 }
 
-function readOverheardSettings(e: Event) {
-  const detail = e instanceof CustomEvent ? e.detail : undefined;
+function readOverheardSettings(event: Event) {
+  const detail = event instanceof CustomEvent ? event.detail : undefined;
   const push = settingsPushSchema.safeParse(detail);
   if (push.success) {
     return push.data.message.data;
@@ -111,8 +111,8 @@ function readOverheardSettings(e: Event) {
 
 /** MAIN world, document_start: follows ytaf being switched on and off; calls back on every change */
 export function watchYouTubeAutoFeedSwitch(callback: () => void) {
-  function handleMessengerEvent(e: Event) {
-    const settings = readOverheardSettings(e);
+  function handleMessengerEvent(event: Event) {
+    const settings = readOverheardSettings(event);
     const isChanged = !!settings && settings.isExtensionEnabled !== isYtafEnabled;
     if (!settings || !isChanged) {
       return;

@@ -98,8 +98,8 @@ function listenForPick(choices: CollaboratorChoice[]) {
   const stopListeningForClose = on(
     document,
     OVERLAY_CLOSED_EVENT,
-    e => {
-      const isCollaboratorsDialog = e.target instanceof Element && e.target.matches(DIALOG_SELECTOR);
+    event => {
+      const isCollaboratorsDialog = event.target instanceof Element && event.target.matches(DIALOG_SELECTOR);
       if (!isCollaboratorsDialog) {
         return;
       }
@@ -117,8 +117,8 @@ function listenForPick(choices: CollaboratorChoice[]) {
   const stopListeningForClick = on(
     document,
     "click",
-    e => {
-      const elTarget = e.target instanceof Element ? e.target : null;
+    event => {
+      const elTarget = event.target instanceof Element ? event.target : null;
       const elRow = elTarget?.closest(ROW_SELECTOR);
       const elDialog = elRow?.closest(DIALOG_SELECTOR);
       const elButton = elTarget?.closest(ROW_BUTTON_SELECTOR);
@@ -129,8 +129,8 @@ function listenForPick(choices: CollaboratorChoice[]) {
         return;
       }
 
-      e.preventDefault();
-      e.stopPropagation();
+      event.preventDefault();
+      event.stopPropagation();
       stopListening();
       stopListeningForPick = null;
       closeDialog(elDialog);

@@ -33,8 +33,8 @@
       spellcheck: isCode ? false : undefined,
       value,
       [FOCUSED_ON_OPEN_ATTRIBUTE]: isFocusedOnOpen || undefined,
-      oninput(e) {
-        onValueChange(e.currentTarget.value);
+      oninput(event) {
+        onValueChange(event.currentTarget.value);
       }
     };
     return shared;

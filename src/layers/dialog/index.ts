@@ -15,7 +15,7 @@ export function registerSemiSubDialog(context: ContentScriptContext) {
   async function openDialog({ channel, isSubscribed }: { channel: ChannelInfo; isSubscribed: boolean | undefined }) {
     // In the page's own DOM, not a shadow root: YouTube's Polymer components inside are styled by its document CSS.
     // The dialog itself keeps keys typed into the filter from reaching YouTube's player shortcuts
-    const ui = createIntegratedUi(context, {
+    const integratedUi = createIntegratedUi(context, {
       tag: DIALOG_HOST_NAME,
       position: "inline",
       anchor: "body",
@@ -26,9 +26,9 @@ export function registerSemiSubDialog(context: ContentScriptContext) {
             channel,
             isSubscribed,
             onDone() {
-              ui.remove();
+              integratedUi.remove();
 
-              if (currentUi === ui) {
+              if (currentUi === integratedUi) {
                 currentUi = null;
               }
             }
@@ -42,8 +42,8 @@ export function registerSemiSubDialog(context: ContentScriptContext) {
       }
     });
     currentUi?.remove();
-    currentUi = ui;
-    ui.mount();
+    currentUi = integratedUi;
+    integratedUi.mount();
   }
 
   pageMessenger.onMessage(PageMessage.OPEN_SEMI_SUB_DIALOG, ({ isSubscribed, ...channel }) => {

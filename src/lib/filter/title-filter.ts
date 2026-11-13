@@ -199,10 +199,10 @@ function compileRegexFilter(filter: RegexFilter) {
       regex: new RegExp(filter.pattern, filter.flags),
       error: null
     };
-  } catch (e) {
+  } catch (error) {
     return {
       regex: null,
-      error: e instanceof Error ? e.message : String(e)
+      error: error instanceof Error ? error.message : String(error)
     };
   }
 }

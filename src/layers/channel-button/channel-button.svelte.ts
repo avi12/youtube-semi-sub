@@ -223,10 +223,10 @@ function trackPage(kind: PageKind) {
   }
 
   // YouTube flips its own button the moment Subscribe is pressed, before the request completes
-  function handleSubscriptionChanged(e: Event) {
-    const parsed = subscriptionChangedDetailSchema.safeParse(e instanceof CustomEvent ? e.detail : undefined);
+  function handleSubscriptionChanged(event: Event) {
+    const parsed = subscriptionChangedDetailSchema.safeParse(event instanceof CustomEvent ? event.detail : undefined);
     const isFromThisChannelsControl =
-      !!mounted && e.target instanceof Node && mounted.target.anchor.elContainer.contains(e.target);
+      !!mounted && event.target instanceof Node && mounted.target.anchor.elContainer.contains(event.target);
     if (!parsed.success || !mounted || !isFromThisChannelsControl) {
       return;
     }

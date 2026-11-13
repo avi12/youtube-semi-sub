@@ -1,3 +1,4 @@
+import type * as SiteNamespace from "@/lib/youtube/site";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
@@ -70,7 +71,7 @@ vi.mock("@/lib/youtube/page/innertube", () => ({
 }));
 
 vi.mock("@/lib/youtube/site", async importOriginal => ({
-  ...(await importOriginal<typeof import("@/lib/youtube/site")>()),
+  ...(await importOriginal<typeof SiteNamespace>()),
   getYouTubeSite: () => site.current
 }));
 

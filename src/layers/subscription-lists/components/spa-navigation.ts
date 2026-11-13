@@ -12,13 +12,13 @@ const PRIMARY_BUTTON = 0;
  */
 export function followsChannelLink(subscription: SemiSubscription) {
   return function attach(elLink: HTMLElement) {
-    return on(elLink, "click", e => {
-      const isPlainClick = e.button === PRIMARY_BUTTON && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+    return on(elLink, "click", event => {
+      const isPlainClick = event.button === PRIMARY_BUTTON && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
       if (!isPlainClick) {
         return;
       }
 
-      e.preventDefault();
+      event.preventDefault();
       elLink.dispatchEvent(
         new CustomEvent(NAVIGATE_EVENT, {
           bubbles: true,

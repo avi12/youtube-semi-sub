@@ -34,8 +34,8 @@ type MenuTarget = z.infer<typeof menuTargetSchema>;
 let openMenu: OpenMenu | null = null;
 let isFollowingThroughResize = false;
 
-function recordOpenedMenu(e: Event) {
-  const [elDropdown] = e.composedPath();
+function recordOpenedMenu(event: Event) {
+  const [elDropdown] = event.composedPath();
   if (!isIronDropdown(elDropdown) || !elDropdown.positionTarget) {
     return;
   }

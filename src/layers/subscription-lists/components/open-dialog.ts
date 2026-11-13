@@ -18,9 +18,9 @@ export function openSemiSubDialog(subscription: SemiSubscription) {
  */
 export function opensSemiSubDialog(subscription: SemiSubscription) {
   return function attach(elButton: HTMLElement) {
-    return on(elButton, "click", e => {
-      e.preventDefault();
-      e.stopPropagation();
+    return on(elButton, "click", event => {
+      event.preventDefault();
+      event.stopPropagation();
       openSemiSubDialog(subscription);
     });
   };

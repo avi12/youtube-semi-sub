@@ -14,8 +14,10 @@ import { rendererFromGridItem } from "#feed/items/feed-items";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
+import type * as ChannelNativesNamespace from "#feed/channel-natives";
+import type * as FeedSessionNamespace from "#feed/feed-session";
 
-type FeedSession = typeof import("#feed/feed-session");
+type FeedSession = typeof FeedSessionNamespace;
 
 /** The channels this tab's YouTube data says the user is subscribed to, or not */
 const officialSubscriptions = new Map<string, boolean>();
@@ -28,7 +30,7 @@ vi.mock("#channel-button", () => ({
 const nativeTitles = new Map<string, string>();
 
 vi.mock("#feed/channel-natives", async importOriginal => ({
-  ...(await importOriginal<typeof import("#feed/channel-natives")>()),
+  ...(await importOriginal<typeof ChannelNativesNamespace>()),
   findNativeRenderer({ videoId: id }: { videoId: string }) {
     const title = nativeTitles.get(id);
     return title === undefined

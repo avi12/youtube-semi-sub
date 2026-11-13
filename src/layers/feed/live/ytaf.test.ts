@@ -1,6 +1,7 @@
+import type * as YtafModuleNamespace from "#feed/live/ytaf";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-type YtafModule = typeof import("#feed/live/ytaf");
+type YtafModule = typeof YtafModuleNamespace;
 
 const REQUEST_EVENT = "@webext-core/messaging/custom-events";
 const RESPONSE_EVENT = "@webext-core/messaging/custom-events/response";

@@ -42,25 +42,25 @@ function closeMenu(elItem: Element) {
   );
 }
 
-function handleClick(e: MouseEvent) {
-  if (!(e.target instanceof Element)) {
+function handleClick(event: MouseEvent) {
+  if (!(event.target instanceof Element)) {
     return;
   }
 
-  const elTile = e.target.closest<HTMLElement>(TILE_SELECTOR);
+  const elTile = event.target.closest<HTMLElement>(TILE_SELECTOR);
   if (elTile) {
     lastTileChannelId = channelIdOfTile(elTile);
     return;
   }
 
-  const elItem = e.target.closest(MENU_ITEM_SELECTOR);
+  const elItem = event.target.closest(MENU_ITEM_SELECTOR);
   const isOwnItem = elItem?.textContent?.trim() === SEMI_UNSUBSCRIBE_LABEL;
   if (!elItem || !isOwnItem) {
     return;
   }
 
-  e.stopPropagation();
-  e.preventDefault();
+  event.stopPropagation();
+  event.preventDefault();
   closeMenu(elItem);
 
   if (!lastTileChannelId) {

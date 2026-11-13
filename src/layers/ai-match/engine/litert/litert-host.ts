@@ -193,9 +193,9 @@ async function ensureEngine() {
   enginePromise = createEngine(model);
   try {
     return await enginePromise;
-  } catch (e) {
+  } catch (error) {
     isEngineBroken = true;
-    throw e;
+    throw error;
   }
 }
 

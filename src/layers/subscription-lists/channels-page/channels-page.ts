@@ -36,8 +36,8 @@ function syncChannelsSection() {
 }
 
 /** Our rows' buttons carry no command of their own: a click opens the dialog for that row's channel */
-function handleManageButtonClick(e: MouseEvent) {
-  const elButton = e.target instanceof Element ? e.target.closest(CHANNEL_BUTTON_SELECTOR) : null;
+function handleManageButtonClick(event: MouseEvent) {
+  const elButton = event.target instanceof Element ? event.target.closest(CHANNEL_BUTTON_SELECTOR) : null;
   const elChannel = elButton?.closest(CHANNEL_RENDERER_SELECTOR);
   const channelId = elChannel && isPolymerElement(elChannel) ? readSemiChannelId(elChannel.data) : null;
   const subscription = listsView.subscriptions.find(listed => listed.channelId === channelId);
@@ -45,8 +45,8 @@ function handleManageButtonClick(e: MouseEvent) {
     return;
   }
 
-  e.preventDefault();
-  e.stopPropagation();
+  event.preventDefault();
+  event.stopPropagation();
   openSemiSubDialog(subscription);
 }
 

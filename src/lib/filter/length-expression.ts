@@ -435,14 +435,14 @@ export function parseLengthExpression(text: string) {
       bounds,
       error: null
     };
-  } catch (e) {
-    if (!(e instanceof ExpressionError)) {
-      throw e;
+  } catch (error) {
+    if (!(error instanceof ExpressionError)) {
+      throw error;
     }
 
     return {
       bounds: null,
-      error: e.message
+      error: error.message
     };
   }
 }

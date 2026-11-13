@@ -14,8 +14,8 @@
 
   /** A pressed chip announces itself to its chip cloud, which this one has none of - so YouTube never hears of it */
   function keepChipActions(elHost: Element) {
-    return on(elHost, CHIP_ACTION_EVENT, e => {
-      e.stopPropagation();
+    return on(elHost, CHIP_ACTION_EVENT, event => {
+      event.stopPropagation();
     });
   }
 </script>

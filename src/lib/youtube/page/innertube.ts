@@ -48,8 +48,10 @@ function readApisidCookie() {
   return null;
 }
 
+const HEX_RADIX = 16;
+
 function toHex(buffer: ArrayBuffer) {
-  return [...new Uint8Array(buffer)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+  return [...new Uint8Array(buffer)].map(byte => byte.toString(HEX_RADIX).padStart(2, "0")).join("");
 }
 
 async function buildAuthorization() {

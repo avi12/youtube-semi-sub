@@ -289,8 +289,8 @@ function isFeedNavigation(detail: unknown) {
   return isFeedUrl || endpoint?.browseEndpoint?.browseId === SUBSCRIPTIONS_BROWSE_ID;
 }
 
-function handleNavigationStart(e: Event) {
-  const isFeedTarget = e instanceof CustomEvent && isFeedNavigation(e.detail);
+function handleNavigationStart(event: Event) {
+  const isFeedTarget = event instanceof CustomEvent && isFeedNavigation(event.detail);
   if (isFeedTarget) {
     prefetchFeedNatives();
   }

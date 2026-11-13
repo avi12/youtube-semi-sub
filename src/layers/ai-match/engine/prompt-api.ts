@@ -40,7 +40,7 @@ const LANGUAGE_MODEL_OPTIONS: LanguageModelOptions = {
 };
 
 interface LanguageModelDownloadMonitor {
-  addEventListener(type: "downloadprogress", listener: (e: Event) => void): void;
+  addEventListener(type: "downloadprogress", listener: (event: Event) => void): void;
 }
 
 /** A Prompt API session; a fake with the same three members stands in for it in tests */
@@ -132,8 +132,8 @@ export async function downloadBuiltInModel({
       ...LANGUAGE_MODEL_OPTIONS,
       signal,
       monitor: downloadMonitor =>
-        downloadMonitor.addEventListener("downloadprogress", e => {
-          const parsed = downloadProgressEventSchema.safeParse(e);
+        downloadMonitor.addEventListener("downloadprogress", event => {
+          const parsed = downloadProgressEventSchema.safeParse(event);
           if (parsed.success) {
             onProgress(parsed.data.loaded);
           }

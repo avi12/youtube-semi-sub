@@ -9,8 +9,13 @@ export const NOW = Date.UTC(2026, 9, 15, 12);
 export const CHANNEL_ID = "UCsemisubscribedchannel1";
 export const OTHER_CHANNEL_ID = "UCalreadysubscribedchan2";
 
+const VIDEO_ID_DIGITS = 6;
+const SHORTS_ROOT_VISUAL_ELEMENT = 37414;
+const SHORTS_THUMBNAIL_WIDTH = 405;
+const SHORTS_THUMBNAIL_HEIGHT = 720;
+
 export function videoId(index: number) {
-  return `video${String(index).padStart(6, "0")}`;
+  return `video${String(index).padStart(VIDEO_ID_DIGITS, "0")}`;
 }
 
 function hoursAgo(hours: number) {
@@ -328,7 +333,7 @@ export function shortsLockup({
           webCommandMetadata: {
             url: `/shorts/${videoId(index)}`,
             webPageType: "WEB_PAGE_TYPE_SHORTS",
-            rootVe: 37414
+            rootVe: SHORTS_ROOT_VISUAL_ELEMENT
           }
         },
         reelWatchEndpoint: {
@@ -389,8 +394,8 @@ export function shortsLockup({
           sources: [
             {
               url: `https://i.ytimg.com/vi/${videoId(index)}/sardefault.jpg?sqp=signed`,
-              width: 405,
-              height: 720
+              width: SHORTS_THUMBNAIL_WIDTH,
+              height: SHORTS_THUMBNAIL_HEIGHT
             }
           ]
         }

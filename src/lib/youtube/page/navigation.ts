@@ -3,7 +3,7 @@ const NAVIGATION_START_EVENTS = ["yt-navigate-start", "state-navigatestart"] as 
 const NAVIGATION_FINISH_EVENTS = ["yt-navigate-finish", "state-navigateend"] as const;
 
 /** Calls back as every YouTube SPA navigation starts, with the event that names its destination */
-export function onYouTubeNavigateStart(callback: (e: Event) => void) {
+export function onYouTubeNavigateStart(callback: (event: Event) => void) {
   for (const eventName of NAVIGATION_START_EVENTS) {
     document.addEventListener(eventName, callback);
     addEventListener(eventName, callback);
