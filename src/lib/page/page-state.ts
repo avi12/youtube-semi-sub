@@ -49,5 +49,8 @@ export function whenPageStateKnown(listener: (state: PageState) => void) {
 export function initPageState() {
   pageMessenger.onMessage(PageMessage.pageStateChanged, state => applyIncomingState(state));
   // The bridge may not be listening yet; it also pushes pageStateChanged once ready, so a lost request is harmless
-  pageMessenger.sendMessage(PageMessage.getPageState).then(applyIncomingState).catch(() => {});
+  pageMessenger
+    .sendMessage(PageMessage.getPageState)
+    .then(applyIncomingState)
+    .catch(() => {});
 }

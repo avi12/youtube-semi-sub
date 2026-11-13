@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { DEFAULT_TITLE_FILTER, FilterKind, type RegexFilter } from "@/lib/filter/title-filter";
 import {
   isUploadsWatched,
@@ -6,7 +8,6 @@ import {
   migrateSemiSubscriptionsToV4,
   semiSubscriptionsSchema
 } from "@/lib/schemas/semi-subscription";
-import { describe, expect, it } from "vitest";
 
 const REGEX_CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const AI_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";

@@ -1,19 +1,19 @@
-import { getReadableFilterError, highlightMatches, partitionPreviewRows, previewVideoFilter } from "./title-matches";
+import { describe, expect, it } from "vitest";
+
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import {
-  type AiFilter,
-  FilterKind,
-  FilterMatch,
-  MatchState,
-  type RegexFilter
-} from "@/lib/filter/title-filter";
+import { type AiFilter, FilterKind, FilterMatch, MatchState, type RegexFilter } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
-import { describe, expect, it } from "vitest";
+
+import { getReadableFilterError, highlightMatches, partitionPreviewRows, previewVideoFilter } from "./title-matches";
 
 const CHANNEL_ID = "UC0123456789abcdefghijkl";
 
-function previewTitleFilter({ filter, videos, mode }: Pick<Parameters<typeof previewVideoFilter>[0], "videos" | "mode"> & {
+function previewTitleFilter({
+  filter,
+  videos,
+  mode
+}: Pick<Parameters<typeof previewVideoFilter>[0], "videos" | "mode"> & {
   filter: RegexFilter;
 }) {
   return previewVideoFilter({
@@ -32,10 +32,7 @@ function previewAiFilter(options: Omit<Parameters<typeof previewVideoFilter>[0],
   });
 }
 
-function createVideo({ videoId, title }: {
-  videoId: string;
-  title: string;
-}) {
+function createVideo({ videoId, title }: { videoId: string; title: string }) {
   const video: FeedVideo = {
     videoId,
     channelId: CHANNEL_ID,
@@ -77,10 +74,12 @@ describe("highlightMatches", () => {
         title: "Cooking show",
         regex: /rust/
       })
-    ).toEqual([{
-      text: "Cooking show",
-      isHighlighted: false
-    }]);
+    ).toEqual([
+      {
+        text: "Cooking show",
+        isHighlighted: false
+      }
+    ]);
   });
 
   it("skips zero-width matches instead of looping forever", () => {
@@ -89,10 +88,12 @@ describe("highlightMatches", () => {
         title: "abc",
         regex: /x*/
       })
-    ).toEqual([{
-      text: "abc",
-      isHighlighted: false
-    }]);
+    ).toEqual([
+      {
+        text: "abc",
+        isHighlighted: false
+      }
+    ]);
   });
 
   it("keeps astral characters whole with the u flag", () => {
@@ -180,10 +181,12 @@ describe("previewTitleFilter", () => {
       mode: SubscriptionMode.follow
     });
     expect(preview.shownCount).toBe(videos.length);
-    expect(preview.shownRows[1]?.segments).toEqual([{
-      text: "Vlog",
-      isHighlighted: false
-    }]);
+    expect(preview.shownRows[1]?.segments).toEqual([
+      {
+        text: "Vlog",
+        isHighlighted: false
+      }
+    ]);
   });
 
   it("matches nothing while the pattern is invalid", () => {
@@ -206,14 +209,17 @@ describe("previewTitleFilter", () => {
       filter: {
         kind: FilterKind.group,
         match: FilterMatch.all,
-        conditions: [{
-          kind: FilterKind.regex,
-          pattern: "tutorial",
-          flags: "i"
-        }, {
-          kind: FilterKind.length,
-          maxSeconds: 600
-        }]
+        conditions: [
+          {
+            kind: FilterKind.regex,
+            pattern: "tutorial",
+            flags: "i"
+          },
+          {
+            kind: FilterKind.length,
+            maxSeconds: 600
+          }
+        ]
       },
       videos: videos.map((video, i) => ({
         ...video,
@@ -315,10 +321,14 @@ describe("previewAiFilter", () => {
 
   it.each([
     ["AI match is off", filter, false],
-    ["the description is blank", {
-      kind: FilterKind.aiMatch,
-      description: " "
-    }, true]
+    [
+      "the description is blank",
+      {
+        kind: FilterKind.aiMatch,
+        description: " "
+      },
+      true
+    ]
   ] satisfies [string, AiFilter, boolean][])("judges nothing while %s", (_reason, previewedFilter, isAiEnabled) => {
     const preview = previewAiFilter({
       filter: previewedFilter,

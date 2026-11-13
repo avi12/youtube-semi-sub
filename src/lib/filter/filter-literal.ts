@@ -53,7 +53,7 @@ export const FILTER_MATCH_CONNECTOR = {
 const MINUTES_PRECISION = 10;
 
 function formatMinutes(seconds: number) {
-  return `${Math.round(seconds / SECONDS_PER_MINUTE * MINUTES_PRECISION) / MINUTES_PRECISION}`;
+  return `${Math.round((seconds / SECONDS_PER_MINUTE) * MINUTES_PRECISION) / MINUTES_PRECISION}`;
 }
 
 /** "up to 20 min", "at least 2 min" or "2-20 min" */
@@ -66,7 +66,10 @@ const VIDEO_TYPE_NAME = {
 
 /** "Shorts or live streams" */
 function describeVideoTypes({ types }: TypeFilter) {
-  return Object.values(VideoType).filter(type => types.includes(type)).map(type => VIDEO_TYPE_NAME[type]).join(" or ");
+  return Object.values(VideoType)
+    .filter(type => types.includes(type))
+    .map(type => VIDEO_TYPE_NAME[type])
+    .join(" or ");
 }
 
 export function describeLengthRange({ minSeconds, maxSeconds }: LengthFilter) {
@@ -81,7 +84,11 @@ export function describeLengthRange({ minSeconds, maxSeconds }: LengthFilter) {
   return minSeconds === undefined ? "any length" : `at least ${formatMinutes(minSeconds)} min`;
 }
 
-function describeEmptyFilter({ isInert, modeName, mode }: {
+function describeEmptyFilter({
+  isInert,
+  modeName,
+  mode
+}: {
   isInert: boolean;
   modeName: string;
   mode: SubscriptionMode;
@@ -99,7 +106,10 @@ function describeEmptyFilter({ isInert, modeName, mode }: {
 }
 
 /** What a list says about a channel's filter: the mode it is in, and each condition of that mode's filter */
-export function describeFilterLiteral({ subscription, isAiEnabled }: Pick<PageState, "isAiEnabled"> & {
+export function describeFilterLiteral({
+  subscription,
+  isAiEnabled
+}: Pick<PageState, "isAiEnabled"> & {
   subscription: SemiSubscription;
 }) {
   const mode = getSubscriptionMode(subscription);
@@ -210,10 +220,7 @@ function describeConditionClause(condition: FilterCondition) {
  * The filter as one plain sentence - which videos it shows or hides, and what happens to the rest - so a reader never
  * has to combine the list type, the all/any switch and each condition in their head
  */
-export function describeFilterRule({ filter, mode }: {
-  filter: VideoFilter;
-  mode: SubscriptionMode;
-}) {
+export function describeFilterRule({ filter, mode }: { filter: VideoFilter; mode: SubscriptionMode }) {
   const wording = RULE_WORDING[mode];
   const conditions = listRestrictingConditions(filter);
   if (conditions.length === 0) {

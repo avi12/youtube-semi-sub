@@ -51,10 +51,7 @@ export function waitForElement(selector: string) {
   });
 }
 
-export function observeSubtree({ elements, onChange }: {
-  elements: Iterable<Element>;
-  onChange: () => void;
-}) {
+export function observeSubtree({ elements, onChange }: { elements: Iterable<Element>; onChange: () => void }) {
   const observer = new MutationObserver(onChange);
   for (const element of elements) {
     observer.observe(element, SUBTREE_CHILD_LIST);

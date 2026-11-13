@@ -1,8 +1,9 @@
+import type { ChatMessage } from "@/lib/ai/chat-message";
+import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
+
 import { deleteLiteRtModel, downloadLiteRtModel, getLiteRtDownloadFraction, inferWithLiteRt } from "./litert-host";
 import { deleteLiteRtModelCache } from "./litert-model";
 import { closeOffscreenDocument, hasOffscreenDocument, sendToOffscreenDocument } from "./offscreen-document";
-import type { ChatMessage } from "@/lib/ai/chat-message";
-import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 
 // The background's handle on LiteRT-LM. Firefox's background is an event page with a DOM and WebGPU, so it hosts the
 // model itself; Chromium's service worker hands everything to the offscreen page. The browser check is a build-time
@@ -27,7 +28,7 @@ export async function readLocalModelDownloadFraction() {
     return getLiteRtDownloadFraction();
   }
 
-  if (!await hasOffscreenDocument()) {
+  if (!(await hasOffscreenDocument())) {
     return null;
   }
 

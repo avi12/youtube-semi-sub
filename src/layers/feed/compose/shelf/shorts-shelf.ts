@@ -1,7 +1,7 @@
-import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 import type { FeedSlot } from "#feed/compose/feed-slot";
 import { isSemiSubscribedItem } from "#feed/compose/semi-subscribed-tag";
 import { collectContentVideoIds, readShelf, shortsLockupFromItem, videoIdFromShelfItem } from "#feed/items/feed-items";
+import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 
 // The feed's Shorts shelf is the only place a semi-subscribed Short goes, and only when YouTube put one in the feed -
 // none is ever created, and the shelf stays where it is. Shorts carry no publish time there, so semi-subscribed ones
@@ -28,7 +28,12 @@ export function findShortsShelf(contents: readonly unknown[]) {
  * Plans the Shorts shelf with the Shorts among `videos` inserted and `removedVideoIds` taken out; null when the feed
  * has no Shorts shelf
  */
-export function planShortsShelf({ contents, videos, removedVideoIds, isWithinLoadedSpan }: {
+export function planShortsShelf({
+  contents,
+  videos,
+  removedVideoIds,
+  isWithinLoadedSpan
+}: {
   contents: readonly unknown[];
   videos: readonly FeedVideo[];
   removedVideoIds: ReadonlySet<string>;

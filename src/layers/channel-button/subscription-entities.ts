@@ -1,9 +1,10 @@
-import { applySubscriptionSnapshot } from "./official-subscription";
+import { readSubscriptionEntities } from "#channel-button/page/channel-page-data";
+import { readIsSignedIn } from "#channel-button/page/page-data-source";
 import { parseJson } from "@/lib/utils/json";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
 import { InnerTubePath, isYouTubeUrlAt } from "@/lib/youtube/site";
-import { readSubscriptionEntities } from "#channel-button/page/channel-page-data";
-import { readIsSignedIn } from "#channel-button/page/page-data-source";
+
+import { applySubscriptionSnapshot } from "./official-subscription";
 
 // MAIN world, document_start: YouTube's raw InnerTube data says whether the user is subscribed to every channel it
 // shows (`subscriptionStateEntity`), but only on the way in - the app drops `frameworkUpdates` once it stored them.
@@ -12,10 +13,12 @@ import { readIsSignedIn } from "#channel-button/page/page-data-source";
 const SNAPSHOT_PATHNAMES = [InnerTubePath.browse, InnerTubePath.next];
 
 function isSnapshotResponse(response: Response) {
-  return SNAPSHOT_PATHNAMES.some(pathname => isYouTubeUrlAt({
-    url: response.url,
-    pathname
-  }));
+  return SNAPSHOT_PATHNAMES.some(pathname =>
+    isYouTubeUrlAt({
+      url: response.url,
+      pathname
+    })
+  );
 }
 
 /** Signed out, every channel reads as not subscribed, which says nothing about the user */

@@ -1,7 +1,9 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { AiEngine, type AiEngineChoice, AiUnavailableReason } from "@/lib/ai/ai-status";
+
 import { type AiEngineProbes, type LiteRtSupport, resolveAiEngine } from "./engine-resolution";
 import { BuiltInAvailability } from "./prompt-api";
-import { AiEngine, type AiEngineChoice, AiUnavailableReason } from "@/lib/ai/ai-status";
-import { describe, expect, it, vi } from "vitest";
 
 const FULL_SUPPORT: LiteRtSupport = {
   isWebGpuAvailable: true,
@@ -19,7 +21,10 @@ const OLD_WASM: LiteRtSupport = {
 const BUILT_IN: AiEngineChoice = { engine: AiEngine.builtIn };
 const LITE_RT: AiEngineChoice = { engine: AiEngine.liteRt };
 
-function createProbes({ builtInAvailability, liteRtSupport }: {
+function createProbes({
+  builtInAvailability,
+  liteRtSupport
+}: {
   builtInAvailability: BuiltInAvailability | null;
   liteRtSupport: LiteRtSupport;
 }) {
@@ -38,18 +43,33 @@ describe("resolveAiEngine", () => {
     ["Chrome mid-download", BuiltInAvailability.downloading, FULL_SUPPORT, BUILT_IN],
     ["a device that can't run the built-in model", BuiltInAvailability.unavailable, FULL_SUPPORT, LITE_RT],
     ["no Prompt API in the worker (Firefox, Edge, Opera...)", null, FULL_SUPPORT, LITE_RT],
-    ["no Prompt API and no WebGPU", null, NO_WEBGPU, {
-      engine: AiEngine.none,
-      reason: AiUnavailableReason.noWebGpu
-    }],
-    ["no Prompt API and wasm without JSPI or relaxed SIMD", null, OLD_WASM, {
-      engine: AiEngine.none,
-      reason: AiUnavailableReason.outdatedBrowser
-    }],
-    ["an unusable built-in model and no WebGPU", BuiltInAvailability.unavailable, NO_WEBGPU, {
-      engine: AiEngine.none,
-      reason: AiUnavailableReason.noWebGpu
-    }]
+    [
+      "no Prompt API and no WebGPU",
+      null,
+      NO_WEBGPU,
+      {
+        engine: AiEngine.none,
+        reason: AiUnavailableReason.noWebGpu
+      }
+    ],
+    [
+      "no Prompt API and wasm without JSPI or relaxed SIMD",
+      null,
+      OLD_WASM,
+      {
+        engine: AiEngine.none,
+        reason: AiUnavailableReason.outdatedBrowser
+      }
+    ],
+    [
+      "an unusable built-in model and no WebGPU",
+      BuiltInAvailability.unavailable,
+      NO_WEBGPU,
+      {
+        engine: AiEngine.none,
+        reason: AiUnavailableReason.noWebGpu
+      }
+    ]
   ] satisfies [string, BuiltInAvailability | null, LiteRtSupport, AiEngineChoice][])(
     "%s",
     async (_name, builtInAvailability, liteRtSupport, expected) => {

@@ -112,10 +112,7 @@ function getSubscriptionEndpointPath(input: RequestInfo | URL) {
 }
 
 /** Must run before the request is handed on - fetch consumes a Request's body */
-function readRequestBody({ input, init }: {
-  input: RequestInfo | URL;
-  init: RequestInit | undefined;
-}) {
+function readRequestBody({ input, init }: { input: RequestInfo | URL; init: RequestInit | undefined }) {
   const body = init?.body;
   if (typeof body === "string") {
     return Promise.resolve(body);
@@ -129,7 +126,11 @@ function readRequestBody({ input, init }: {
   return Promise.resolve(null);
 }
 
-async function reportSubscriptionRequest({ endpointPath, requestBody, response }: {
+async function reportSubscriptionRequest({
+  endpointPath,
+  requestBody,
+  response
+}: {
   endpointPath: string;
   requestBody: Promise<string | null>;
   response: Promise<Response>;

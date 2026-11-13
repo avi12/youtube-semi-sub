@@ -1,12 +1,13 @@
-import { readSemiChannelId, withSemiChannelsSection } from "./channels-shelf";
+import { openSemiSubDialog } from "#subscription-lists/components/open-dialog";
+import { listsView } from "#subscription-lists/lists-view.svelte";
+import { createPageWatcher } from "#subscription-lists/semi-list-surface";
 import { onPageState } from "@/lib/page/page-state";
 import { createFrameScheduler } from "@/lib/utils/dom";
 import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
 import { isPolymerElement } from "@/lib/youtube/page/polymer";
 import { FeedPathname } from "@/lib/youtube/site";
-import { openSemiSubDialog } from "#subscription-lists/components/open-dialog";
-import { listsView } from "#subscription-lists/lists-view.svelte";
-import { createPageWatcher } from "#subscription-lists/semi-list-surface";
+
+import { readSemiChannelId, withSemiChannelsSection } from "./channels-shelf";
 
 // www.youtube.com/feed/channels is page "subscriptions-channels" in YouTube's page manager - a ytd-browse of its own.
 // The semi-subscriptions are a section of its section list's data (see `channels-shelf`); YouTube replaces that data

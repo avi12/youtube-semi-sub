@@ -1,13 +1,19 @@
-import { isVideoListUnchanged, mergeChannelVideos } from "./merge-channel-videos";
+import { describe, expect, it } from "vitest";
+
+import { UploadsSource } from "#background/uploads/channel-uploads";
 import { MAX_CACHED_VIDEOS_PER_CHANNEL } from "@/lib/schemas/feed-video";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
-import { UploadsSource } from "#background/uploads/channel-uploads";
-import { describe, expect, it } from "vitest";
+
+import { isVideoListUnchanged, mergeChannelVideos } from "./merge-channel-videos";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const HOUR_MS = 3_600_000;
 
-function createVideo({ videoId, publishedAt, title = `Video ${videoId}` }: {
+function createVideo({
+  videoId,
+  publishedAt,
+  title = `Video ${videoId}`
+}: {
   videoId: string;
   publishedAt: number;
   title?: string;
@@ -83,11 +89,13 @@ describe("mergeChannelVideos", () => {
 
   it("keeps the lengths and members-only marks the cache has when RSS, which tells neither, refetches a video", () => {
     const merged = mergeChannelVideos({
-      previous: [{
-        ...kept,
-        durationSeconds: 754,
-        isMembersOnly: true
-      }],
+      previous: [
+        {
+          ...kept,
+          durationSeconds: 754,
+          isMembersOnly: true
+        }
+      ],
       uploads: {
         channelId: CHANNEL_ID,
         source: UploadsSource.rss,
@@ -113,10 +121,12 @@ describe("mergeChannelVideos", () => {
   });
 
   it("caps the cache per channel, keeping the newest", () => {
-    const previous = Array.from({ length: MAX_CACHED_VIDEOS_PER_CHANNEL }, (_, i) => createVideo({
-      videoId: `old${String(i).padStart(8, "0")}`,
-      publishedAt: i
-    }));
+    const previous = Array.from({ length: MAX_CACHED_VIDEOS_PER_CHANNEL }, (_, i) =>
+      createVideo({
+        videoId: `old${String(i).padStart(8, "0")}`,
+        publishedAt: i
+      })
+    );
     const merged = mergeChannelVideos({
       previous,
       uploads: {

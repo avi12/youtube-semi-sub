@@ -1,7 +1,8 @@
-import { functionSchema } from "@/lib/schemas/function";
-import { z } from "@/lib/zod";
 import type { Component, Snippet } from "svelte";
 import { createContext } from "svelte";
+
+import { functionSchema } from "@/lib/schemas/function";
+import { z } from "@/lib/zod";
 
 // The controls the editor is built from, handed in by its host: the in-page dialog passes YouTube's own Polymer
 // components, the popup (and m.youtube.com, which has no Polymer) the editor's plain ones. Only the look differs

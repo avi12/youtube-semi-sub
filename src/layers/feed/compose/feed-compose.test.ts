@@ -1,7 +1,5 @@
-import { composeFeedContents } from "./feed-compose";
-import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
-import type { FeedVideo } from "@/lib/schemas/feed-video";
-import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { describe, expect, it } from "vitest";
+
 import {
   CHANNEL_ID,
   continuationItem,
@@ -19,7 +17,11 @@ import {
   videoIdFromGridItem,
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
-import { describe, expect, it } from "vitest";
+import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
+import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+
+import { composeFeedContents } from "./feed-compose";
 
 const SUBSCRIPTIONS: SemiSubscriptions = {
   [CHANNEL_ID]: {
@@ -55,7 +57,11 @@ function feedContents() {
   ];
 }
 
-function compose({ videos, removedVideoIds = new Set(), contents = feedContents() }: {
+function compose({
+  videos,
+  removedVideoIds = new Set(),
+  contents = feedContents()
+}: {
   videos: FeedVideo[];
   removedVideoIds?: ReadonlySet<string>;
   contents?: unknown[];
@@ -67,9 +73,8 @@ function compose({ videos, removedVideoIds = new Set(), contents = feedContents(
     removedVideoIds,
     now: NOW,
     locale: "en",
-    findNative: video => video.videoId === videoId(50)
-      ? rendererFromContent({ lockupViewModel: desktopChannelTabLockup(50) })
-      : null,
+    findNative: video =>
+      video.videoId === videoId(50) ? rendererFromContent({ lockupViewModel: desktopChannelTabLockup(50) }) : null,
     findNativeShort: () => null,
     findAvatarUrl: () => "https://yt3.googleusercontent.com/semi=s900",
     findIsVerified: () => false
@@ -108,10 +113,12 @@ describe("composeFeedContents", () => {
 
   it("names the channel as subscribed and falls back to the channel page's avatar", () => {
     const composed = compose({
-      videos: [feedVideo({
-        index: 51,
-        hours: 3
-      })]
+      videos: [
+        feedVideo({
+          index: 51,
+          hours: 3
+        })
+      ]
     });
     const built = rendererFromGridItem(composed?.contents[1]);
     expect(built?.renderer).toMatchObject({
@@ -132,18 +139,22 @@ describe("composeFeedContents", () => {
             contentMetadataViewModel: {
               metadataRows: [
                 {
-                  metadataParts: [{
-                    text: {
-                      content: "Semi Channel (subscribed name)"
+                  metadataParts: [
+                    {
+                      text: {
+                        content: "Semi Channel (subscribed name)"
+                      }
                     }
-                  }]
+                  ]
                 },
                 {
-                  metadataParts: [{
-                    text: {
-                      content: "3 hours ago"
+                  metadataParts: [
+                    {
+                      text: {
+                        content: "3 hours ago"
+                      }
                     }
-                  }]
+                  ]
                 }
               ]
             }
@@ -164,18 +175,22 @@ describe("composeFeedContents", () => {
 
   it("returns null when the feed already shows everything", () => {
     const first = compose({
-      videos: [feedVideo({
-        index: 50,
-        hours: 3
-      })]
+      videos: [
+        feedVideo({
+          index: 50,
+          hours: 3
+        })
+      ]
     });
     expect(
       compose({
         contents: first?.contents,
-        videos: [feedVideo({
-          index: 50,
-          hours: 3
-        })]
+        videos: [
+          feedVideo({
+            index: 50,
+            hours: 3
+          })
+        ]
       })
     ).toBeNull();
   });
@@ -213,11 +228,13 @@ describe("composeFeedContents", () => {
     expect(
       compose({
         contents: feedContents().filter(item => shelfItemsFromGridItem(item).length === 0),
-        videos: [feedVideo({
-          index: 60,
-          hours: 2,
-          isShort: true
-        })]
+        videos: [
+          feedVideo({
+            index: 60,
+            hours: 2,
+            isShort: true
+          })
+        ]
       })
     ).toBeNull();
   });

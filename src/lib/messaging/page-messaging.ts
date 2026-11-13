@@ -1,10 +1,11 @@
+import type { ProtocolWithReturn } from "@webext-core/messaging";
+import { defineCustomEventMessaging } from "@webext-core/messaging/page";
+
 import { defineValidatedMessaging } from "@/lib/messaging/validated-messaging";
 import { channelIdSchema, channelInfoSchema } from "@/lib/schemas/channel";
 import { feedVideoSchema, videoIdSchema } from "@/lib/schemas/feed-video";
 import { storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
-import type { ProtocolWithReturn } from "@webext-core/messaging";
-import { defineCustomEventMessaging } from "@webext-core/messaging/page";
 
 const pageStateSchema = storedStateSchema
   .pick({

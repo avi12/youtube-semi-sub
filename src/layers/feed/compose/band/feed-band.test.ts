@@ -1,5 +1,5 @@
-import { findInlineRuns, planFeedBand, reflowBandIntoRuns } from "./feed-band";
-import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { describe, expect, it } from "vitest";
+
 import { AnchorSide } from "#feed/compose/feed-slot";
 import {
   contextRendererItem,
@@ -11,7 +11,9 @@ import {
   videoId
 } from "#feed/fixtures/feed-fixtures";
 import { videoIdFromGridItem } from "#feed/items/feed-items";
-import { describe, expect, it } from "vitest";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
+
+import { findInlineRuns, planFeedBand, reflowBandIntoRuns } from "./feed-band";
 
 const NO_REMOVALS = new Set<string>();
 
@@ -39,7 +41,11 @@ function feedContents() {
   ];
 }
 
-function plan({ contents = feedContents(), videos, removedVideoIds = NO_REMOVALS }: {
+function plan({
+  contents = feedContents(),
+  videos,
+  removedVideoIds = NO_REMOVALS
+}: {
   contents?: unknown[];
   videos: FeedVideo[];
   removedVideoIds?: ReadonlySet<string>;
@@ -74,11 +80,13 @@ describe("findInlineRuns", () => {
 describe("planFeedBand", () => {
   it("never puts a Short in the band", () => {
     const { insertedVideos, isChanged } = plan({
-      videos: [feedVideo({
-        index: 50,
-        hours: 2,
-        isShort: true
-      })]
+      videos: [
+        feedVideo({
+          index: 50,
+          hours: 2,
+          isShort: true
+        })
+      ]
     });
     expect(insertedVideos).toEqual([]);
     expect(isChanged).toBe(false);
@@ -86,10 +94,12 @@ describe("planFeedBand", () => {
 
   it("inserts a video before the first item older than it", () => {
     const { slots, insertedVideos, isChanged } = plan({
-      videos: [feedVideo({
-        index: 50,
-        hours: 2
-      })]
+      videos: [
+        feedVideo({
+          index: 50,
+          hours: 2
+        })
+      ]
     });
     expect(slotIds(slots)).toEqual([videoId(1), videoId(50), videoId(2), videoId(3), videoId(4)]);
     expect(insertedVideos.map(video => video.videoId)).toEqual([videoId(50)]);
@@ -217,10 +227,12 @@ describe("planFeedBand", () => {
     ];
     const { slots } = plan({
       contents,
-      videos: [feedVideo({
-        index: 50,
-        hours: 0.1
-      })]
+      videos: [
+        feedVideo({
+          index: 50,
+          hours: 0.1
+        })
+      ]
     });
     expect(slotIds(slots).slice(0, 3)).toEqual([videoId(9), videoId(50), videoId(1)]);
   });
@@ -279,10 +291,12 @@ describe("planFeedBand", () => {
   it("changes nothing in a feed without root videos", () => {
     const { isChanged } = plan({
       contents: [shortsShelf([90])],
-      videos: [feedVideo({
-        index: 50,
-        hours: 1
-      })]
+      videos: [
+        feedVideo({
+          index: 50,
+          hours: 1
+        })
+      ]
     });
     expect(isChanged).toBe(false);
   });

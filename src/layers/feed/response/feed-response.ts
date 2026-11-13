@@ -1,6 +1,6 @@
+import { type BrowseResponse, browseResponseSchema, continuationResponseSchema } from "#feed/items/feed-schemas";
 import { findInitialDataJson } from "@/lib/youtube/initial-data";
 import type { BrowseTab } from "@/lib/youtube/schemas/browse";
-import { type BrowseResponse, browseResponseSchema, continuationResponseSchema } from "#feed/items/feed-schemas";
 
 // Recognizes the first page of the subscriptions feed in a /browse response or ytInitialData - www nests it under
 // twoColumnBrowseResultsRenderer, m under singleColumnBrowseResultsRenderer - and swaps its grid contents, listing
@@ -22,8 +22,9 @@ enum BrowseColumn {
 
 function isSubscriptionsBrowseIdTracked(response: Pick<BrowseResponse, "responseContext">) {
   const trackingParams = response.responseContext?.serviceTrackingParams ?? [];
-  return trackingParams.some(service => service.params?.some(param =>
-    param.key === BROWSE_ID_TRACKING_KEY && param.value === SUBSCRIPTIONS_BROWSE_ID));
+  return trackingParams.some(service =>
+    service.params?.some(param => param.key === BROWSE_ID_TRACKING_KEY && param.value === SUBSCRIPTIONS_BROWSE_ID)
+  );
 }
 
 function findGridTab(tabs: BrowseTab[]) {
@@ -32,10 +33,10 @@ function findGridTab(tabs: BrowseTab[]) {
   const grid = tabRenderer?.content?.richGridRenderer;
   return tabRenderer && grid
     ? {
-      iTab,
-      tabRenderer,
-      grid
-    }
+        iTab,
+        tabRenderer,
+        grid
+      }
     : null;
 }
 
@@ -55,9 +56,10 @@ export function readSubscriptionsFeed(data: unknown) {
   }
 
   const { iTab, tabRenderer, grid } = gridTab;
-  const isSubscriptionsFeed = isSubscriptionsBrowseIdTracked(response)
-    || tabRenderer.tabIdentifier === SUBSCRIPTIONS_BROWSE_ID
-    || grid.targetId === SUBSCRIPTIONS_GRID_TARGET_ID;
+  const isSubscriptionsFeed =
+    isSubscriptionsBrowseIdTracked(response) ||
+    tabRenderer.tabIdentifier === SUBSCRIPTIONS_BROWSE_ID ||
+    grid.targetId === SUBSCRIPTIONS_GRID_TARGET_ID;
   if (!isSubscriptionsFeed) {
     return null;
   }
@@ -68,10 +70,7 @@ export function readSubscriptionsFeed(data: unknown) {
      * A copy of the response with the grid contents replaced, and the hidden ids listed beside them unless null; the
      * original is left untouched
      */
-    withContents({ contents, hiddenVideoIds }: {
-      contents: unknown[];
-      hiddenVideoIds: string[] | null;
-    }) {
+    withContents({ contents, hiddenVideoIds }: { contents: unknown[]; hiddenVideoIds: string[] | null }) {
       const tab = column.tabs[iTab];
       const hiddenVideoIdsEntry = hiddenVideoIds ? { [HIDDEN_VIDEO_IDS_KEY]: hiddenVideoIds } : {};
       const patchedTab = {
@@ -113,8 +112,8 @@ export function readSubscriptionsContinuation(data: unknown) {
   const actions = response.onResponseReceivedActions;
   const iAction = actions.findIndex(action => !!action.appendContinuationItemsAction);
   const appendAction = actions[iAction]?.appendContinuationItemsAction;
-  const isSubscriptionsFeed = appendAction?.targetId === SUBSCRIPTIONS_GRID_TARGET_ID
-    || isSubscriptionsBrowseIdTracked(response);
+  const isSubscriptionsFeed =
+    appendAction?.targetId === SUBSCRIPTIONS_GRID_TARGET_ID || isSubscriptionsBrowseIdTracked(response);
   if (!appendAction || !isSubscriptionsFeed) {
     return null;
   }

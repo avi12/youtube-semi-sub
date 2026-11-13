@@ -44,12 +44,16 @@ const metadataRowSchema = z.looseObject({
 export type MetadataRow = z.infer<typeof metadataRowSchema>;
 
 const thumbnailBadgeSchema = z.looseObject({
-  thumbnailBadgeViewModel: z.looseObject({
-    text: z.string().optional(),
-    rendererContext: z.looseObject({
-      accessibilityContext: z.looseObject({ label: z.string().optional() }).optional()
-    }).optional()
-  }).optional()
+  thumbnailBadgeViewModel: z
+    .looseObject({
+      text: z.string().optional(),
+      rendererContext: z
+        .looseObject({
+          accessibilityContext: z.looseObject({ label: z.string().optional() }).optional()
+        })
+        .optional()
+    })
+    .optional()
 });
 
 /** A view model's image: every size YouTube offers */
@@ -58,36 +62,58 @@ const sourcedImageSchema = z.looseObject({ sources: z.array(thumbnailSchema).opt
 export const lockupSchema = z.looseObject({
   contentId: z.string(),
   contentType: z.string().optional(),
-  contentImage: z.looseObject({
-    thumbnailViewModel: z.looseObject({
-      image: sourcedImageSchema.optional(),
-      overlays: z.array(
-        z.looseObject({
-          thumbnailBottomOverlayViewModel: z.looseObject({
-            badges: z.array(thumbnailBadgeSchema).optional()
-          }).optional()
+  contentImage: z
+    .looseObject({
+      thumbnailViewModel: z
+        .looseObject({
+          image: sourcedImageSchema.optional(),
+          overlays: z
+            .array(
+              z.looseObject({
+                thumbnailBottomOverlayViewModel: z
+                  .looseObject({
+                    badges: z.array(thumbnailBadgeSchema).optional()
+                  })
+                  .optional()
+              })
+            )
+            .optional()
         })
-      ).optional()
-    }).optional()
-  }).optional(),
-  metadata: z.looseObject({
-    lockupMetadataViewModel: z.looseObject({
-      title: textContentSchema.partial().optional(),
-      image: z.looseObject({
-        decoratedAvatarViewModel: z.looseObject({
-          avatar: z.looseObject({
-            avatarViewModel: z.looseObject({ avatarImageSize: z.string().optional() }).optional()
-          }).optional()
-        }).optional()
-      }).optional(),
-      metadata: z.looseObject({
-        contentMetadataViewModel: z.looseObject({
-          metadataRows: z.array(metadataRowSchema).optional(),
-          delimiter: z.string().optional()
-        }).optional()
-      }).optional()
-    }).optional()
-  }).optional()
+        .optional()
+    })
+    .optional(),
+  metadata: z
+    .looseObject({
+      lockupMetadataViewModel: z
+        .looseObject({
+          title: textContentSchema.partial().optional(),
+          image: z
+            .looseObject({
+              decoratedAvatarViewModel: z
+                .looseObject({
+                  avatar: z
+                    .looseObject({
+                      avatarViewModel: z.looseObject({ avatarImageSize: z.string().optional() }).optional()
+                    })
+                    .optional()
+                })
+                .optional()
+            })
+            .optional(),
+          metadata: z
+            .looseObject({
+              contentMetadataViewModel: z
+                .looseObject({
+                  metadataRows: z.array(metadataRowSchema).optional(),
+                  delimiter: z.string().optional()
+                })
+                .optional()
+            })
+            .optional()
+        })
+        .optional()
+    })
+    .optional()
 });
 export type Lockup = z.infer<typeof lockupSchema>;
 
@@ -101,11 +127,14 @@ export const classicRendererSchema = z.looseObject({
   viewCountText: formattedTextSchema.optional(),
   shortViewCountText: formattedTextSchema.optional(),
   thumbnail: thumbnailListSchema.partial().optional(),
-  badges: z.array(
-    z.looseObject({
-      metadataBadgeRenderer: z.looseObject({ style: z.string().optional() }).optional()
-    })
-  ).optional().catch(undefined)
+  badges: z
+    .array(
+      z.looseObject({
+        metadataBadgeRenderer: z.looseObject({ style: z.string().optional() }).optional()
+      })
+    )
+    .optional()
+    .catch(undefined)
 });
 export type ClassicRenderer = z.infer<typeof classicRendererSchema>;
 
@@ -119,13 +148,17 @@ export const shortsLockupSchema = z.looseObject({
   }),
   menuOnTapA11yLabel: z.string().optional(),
   /** The title, and the view count under it */
-  overlayMetadata: z.looseObject({
-    primaryText: textContentSchema.optional(),
-    secondaryText: textContentSchema.optional()
-  }).optional(),
-  thumbnailViewModel: z.looseObject({
-    thumbnailViewModel: z.looseObject({ image: sourcedImageSchema.optional() }).optional()
-  }).optional(),
+  overlayMetadata: z
+    .looseObject({
+      primaryText: textContentSchema.optional(),
+      secondaryText: textContentSchema.optional()
+    })
+    .optional(),
+  thumbnailViewModel: z
+    .looseObject({
+      thumbnailViewModel: z.looseObject({ image: sourcedImageSchema.optional() }).optional()
+    })
+    .optional(),
   titleTruncationStyle: z.string().optional()
 });
 export type ShortsLockup = z.infer<typeof shortsLockupSchema>;
@@ -150,10 +183,12 @@ export enum ShelfRendererKind {
 /** A section marker: a titled break in the grid, or a shelf with items of its own */
 export const sectionItemSchema = z.looseObject({
   richSectionRenderer: z.looseObject({
-    content: z.looseObject({
-      [ShelfRendererKind.rich]: z.looseObject({ contents: z.array(z.unknown()).optional() }).optional(),
-      [ShelfRendererKind.reel]: z.looseObject({ items: z.array(z.unknown()).optional() }).optional()
-    }).optional()
+    content: z
+      .looseObject({
+        [ShelfRendererKind.rich]: z.looseObject({ contents: z.array(z.unknown()).optional() }).optional(),
+        [ShelfRendererKind.reel]: z.looseObject({ items: z.array(z.unknown()).optional() }).optional()
+      })
+      .optional()
   })
 });
 

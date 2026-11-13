@@ -1,3 +1,11 @@
+import { mount, unmount } from "svelte";
+
+import { listsView } from "#subscription-lists/lists-view.svelte";
+import { listFollowedSubscriptions } from "#subscription-lists/semi-channels";
+import { onPageState } from "@/lib/page/page-state";
+import { createFrameScheduler, observeSubtree, waitForElement, whenDocumentParsed } from "@/lib/utils/dom";
+import { isPolymerElement, type PolymerElement } from "@/lib/youtube/page/polymer";
+
 import {
   buildSemiGuideEntry,
   guideDataSchema,
@@ -7,12 +15,6 @@ import {
   withoutCachedSubscriptionsFlyout
 } from "./guide-data";
 import GuideEntryAction from "./GuideEntryAction.svelte";
-import { onPageState } from "@/lib/page/page-state";
-import { createFrameScheduler, observeSubtree, waitForElement, whenDocumentParsed } from "@/lib/utils/dom";
-import { isPolymerElement, type PolymerElement } from "@/lib/youtube/page/polymer";
-import { listsView } from "#subscription-lists/lists-view.svelte";
-import { listFollowedSubscriptions } from "#subscription-lists/semi-channels";
-import { mount, unmount } from "svelte";
 
 // www.youtube.com sidebar: the guide data is written through YouTube's own model, so the entries render, navigate
 // and highlight natively. Only the manage button on each semi-subscribed entry is our own markup - on our entry for a
@@ -26,14 +28,20 @@ const GUIDE_ENTRY_SELECTOR = `${GUIDE_SELECTOR} ytd-guide-entry-renderer`;
 const SEMI_ENTRY_ATTRIBUTE = "data-yss-semi";
 const GUIDE_ITEMS_PATH = "data.items";
 
-const mountedActionByEntry = new Map<Element, {
-  channelId: string;
-  component: ReturnType<typeof mount>;
-}>();
-const appliedToMiniGuide = new WeakMap<Element, {
-  data: unknown;
-  signature: string;
-}>();
+const mountedActionByEntry = new Map<
+  Element,
+  {
+    channelId: string;
+    component: ReturnType<typeof mount>;
+  }
+>();
+const appliedToMiniGuide = new WeakMap<
+  Element,
+  {
+    data: unknown;
+    signature: string;
+  }
+>();
 
 function readGuideData(element: PolymerElement) {
   const parsed = guideDataSchema.safeParse(element.data);
@@ -48,10 +56,12 @@ function syncGuideData(entries: unknown[]) {
     }
 
     const data = readGuideData(elGuide);
-    const items = data && patchGuideItems({
-      items: data.items,
-      entries
-    });
+    const items =
+      data &&
+      patchGuideItems({
+        items: data.items,
+        entries
+      });
     if (items) {
       elGuide.set(GUIDE_ITEMS_PATH, items);
     }
@@ -109,8 +119,9 @@ function readEntryChannelId(elEntry: Element) {
   }
 
   const subscribedChannelId = readSubscribedGuideEntryChannelId(elEntry.data);
-  const isSubscribedSemiChannel = listsView.subscriptions
-    .some(subscription => subscription.channelId === subscribedChannelId && subscription.isSubscribed);
+  const isSubscribedSemiChannel = listsView.subscriptions.some(
+    subscription => subscription.channelId === subscribedChannelId && subscription.isSubscribed
+  );
   return isSubscribedSemiChannel ? subscribedChannelId : readSemiGuideEntryChannelId(elEntry.data);
 }
 

@@ -1,16 +1,20 @@
 {
   "name": "youtube-semi-sub",
-  "description": "Filter YouTube channels in your subscriptions feed: follow one without subscribing and add only the videos your filter (a RegExp or an AI match) lets through, or subscribe and hide the ones it matches",
-  "private": false,
   "version": "0.1.0",
+  "private": false,
+  "description": "Filter YouTube channels in your subscriptions feed: follow one without subscribing and add only the videos your filter (a RegExp or an AI match) lets through, or subscribe and hide the ones it matches",
+  "homepage": "https://github.com/avi12/youtube-semi-sub",
   "license": "Apache-2.0",
   "author": "Avi (https://avi12.com)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avi12/youtube-semi-sub.git"
+  },
+  "type": "module",
   "sideEffects": [
     "**/*.css",
     "**/*.svelte"
   ],
-  "packageManager": "pnpm@11.13.1",
-  "type": "module",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox --mv3",
@@ -63,9 +67,5 @@
     "wxt": "^0.21.4",
     "wxt-module-layers": "^1.3.0"
   },
-  "homepage": "https://github.com/avi12/youtube-semi-sub",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/avi12/youtube-semi-sub.git"
-  }
+  "packageManager": "pnpm@11.13.1"
 }

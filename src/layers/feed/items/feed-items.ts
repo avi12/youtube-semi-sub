@@ -1,4 +1,3 @@
-import type { VideoRenderer } from "./feed-schemas";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { VIDEO_ID_PATTERN } from "@/lib/schemas/feed-video";
 import { isMembersOnlyClassicRenderer, isMembersOnlyLockup } from "@/lib/youtube/members-only";
@@ -14,6 +13,8 @@ import {
 import { type FormattedText, readText } from "@/lib/youtube/schemas/text";
 import { durationFromClassicRenderer, durationFromLockup } from "@/lib/youtube/video-duration";
 import { z } from "@/lib/zod";
+
+import type { VideoRenderer } from "./feed-schemas";
 
 // Read-only accessors over raw grid items (`{ richItemRenderer: { content } }`) and their renderers
 
@@ -116,7 +117,7 @@ export function videoIdFromShelfItem(item: unknown) {
 /** The Short a shelf item - or a channel's Shorts-tab grid item - shows, or null for any other item */
 export function shortsLockupFromItem(item: unknown) {
   const parsed = richItemContentSchema.safeParse(shelfItemContent(item));
-  return parsed.success ? parsed.data[RendererKind.shortsLockupViewModel] ?? null : null;
+  return parsed.success ? (parsed.data[RendererKind.shortsLockupViewModel] ?? null) : null;
 }
 
 /** A root item's shelf - www's rich shelf or m's Shorts shelf - and a copy of it with other items; null for none */
@@ -138,17 +139,17 @@ export function readShelf(item: unknown) {
     withItems(nextItems: unknown[]) {
       const shelfRenderer = isRich
         ? {
-          [ShelfRendererKind.rich]: {
-            ...richShelf,
-            contents: nextItems
+            [ShelfRendererKind.rich]: {
+              ...richShelf,
+              contents: nextItems
+            }
           }
-        }
         : {
-          [ShelfRendererKind.reel]: {
-            ...reelShelf,
-            items: nextItems
-          }
-        };
+            [ShelfRendererKind.reel]: {
+              ...reelShelf,
+              items: nextItems
+            }
+          };
       return {
         ...parsed.data,
         richSectionRenderer: {
@@ -207,15 +208,16 @@ export function publishedTextsFromGridItem(item: unknown) {
 
 export function titleFromRenderer(video: VideoRenderer) {
   return video.kind === RendererKind.lockupViewModel
-    ? video.renderer.metadata?.lockupMetadataViewModel?.title?.content ?? null
+    ? (video.renderer.metadata?.lockupMetadataViewModel?.title?.content ?? null)
     : readText(video.renderer.title) || null;
 }
 
 /** The length the renderer's thumbnail badge shows; undefined for a live or upcoming video */
 export function durationFromRenderer(video: VideoRenderer) {
-  const durationSeconds = video.kind === RendererKind.lockupViewModel
-    ? durationFromLockup(video.renderer)
-    : durationFromClassicRenderer(video.renderer);
+  const durationSeconds =
+    video.kind === RendererKind.lockupViewModel
+      ? durationFromLockup(video.renderer)
+      : durationFromClassicRenderer(video.renderer);
   return durationSeconds ?? undefined;
 }
 
@@ -241,8 +243,9 @@ export function thumbnailUrlFromGridItem(item: unknown) {
     return shortsLockupFromItem(item)?.thumbnailViewModel?.thumbnailViewModel?.image?.sources?.[0]?.url ?? null;
   }
 
-  const sources = video.kind === RendererKind.lockupViewModel
-    ? video.renderer.contentImage?.thumbnailViewModel?.image?.sources
-    : video.renderer.thumbnail?.thumbnails;
+  const sources =
+    video.kind === RendererKind.lockupViewModel
+      ? video.renderer.contentImage?.thumbnailViewModel?.image?.sources
+      : video.renderer.thumbnail?.thumbnails;
   return sources?.at(-1)?.url ?? null;
 }

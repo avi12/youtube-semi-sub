@@ -27,19 +27,18 @@ const delegatedSessionIdSchema = z.string();
 const DEFAULT_SESSION_INDEX = 0;
 
 /** A ytcfg value of the expected shape, or null */
-function readYtcfgValue<TSchema extends z.ZodType>({ key, schema }: {
-  key: YtcfgKey;
-  schema: TSchema;
-}) {
+function readYtcfgValue<TSchema extends z.ZodType>({ key, schema }: { key: YtcfgKey; schema: TSchema }) {
   const parsed = schema.safeParse(readYtcfg(key));
   return parsed.success ? parsed.data : null;
 }
 
 function readApisidCookie() {
-  const cookies = new Map(document.cookie.split("; ").map(cookie => {
-    const iSeparator = cookie.indexOf("=");
-    return [cookie.slice(0, iSeparator), cookie.slice(iSeparator + 1)];
-  }));
+  const cookies = new Map(
+    document.cookie.split("; ").map(cookie => {
+      const iSeparator = cookie.indexOf("=");
+      return [cookie.slice(0, iSeparator), cookie.slice(iSeparator + 1)];
+    })
+  );
   for (const name of APISID_COOKIE_NAMES) {
     const value = cookies.get(name);
     if (value) {
@@ -117,7 +116,10 @@ async function buildHeaders(clientVersion: string) {
 }
 
 /** POSTs to InnerTube with the page's own client context; resolves to the parsed JSON or null */
-export async function postInnerTube({ endpoint, payload }: {
+export async function postInnerTube({
+  endpoint,
+  payload
+}: {
   endpoint: InnerTubeEndpoint;
   payload: Record<string, unknown>;
 }) {

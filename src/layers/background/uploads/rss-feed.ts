@@ -1,10 +1,12 @@
-import { fetchText } from "./fetch-text";
+import { XMLParser } from "fast-xml-parser";
+
 import { type FeedVideo, feedVideoSchema, VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
 import { WHITESPACE_RUN_PATTERN } from "@/lib/utils/text";
 import { isShortsUrl, YOUTUBE_ORIGIN } from "@/lib/youtube/site";
 import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
 import { z } from "@/lib/zod";
-import { XMLParser } from "fast-xml-parser";
+
+import { fetchText } from "./fetch-text";
 
 const RSS_FEED_PATH = "/feeds/videos.xml";
 const RSS_CHANNEL_ID_PARAM = "channel_id";
@@ -48,7 +50,10 @@ const rssEntrySchema = z
       name: z.string()
     }),
     /** The upload's page: `/shorts/<id>` for a Short, a watch URL for any other upload */
-    link: z.array(z.looseObject({ href: z.string() })).optional().catch(undefined),
+    link: z
+      .array(z.looseObject({ href: z.string() }))
+      .optional()
+      .catch(undefined),
     group: z
       .looseObject({
         thumbnail: z
@@ -72,9 +77,9 @@ const rssEntrySchema = z
       publishedAt: Date.parse(entry.published),
       thumbnailUrl: entry.group?.thumbnail?.url ?? buildVideoThumbnailUrl(entry.videoId),
       isShort: entry.link?.some(link => isShortsUrl(link.href)) ?? false,
-      ...description && {
+      ...(description && {
         description
-      }
+      })
     };
   })
   .pipe(feedVideoSchema);

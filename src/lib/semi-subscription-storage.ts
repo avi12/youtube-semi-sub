@@ -12,23 +12,24 @@ export async function readSemiSubscription(channelId: string) {
 }
 
 /** The optional fields a save keeps from what was stored when the page that opened it doesn't say */
-function readCarriedFields({ previous, channel, isMember }: Pick<
-  Parameters<typeof mergeSemiSubscription>[0],
-  "previous" | "channel" | "isMember"
->) {
+function readCarriedFields({
+  previous,
+  channel,
+  isMember
+}: Pick<Parameters<typeof mergeSemiSubscription>[0], "previous" | "channel" | "isMember">) {
   const handle = channel.handle ?? previous?.handle;
   const avatarUrl = channel.avatarUrl ?? previous?.avatarUrl;
   const isMemberSet = isMember ?? previous?.isMember;
   return {
-    ...handle && {
+    ...(handle && {
       handle
-    },
-    ...avatarUrl && {
+    }),
+    ...(avatarUrl && {
       avatarUrl
-    },
-    ...isMemberSet && {
+    }),
+    ...(isMemberSet && {
       isMember: isMemberSet
-    }
+    })
   };
 }
 
@@ -38,9 +39,14 @@ function readCarriedFields({ previous, channel, isMember }: Pick<
  * does the membership, unless the save sets it. A new entry starts subscribed when it is saved in hide mode, with the
  * other mode's filter unset (`isFilterInert`)
  */
-export function mergeSemiSubscription({ previous, channel, mode, filter, isMember, now }: Partial<
-  Pick<SemiSubscription, "isMember">
-> & {
+export function mergeSemiSubscription({
+  previous,
+  channel,
+  mode,
+  filter,
+  isMember,
+  now
+}: Partial<Pick<SemiSubscription, "isMember">> & {
   previous: SemiSubscription | undefined;
   channel: ChannelInfo;
   mode: SubscriptionMode;
@@ -67,10 +73,12 @@ export function mergeSemiSubscription({ previous, channel, mode, filter, isMembe
   });
 }
 
-export function saveSemiSubscription({ channel, mode, filter, isMember }: Pick<
-  Parameters<typeof mergeSemiSubscription>[0],
-  "channel" | "mode" | "filter" | "isMember"
->) {
+export function saveSemiSubscription({
+  channel,
+  mode,
+  filter,
+  isMember
+}: Pick<Parameters<typeof mergeSemiSubscription>[0], "channel" | "mode" | "filter" | "isMember">) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
     mutator(subscriptions) {
@@ -114,7 +122,12 @@ export function restoreSemiSubscription(subscription: SemiSubscription) {
  * Replaces one mode's filter of a channel that is still semi-subscribed, and whether the user is its member; a removed
  * one stays removed
  */
-export function setSemiSubscriptionFilter({ channelId, mode, filter, isMember }: Pick<SemiSubscription, "channelId"> &
+export function setSemiSubscriptionFilter({
+  channelId,
+  mode,
+  filter,
+  isMember
+}: Pick<SemiSubscription, "channelId"> &
   Pick<Parameters<typeof mergeSemiSubscription>[0], "mode" | "filter" | "isMember">) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
@@ -132,10 +145,12 @@ export function setSemiSubscriptionFilter({ channelId, mode, filter, isMember }:
       const isMemberSet = isMember ?? current.isMember;
       return {
         ...subscriptions,
-        [channelId]: isMemberSet ? {
-          ...rest,
-          isMember: isMemberSet
-        } : rest
+        [channelId]: isMemberSet
+          ? {
+              ...rest,
+              isMember: isMemberSet
+            }
+          : rest
       };
     }
   });
@@ -145,10 +160,11 @@ export function setSemiSubscriptionFilter({ channelId, mode, filter, isMember }:
  * Switches a semi-subscription to hiding while the user is subscribed to its channel on YouTube, and back to following
  * once they unsubscribe. Both filters are kept either way; a channel that isn't semi-subscribed is left alone
  */
-export function applyOfficialSubscription({ subscriptions, channelId, isSubscribed }: Pick<
-  SemiSubscription,
-  "channelId" | "isSubscribed"
-> & {
+export function applyOfficialSubscription({
+  subscriptions,
+  channelId,
+  isSubscribed
+}: Pick<SemiSubscription, "channelId" | "isSubscribed"> & {
   subscriptions: SemiSubscriptions;
 }) {
   const current = subscriptions[channelId];
@@ -166,16 +182,17 @@ export function applyOfficialSubscription({ subscriptions, channelId, isSubscrib
   };
 }
 
-export function setSemiSubscriptionSubscribed({ channelId, isSubscribed }: Pick<
-  SemiSubscription,
-  "channelId" | "isSubscribed"
->) {
+export function setSemiSubscriptionSubscribed({
+  channelId,
+  isSubscribed
+}: Pick<SemiSubscription, "channelId" | "isSubscribed">) {
   return mutateStorageItem({
     item: semiSubscriptionsItem,
-    mutator: subscriptions => applyOfficialSubscription({
-      subscriptions,
-      channelId,
-      isSubscribed
-    })
+    mutator: subscriptions =>
+      applyOfficialSubscription({
+        subscriptions,
+        channelId,
+        isSubscribed
+      })
   });
 }

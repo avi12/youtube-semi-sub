@@ -1,8 +1,9 @@
-import MobileChannelsGroup from "./MobileChannelsGroup.svelte";
-import MobileStripItems from "./MobileStripItems.svelte";
-import { FeedPathname } from "@/lib/youtube/site";
 import { listFollowedSubscriptions } from "#subscription-lists/semi-channels";
 import { SemiListSurface, startSemiListSurface } from "#subscription-lists/semi-list-surface";
+import { FeedPathname } from "@/lib/youtube/site";
+
+import MobileChannelsGroup from "./MobileChannelsGroup.svelte";
+import MobileStripItems from "./MobileStripItems.svelte";
 
 // m.youtube.com has no sidebar. Its channel lists are /feed/channels ("All channels": ytm-shelf-renderer >
 // ytm-vertical-list-renderer > ytm-channel-list-item-renderer) and the avatar strip on top of /feed/subscriptions

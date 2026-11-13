@@ -1,18 +1,14 @@
-import { startBackground } from "./index";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import { fakeBrowser } from "wxt/testing/fake-browser";
+
+import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
+import { browser } from "#imports";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { aiVerdictsItem, channelCheckedAtItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
-import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
-import { browser } from "#imports";
-import {
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
-import { fakeBrowser } from "wxt/testing/fake-browser";
+
+import { startBackground } from "./index";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const REFRESH_ALARM_NAME = "refresh-channels";
@@ -34,7 +30,10 @@ const SUBSCRIPTION: SemiSubscription = {
 describe("startBackground", () => {
   beforeAll(() => {
     fakeBrowser.reset();
-    vi.stubGlobal("fetch", vi.fn<typeof fetch>(async () => new Response(rssFeedXml)));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => new Response(rssFeedXml))
+    );
     startBackground();
   });
 

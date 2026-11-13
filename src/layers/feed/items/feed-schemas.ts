@@ -26,37 +26,61 @@ export type VideoRenderer = z.infer<typeof videoRendererSchema>;
 export const VERIFIED_ICON_NAME = "CHECK_CIRCLE_FILLED";
 
 const channelHeaderSchema = z.looseObject({
-  pageHeaderRenderer: z.looseObject({
-    content: z.looseObject({
-      pageHeaderViewModel: z.looseObject({
-        title: z.looseObject({
-          dynamicTextViewModel: z.looseObject({
-            text: z.looseObject({
-              attachmentRuns: z.array(
-                z.looseObject({
-                  element: z.looseObject({
-                    type: z.looseObject({
-                      imageType: z.looseObject({
-                        image: z.looseObject({
-                          sources: z.array(
-                            z.looseObject({
-                              clientResource: z.looseObject({
-                                imageName: z.string().optional()
-                              }).optional()
-                            })
-                          ).optional()
+  pageHeaderRenderer: z
+    .looseObject({
+      content: z
+        .looseObject({
+          pageHeaderViewModel: z
+            .looseObject({
+              title: z
+                .looseObject({
+                  dynamicTextViewModel: z
+                    .looseObject({
+                      text: z
+                        .looseObject({
+                          attachmentRuns: z
+                            .array(
+                              z.looseObject({
+                                element: z
+                                  .looseObject({
+                                    type: z
+                                      .looseObject({
+                                        imageType: z
+                                          .looseObject({
+                                            image: z.looseObject({
+                                              sources: z
+                                                .array(
+                                                  z.looseObject({
+                                                    clientResource: z
+                                                      .looseObject({
+                                                        imageName: z.string().optional()
+                                                      })
+                                                      .optional()
+                                                  })
+                                                )
+                                                .optional()
+                                            })
+                                          })
+                                          .optional()
+                                      })
+                                      .optional()
+                                  })
+                                  .optional()
+                              })
+                            )
+                            .optional()
                         })
-                      }).optional()
-                    }).optional()
-                  }).optional()
+                        .optional()
+                    })
+                    .optional()
                 })
-              ).optional()
-            }).optional()
-          }).optional()
-        }).optional()
-      }).optional()
-    }).optional()
-  }).optional()
+                .optional()
+            })
+            .optional()
+        })
+        .optional()
+    })
+    .optional()
 });
 
 export function isVerifiedChannelHeader(header: unknown) {
@@ -65,36 +89,49 @@ export function isVerifiedChannelHeader(header: unknown) {
     return false;
   }
 
-  const runs = parsed.data.pageHeaderRenderer?.content?.pageHeaderViewModel?.title?.dynamicTextViewModel?.text
-    ?.attachmentRuns ?? [];
-  return runs.some(run => run.element?.type?.imageType?.image?.sources?.some(
-    source => source.clientResource?.imageName === VERIFIED_ICON_NAME
-  ));
+  const runs =
+    parsed.data.pageHeaderRenderer?.content?.pageHeaderViewModel?.title?.dynamicTextViewModel?.text?.attachmentRuns ??
+    [];
+  return runs.some(run =>
+    run.element?.type?.imageType?.image?.sources?.some(
+      source => source.clientResource?.imageName === VERIFIED_ICON_NAME
+    )
+  );
 }
 
 export const browseResponseSchema = z.looseObject({
   header: z.unknown().optional(),
-  responseContext: z.looseObject({
-    serviceTrackingParams: z.array(
-      z.looseObject({
-        params: z.array(
+  responseContext: z
+    .looseObject({
+      serviceTrackingParams: z
+        .array(
           z.looseObject({
-            key: z.string(),
-            value: z.string()
+            params: z
+              .array(
+                z.looseObject({
+                  key: z.string(),
+                  value: z.string()
+                })
+              )
+              .optional()
           })
-        ).optional()
-      })
-    ).optional()
-  }).optional(),
+        )
+        .optional()
+    })
+    .optional(),
   contents: z.looseObject({
     twoColumnBrowseResultsRenderer: tabbedColumnSchema.optional(),
     singleColumnBrowseResultsRenderer: tabbedColumnSchema.optional()
   }),
-  metadata: z.looseObject({
-    channelMetadataRenderer: z.looseObject({
-      avatar: thumbnailListSchema.partial().optional()
-    }).optional()
-  }).optional()
+  metadata: z
+    .looseObject({
+      channelMetadataRenderer: z
+        .looseObject({
+          avatar: thumbnailListSchema.partial().optional()
+        })
+        .optional()
+    })
+    .optional()
 });
 export type BrowseResponse = z.infer<typeof browseResponseSchema>;
 
@@ -103,10 +140,12 @@ export const continuationResponseSchema = z.looseObject({
   responseContext: browseResponseSchema.shape.responseContext,
   onResponseReceivedActions: z.array(
     z.looseObject({
-      appendContinuationItemsAction: z.looseObject({
-        continuationItems: z.array(z.unknown()),
-        targetId: z.string().optional()
-      }).optional()
+      appendContinuationItemsAction: z
+        .looseObject({
+          continuationItems: z.array(z.unknown()),
+          targetId: z.string().optional()
+        })
+        .optional()
     })
   )
 });

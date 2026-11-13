@@ -1,7 +1,8 @@
-import { AI_BATCH_SIZE } from "./prompt";
 import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
 import { feedVideoSchema } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
+
+import { AI_BATCH_SIZE } from "./prompt";
 
 /** One prompt's worth: the filter's description and up to `AI_BATCH_SIZE` videos, numbered 1..N in the prompt */
 export const videoBatchSchema = z.object({
@@ -30,13 +31,19 @@ function splitIntoBatches<Item>(items: Item[]) {
  * as soon as they arrive, so progress survives an interruption. Stops early once `shouldContinue` says so; a judge
  * that throws stops the run and leaves the remaining videos pending
  */
-export async function classifyVideos({ description, videos, judge, onVerdicts, shouldContinue }: VideoBatch & {
+export async function classifyVideos({
+  description,
+  videos,
+  judge,
+  onVerdicts,
+  shouldContinue
+}: VideoBatch & {
   judge: BatchJudge;
   onVerdicts: (verdicts: VideoVerdicts) => Promise<void>;
   shouldContinue: () => Promise<boolean>;
 }) {
   for (const batchVideos of splitIntoBatches(videos)) {
-    if (!await shouldContinue()) {
+    if (!(await shouldContinue())) {
       return;
     }
 

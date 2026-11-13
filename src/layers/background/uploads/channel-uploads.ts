@@ -1,8 +1,9 @@
-import { fetchRssUploads } from "./rss-feed";
-import { ChannelGridTab, fetchChannelTabUploads } from "./videos-tab-uploads";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
+
+import { fetchRssUploads } from "./rss-feed";
+import { ChannelGridTab, fetchChannelTabUploads } from "./videos-tab-uploads";
 
 export enum UploadsSource {
   /** Every upload kind, exact publish times */
@@ -57,7 +58,10 @@ const tabDetailsSchema = feedVideoSchema.pick({
 type TabDetails = z.infer<typeof tabDetailsSchema>;
 
 /** The videos with every detail `detailsById` knows filled in where they lack it */
-export function withKnownTabDetails({ videos, detailsById }: {
+export function withKnownTabDetails({
+  videos,
+  detailsById
+}: {
   videos: FeedVideo[];
   detailsById: ReadonlyMap<string, TabDetails>;
 }) {
@@ -71,12 +75,12 @@ export function withKnownTabDetails({ videos, detailsById }: {
     const isMembersOnly = video.isMembersOnly ?? known.isMembersOnly;
     const filled: FeedVideo = {
       ...video,
-      ...durationSeconds !== undefined && {
+      ...(durationSeconds !== undefined && {
         durationSeconds
-      },
-      ...isMembersOnly !== undefined && {
+      }),
+      ...(isMembersOnly !== undefined && {
         isMembersOnly
-      }
+      })
     };
     return filled;
   });
@@ -109,7 +113,10 @@ function isTabDetailMissing(video: FeedVideo) {
  * still lacks one, and the Streams tab while one is still missing - a stream is only ever on that tab. Shorts never get
  * them - neither tab lists Shorts
  */
-export async function withVideosTabDetails({ uploads, knownVideos }: {
+export async function withVideosTabDetails({
+  uploads,
+  knownVideos
+}: {
   uploads: ChannelUploads;
   knownVideos: readonly FeedVideo[];
 }) {

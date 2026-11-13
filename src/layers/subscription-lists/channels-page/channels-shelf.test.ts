@@ -1,7 +1,9 @@
-import { readSemiChannelId, withSemiChannelsSection } from "./channels-shelf";
+import { describe, expect, it } from "vitest";
+
 import { FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-import { describe, expect, it } from "vitest";
+
+import { readSemiChannelId, withSemiChannelsSection } from "./channels-shelf";
 
 const FOLLOWED: SemiSubscription = {
   channelId: "UCzXwjTI6c6mVn6oui_p6oiw",
@@ -32,9 +34,11 @@ const FILTERED: SemiSubscription = {
 
 const YOUTUBE_SECTION = {
   itemSectionRenderer: {
-    contents: [{
-      shelfRenderer: {}
-    }]
+    contents: [
+      {
+        shelfRenderer: {}
+      }
+    ]
   }
 };
 const CONTINUATION = {
@@ -49,8 +53,9 @@ const LIST_DATA = {
 
 function channelRenderers(data: unknown) {
   const listed = JSON.parse(JSON.stringify(data));
-  return listed.contents[0].itemSectionRenderer.contents[0].shelfRenderer.content.expandedShelfContentsRenderer.items
-    .map((item: { channelRenderer: unknown }) => item.channelRenderer);
+  return listed.contents[0].itemSectionRenderer.contents[0].shelfRenderer.content.expandedShelfContentsRenderer.items.map(
+    (item: { channelRenderer: unknown }) => item.channelRenderer
+  );
 }
 
 describe("withSemiChannelsSection", () => {
@@ -63,7 +68,7 @@ describe("withSemiChannelsSection", () => {
   it("puts a shelf of YouTube channel rows first, keeping the rest of the page's data", () => {
     expect(listed).toHaveProperty("subMenu", LIST_DATA.subMenu);
     expect(listed?.contents.slice(1)).toEqual([YOUTUBE_SECTION, CONTINUATION]);
-    expect(JSON.stringify(listed?.contents[0])).toContain("\"text\":\"Semi-subscriptions\"");
+    expect(JSON.stringify(listed?.contents[0])).toContain('"text":"Semi-subscriptions"');
   });
 
   it("words each row with its handle, mode, filter and manage button", () => {

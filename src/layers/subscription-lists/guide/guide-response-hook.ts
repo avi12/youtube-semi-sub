@@ -1,9 +1,10 @@
-import { buildSemiGuideEntry, patchGuideResponse, readGuideSubscriptions } from "./guide-data";
+import { applySubscriptionSnapshot } from "#channel-button";
+import { listFollowedSubscriptions, listSemiSubscriptions } from "#subscription-lists/semi-channels";
 import { getPageState } from "@/lib/page/page-state";
 import { parseJson } from "@/lib/utils/json";
 import { InnerTubePath, isYouTubeUrlAt } from "@/lib/youtube/site";
-import { applySubscriptionSnapshot } from "#channel-button";
-import { listFollowedSubscriptions, listSemiSubscriptions } from "#subscription-lists/semi-channels";
+
+import { buildSemiGuideEntry, patchGuideResponse, readGuideSubscriptions } from "./guide-data";
 
 // www.youtube.com fetches the sidebar from /youtubei/v1/guide (and re-fetches it when it expires) and reads the body
 // with text(). Patching the body puts the semi-subscribed channels into the very first render of the guide and of
@@ -30,10 +31,12 @@ function patchSafely<T>(patch: () => T | null) {
 }
 
 function patchGuideBody(body: unknown) {
-  return patchSafely(() => patchGuideResponse({
-    response: body,
-    entries: readSemiGuideEntries()
-  }));
+  return patchSafely(() =>
+    patchGuideResponse({
+      response: body,
+      entries: readSemiGuideEntries()
+    })
+  );
 }
 
 /** YouTube's own body, before ours are added: the guide lists the user's real subscriptions */

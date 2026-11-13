@@ -1,6 +1,5 @@
-import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
-import type { PageState } from "@/lib/messaging/page-messaging";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   CHANNEL_ID,
   desktopFeedItem,
@@ -12,14 +11,9 @@ import {
   videoId
 } from "#feed/fixtures/feed-fixtures";
 import { rendererFromGridItem } from "#feed/items/feed-items";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
+import type { PageState } from "@/lib/messaging/page-messaging";
 
 type FeedSession = typeof import("#feed/feed-session");
 
@@ -34,17 +28,19 @@ vi.mock("#channel-button", () => ({
 const nativeTitles = new Map<string, string>();
 
 vi.mock("#feed/channel-natives", async importOriginal => ({
-  ...await importOriginal<typeof import("#feed/channel-natives")>(),
+  ...(await importOriginal<typeof import("#feed/channel-natives")>()),
   findNativeRenderer({ videoId: id }: { videoId: string }) {
     const title = nativeTitles.get(id);
-    return title === undefined ? null : rendererFromGridItem(
-      desktopFeedItem({
-        index: Number(id.slice(-6)),
-        published: PUBLISHED,
-        channelId: CHANNEL_ID,
-        title
-      })
-    );
+    return title === undefined
+      ? null
+      : rendererFromGridItem(
+          desktopFeedItem({
+            index: Number(id.slice(-6)),
+            published: PUBLISHED,
+            channelId: CHANNEL_ID,
+            title
+          })
+        );
   }
 }));
 
@@ -69,11 +65,12 @@ function pageState({
   hideFilter = DEFAULT_TITLE_FILTER,
   isAiEnabled = false,
   aiVerdicts = {}
-}: Pick<PageState, "followedUploads"> & Partial<Pick<PageState, "isAiEnabled" | "aiVerdicts">> & {
-  isSubscribed: boolean;
-  filter?: TitleFilter;
-  hideFilter?: TitleFilter;
-}) {
+}: Pick<PageState, "followedUploads"> &
+  Partial<Pick<PageState, "isAiEnabled" | "aiVerdicts">> & {
+    isSubscribed: boolean;
+    filter?: TitleFilter;
+    hideFilter?: TitleFilter;
+  }) {
   const state: PageState = {
     isExtensionEnabled: true,
     isAnimationsEnabled: true,
@@ -95,10 +92,7 @@ function pageState({
   return state;
 }
 
-function semiChannelItem({ index, title }: {
-  index: number;
-  title?: string;
-}) {
+function semiChannelItem({ index, title }: { index: number; title?: string }) {
   return desktopFeedItem({
     index,
     published: PUBLISHED,
@@ -538,7 +532,11 @@ describe("findHiddenVideoIds", () => {
     ).toEqual(new Set([videoId(4), videoId(5)]));
   });
 
-  function collaborationWith({ index, title, guestChannelId }: {
+  function collaborationWith({
+    index,
+    title,
+    guestChannelId
+  }: {
     index: number;
     title: string;
     guestChannelId: string;
@@ -560,11 +558,13 @@ describe("findHiddenVideoIds", () => {
     officialSubscriptions.set(OTHER_CHANNEL_ID, true);
     expect(
       session.findHiddenVideoIds({
-        contents: [collaborationWith({
-          index: 4,
-          title: "Hide this collab",
-          guestChannelId: OTHER_CHANNEL_ID
-        })],
+        contents: [
+          collaborationWith({
+            index: 4,
+            title: "Hide this collab",
+            guestChannelId: OTHER_CHANNEL_ID
+          })
+        ],
         state: hidingState()
       })
     ).toEqual(new Set());
@@ -589,11 +589,13 @@ describe("findHiddenVideoIds", () => {
       };
       return hiding;
     }
-    const contents = [collaborationWith({
-      index: 4,
-      title: "Hide this live collab",
-      guestChannelId: OTHER_CHANNEL_ID
-    })];
+    const contents = [
+      collaborationWith({
+        index: 4,
+        title: "Hide this live collab",
+        guestChannelId: OTHER_CHANNEL_ID
+      })
+    ];
     expect(
       session.findHiddenVideoIds({
         contents,
@@ -620,11 +622,13 @@ describe("findHiddenVideoIds", () => {
     officialSubscriptions.set(OTHER_CHANNEL_ID, true);
     const state = hidingState({ hiddenVideoIds: [videoId(4)] });
     session.findHiddenVideoIds({
-      contents: [collaborationWith({
-        index: 4,
-        title: "Hide this collab",
-        guestChannelId: OTHER_CHANNEL_ID
-      })],
+      contents: [
+        collaborationWith({
+          index: 4,
+          title: "Hide this collab",
+          guestChannelId: OTHER_CHANNEL_ID
+        })
+      ],
       state
     });
     expect(

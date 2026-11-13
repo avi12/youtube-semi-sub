@@ -1,6 +1,8 @@
-import { withMethodCondition } from "./filter-methods";
-import { DEFAULT_LENGTH_FILTER, DEFAULT_TITLE_FILTER, FilterMethod } from "@/lib/filter/title-filter";
 import { describe, expect, it } from "vitest";
+
+import { DEFAULT_LENGTH_FILTER, DEFAULT_TITLE_FILTER, FilterMethod } from "@/lib/filter/title-filter";
+
+import { withMethodCondition } from "./filter-methods";
 
 describe("withMethodCondition", () => {
   it("adds a method's condition in card order", () => {

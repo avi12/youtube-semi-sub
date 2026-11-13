@@ -1,14 +1,3 @@
-import { readInitialDataHtml, readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
-import type { PageState } from "@/lib/messaging/page-messaging";
-import { getPageState } from "@/lib/page/page-state";
-import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
-import {
-  FeedPathname,
-  getYouTubeSite,
-  InnerTubePath,
-  isYouTubeUrlAt,
-  YouTubeSite
-} from "@/lib/youtube/site";
 import {
   composeForPageState,
   findHiddenVideoIds,
@@ -18,6 +7,12 @@ import {
   waitForPageState
 } from "#feed/feed-session";
 import { isHiddenVideoListHonored } from "#feed/live/ytaf";
+import type { PageState } from "@/lib/messaging/page-messaging";
+import { getPageState } from "@/lib/page/page-state";
+import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
+import { FeedPathname, getYouTubeSite, InnerTubePath, isYouTubeUrlAt, YouTubeSite } from "@/lib/youtube/site";
+
+import { readInitialDataHtml, readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
 
 // Semi-sub videos are injected where every reader of the subscriptions feed gets its data: the Response body
 // (YouTube's own /browse fetch, YouTube Auto Feed's clone of it and its own polls) and, on m.youtube.com, the
@@ -53,21 +48,20 @@ function readFeedPage(data: unknown) {
   }
 
   const laterPage = readSubscriptionsContinuation(data);
-  return laterPage && {
-    contents: laterPage.contents,
-    isLaterPage: true,
-    withContents: ({ contents }: FirstPageCopy) => laterPage.withContents(contents)
-  };
+  return (
+    laterPage && {
+      contents: laterPage.contents,
+      isLaterPage: true,
+      withContents: ({ contents }: FirstPageCopy) => laterPage.withContents(contents)
+    }
+  );
 }
 
 /**
  * What a page is filled from: a later page only takes the Shorts no earlier page shelved - and on www nothing, its
  * later pages only lose what is hidden
  */
-function stateForPage({ state, isLaterPage }: {
-  state: PageState;
-  isLaterPage: boolean;
-}) {
+function stateForPage({ state, isLaterPage }: { state: PageState; isLaterPage: boolean }) {
   if (!isLaterPage) {
     return state;
   }
@@ -82,10 +76,7 @@ function stateForPage({ state, isLaterPage }: {
   return pageState;
 }
 
-function recordShelvedShorts({ insertedIds, state }: {
-  insertedIds: readonly string[];
-  state: PageState;
-}) {
+function recordShelvedShorts({ insertedIds, state }: { insertedIds: readonly string[]; state: PageState }) {
   const shortIds = new Set(state.followedUploads.filter(video => video.isShort).map(video => video.videoId));
   for (const videoId of insertedIds) {
     if (shortIds.has(videoId)) {
@@ -98,10 +89,7 @@ function recordShelvedShorts({ insertedIds, state }: {
  * Synchronous: uses whatever page state and native renderers are already loaded. Without `isInserting` the page only
  * loses what is hidden
  */
-function patchFeedDataNow({ data, isInserting }: {
-  data: unknown;
-  isInserting: boolean;
-}) {
+function patchFeedDataNow({ data, isInserting }: { data: unknown; isInserting: boolean }) {
   const page = readFeedPage(data);
   if (page && !page.isLaterPage) {
     shelvedShortIds.clear();
@@ -122,10 +110,12 @@ function patchFeedDataNow({ data, isInserting }: {
   });
   const composed = composeForPageState({
     contents: page.contents,
-    state: isInserting ? pageState : {
-      ...pageState,
-      followedUploads: []
-    },
+    state: isInserting
+      ? pageState
+      : {
+          ...pageState,
+          followedUploads: []
+        },
     removedVideoIds: hiddenIds
   });
   const isHiddenListWritten = hiddenIds.size > 0 && !page.isLaterPage && isHiddenVideoListHonored();
@@ -184,7 +174,7 @@ async function patchBrowseText(text: string) {
 
 async function patchFeedHtml(html: string) {
   const initialData = readInitialDataHtml(html);
-  const patched = initialData && await patchFeedData(initialData.data);
+  const patched = initialData && (await patchFeedData(initialData.data));
   return initialData && patched ? initialData.withData(patched) : html;
 }
 
@@ -199,7 +189,10 @@ function installResponsePatch() {
     return patched ?? data;
   }
 
-  async function readPatchedText({ response, patch }: {
+  async function readPatchedText({
+    response,
+    patch
+  }: {
     response: Response;
     patch: (text: string) => Promise<string>;
   }) {
@@ -252,8 +245,11 @@ export function installResponseHooks() {
   // through). www only takes the hidden videos out there - a running YouTube Auto Feed would otherwise show them until
   // its first poll - and inserts live, animated, with full native renderers
   const isInsertingOnHardLoad = getYouTubeSite() === YouTubeSite.mobile;
-  interceptInitialData(value => patchFeedDataNow({
-    data: value,
-    isInserting: isInsertingOnHardLoad
-  }) ?? value);
+  interceptInitialData(
+    value =>
+      patchFeedDataNow({
+        data: value,
+        isInserting: isInsertingOnHardLoad
+      }) ?? value
+  );
 }

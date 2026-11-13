@@ -1,6 +1,7 @@
-import { PageKind } from "./channel-page-data";
 import { elementSchema, htmlElementSchema } from "@/lib/schemas/dom";
 import { z } from "@/lib/zod";
+
+import { PageKind } from "./channel-page-data";
 
 // MAIN world: where YouTube's own Subscribe button sits on the current page, on www and m.youtube.com alike
 
@@ -19,10 +20,9 @@ const OFFICIAL_SUBSCRIBE_SELECTOR = [
   "yt-subscribe-button-view-model",
   "ytm-subscribe-button-renderer"
 ].join(", ");
-const HEADER_ACTION_SELECTOR = [
-  ".ytFlexibleActionsViewModelAction",
-  ".yt-flexible-actions-view-model-wiz__action"
-].map(selector => `${selector}:not([${BUTTON_ROOT_ATTRIBUTE}])`).join(", ");
+const HEADER_ACTION_SELECTOR = [".ytFlexibleActionsViewModelAction", ".yt-flexible-actions-view-model-wiz__action"]
+  .map(selector => `${selector}:not([${BUTTON_ROOT_ATTRIBUTE}])`)
+  .join(", ");
 const SIGNED_OUT_SUBSCRIBE_SELECTOR = `:is(${HEADER_ACTION_SELECTOR}) button`;
 const OWNER_ROW_REFERENCE_SELECTOR = "#subscribe-button";
 const POLYMER_SCOPE_CLASS = "style-scope";
@@ -79,13 +79,10 @@ function isVisible(elTarget: HTMLElement) {
 }
 
 function getPolymerScopeClass(elControl: Element) {
-  return elControl.classList.contains(POLYMER_SCOPE_CLASS) ? elControl.getAttribute("class") ?? "" : "";
+  return elControl.classList.contains(POLYMER_SCOPE_CLASS) ? (elControl.getAttribute("class") ?? "") : "";
 }
 
-function findReference({ elContainer, elControl }: {
-  elContainer: HTMLElement;
-  elControl: HTMLElement;
-}) {
+function findReference({ elContainer, elControl }: { elContainer: HTMLElement; elControl: HTMLElement }) {
   const elHeaderAction = elControl.closest(HEADER_ACTION_SELECTOR);
   const isHeaderAction = !!elHeaderAction && elContainer.contains(elHeaderAction);
   if (isHeaderAction) {
@@ -109,10 +106,7 @@ function findReference({ elContainer, elControl }: {
  * The visible spot for the button on a watch or channel page, or null until YouTube rendered it. Signed out, a
  * channel header's Subscribe is a plain sign-in button, so the first header action stands in for it
  */
-export function findPageAnchor({ kind, isSignedIn }: {
-  kind: PageKind;
-  isSignedIn: boolean;
-}) {
+export function findPageAnchor({ kind, isSignedIn }: { kind: PageKind; isSignedIn: boolean }) {
   for (const selector of CONTAINER_SELECTORS[kind]) {
     for (const elContainer of document.querySelectorAll<HTMLElement>(selector)) {
       if (!isVisible(elContainer)) {
@@ -154,7 +148,10 @@ function readViewModelSubscription(elSubscribe: HTMLElement) {
   return isTonalWithBell ? true : undefined;
 }
 
-function readMobileRendererSubscription({ elSubscribe, dataSubscribed }: {
+function readMobileRendererSubscription({
+  elSubscribe,
+  dataSubscribed
+}: {
   elSubscribe: HTMLElement;
   dataSubscribed: boolean | undefined;
 }) {
@@ -169,7 +166,11 @@ function readMobileRendererSubscription({ elSubscribe, dataSubscribed }: {
  * What YouTube's own Subscribe control shows. `isForChannel` is false while a reused control still holds the previous
  * page's channel; `isLive` marks the renderers, whose state tracks YouTube's entity store
  */
-export function readSubscribeControl({ elSubscribe, channelId, isCollaboration }: {
+export function readSubscribeControl({
+  elSubscribe,
+  channelId,
+  isCollaboration
+}: {
   elSubscribe: HTMLElement;
   channelId: string;
   /** A collaboration's control opens a list of channels, so its data names none */
@@ -177,8 +178,9 @@ export function readSubscribeControl({ elSubscribe, channelId, isCollaboration }
 }) {
   const parsed = subscribeControlDataSchema.safeParse(elSubscribe);
   const controlData = parsed.success ? parsed.data.data : null;
-  const isRenderer = elSubscribe.tagName === SubscribeControlTag.desktopRenderer
-    || elSubscribe.tagName === SubscribeControlTag.mobileRenderer;
+  const isRenderer =
+    elSubscribe.tagName === SubscribeControlTag.desktopRenderer ||
+    elSubscribe.tagName === SubscribeControlTag.mobileRenderer;
   if (!isRenderer) {
     return {
       isForChannel: !controlData || controlData.channelId === channelId,

@@ -1,16 +1,12 @@
-import {
-  getPageKind,
-  PageKind,
-  readPageChannel,
-  readSubscriptionEntities,
-  toChannelHandle
-} from "./channel-page-data";
+import { describe, expect, it } from "vitest";
+
 import mobileChannelJson from "#channel-button/page/fixtures/m-channel.json?raw";
 import mobileWatchJson from "#channel-button/page/fixtures/m-watch.json?raw";
 import desktopChannelSignedInJson from "#channel-button/page/fixtures/www-channel-signed-in.json?raw";
 import desktopChannelJson from "#channel-button/page/fixtures/www-channel.json?raw";
 import desktopWatchJson from "#channel-button/page/fixtures/www-watch.json?raw";
-import { describe, expect, it } from "vitest";
+
+import { getPageKind, PageKind, readPageChannel, readSubscriptionEntities, toChannelHandle } from "./channel-page-data";
 
 // Fixtures are trimmed copies of real signed-out pages (ytInitialData + ytInitialPlayerResponse) from www and
 // m.youtube.com. The signed-in channel header is modelled on the fields YouTube's own subscribe view model reads
@@ -101,7 +97,10 @@ describe("readSubscriptionEntities", () => {
         }
       }
     });
-    expect([...entities]).toEqual([[RICK_ASTLEY_ID, false], [MKBHD_ID, true]]);
+    expect([...entities]).toEqual([
+      [RICK_ASTLEY_ID, false],
+      [MKBHD_ID, true]
+    ]);
   });
 
   it("returns nothing for a response without framework updates", () => {
@@ -125,7 +124,8 @@ describe("readPageChannel", () => {
         channelId: RICK_ASTLEY_ID,
         title: "Rick Astley",
         handle: "@RickAstleyYT",
-        avatarUrl: "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s88-c-k-c0x00ffffff-no-rj"
+        avatarUrl:
+          "https://yt3.ggpht.com/_ShEGOdg-t5YGJse14Ooq6FYBZqX_QSlhaTNjG06miYusm5lWm1UroLyVxnYtahADfRTVLtuVQ=s88-c-k-c0x00ffffff-no-rj"
       },
       videoId: "dQw4w9WgXcQ",
       isOwnedByViewer: false,
@@ -150,7 +150,8 @@ describe("readPageChannel", () => {
         channelId: MKBHD_ID,
         title: "Marques Brownlee",
         handle: "@mkbhd",
-        avatarUrl: "https://yt3.googleusercontent.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s120-c-k-c0x00ffffff-no-rj"
+        avatarUrl:
+          "https://yt3.googleusercontent.com/qu4TmIaYUlS41-dJ9gZ7DUR3nilvmB5_11i6OKSdvNnBNiyOusZP1bMN6ICnuxtjFBb6ioKgRQ=s120-c-k-c0x00ffffff-no-rj"
       },
       videoId: undefined,
       isOwnedByViewer: false,
@@ -225,24 +226,22 @@ describe("readPageChannel", () => {
   });
 
   it("lists every channel of a collaboration from the owner row's dialog", () => {
-    function collaborator({ channelId, name, subtitle }: {
-      channelId: string;
-      name: string;
-      subtitle: string;
-    }) {
+    function collaborator({ channelId, name, subtitle }: { channelId: string; name: string; subtitle: string }) {
       return {
         listItemViewModel: {
           title: {
             content: name,
-            commandRuns: [{
-              onTap: {
-                innertubeCommand: {
-                  browseEndpoint: {
-                    browseId: channelId
+            commandRuns: [
+              {
+                onTap: {
+                  innertubeCommand: {
+                    browseEndpoint: {
+                      browseId: channelId
+                    }
                   }
                 }
               }
-            }]
+            ]
           },
           subtitle: {
             content: subtitle
@@ -353,11 +352,15 @@ describe("readPageChannel", () => {
     });
   });
 
-  it.each([null, {}, {
-    response: {
-      metadata: {}
+  it.each([
+    null,
+    {},
+    {
+      response: {
+        metadata: {}
+      }
     }
-  }])("finds no channel in %j", pageData => {
+  ])("finds no channel in %j", pageData => {
     expect(
       readPageChannel({
         pageData,

@@ -1,5 +1,6 @@
-import { buildChannelEndpoint, buildReelWatchEndpoint, buildWatchEndpoint } from "@/lib/youtube/endpoints";
 import { describe, expect, it } from "vitest";
+
+import { buildChannelEndpoint, buildReelWatchEndpoint, buildWatchEndpoint } from "@/lib/youtube/endpoints";
 
 const VIDEO_ID = "R6yNUnRXZ64";
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";

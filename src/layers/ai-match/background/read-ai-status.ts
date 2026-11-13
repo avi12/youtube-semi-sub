@@ -1,9 +1,9 @@
-import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
 import { type AiEngineProbes, resolveAiEngine } from "#ai-match/engine/engine-resolution";
 import { probeLiteRtSupport } from "#ai-match/engine/litert-support";
 import { readLocalModelDownloadFraction } from "#ai-match/engine/litert/litert-client";
 import { isLiteRtModelCached } from "#ai-match/engine/litert/litert-model";
 import { BuiltInAvailability, readBuiltInAvailability } from "#ai-match/engine/prompt-api";
+import { AiEngine, type AiStatus } from "@/lib/ai/ai-status";
 
 // The background's own view: classification runs here, so the Prompt API counts only when this very context (the
 // Chromium service worker, Firefox's event page) exposes it
@@ -17,11 +17,12 @@ async function readBuiltInStatus() {
   const status: AiStatus = {
     engine: AiEngine.builtIn,
     isModelReady: availability === BuiltInAvailability.available,
-    download: availability === BuiltInAvailability.downloading
-      ? {
-        fraction: null
-      }
-      : null
+    download:
+      availability === BuiltInAvailability.downloading
+        ? {
+            fraction: null
+          }
+        : null
   };
   return status;
 }
@@ -31,11 +32,12 @@ async function readLiteRtStatus() {
   const status: AiStatus = {
     engine: AiEngine.liteRt,
     isModelReady,
-    download: fraction === null
-      ? null
-      : {
-        fraction
-      }
+    download:
+      fraction === null
+        ? null
+        : {
+            fraction
+          }
   };
   return status;
 }

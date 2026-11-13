@@ -1,6 +1,7 @@
-import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-import { buildListedChannelEndpoint } from "#subscription-lists/semi-channels";
 import { on } from "svelte/events";
+
+import { buildListedChannelEndpoint } from "#subscription-lists/semi-channels";
+import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 
 const NAVIGATE_EVENT = "yt-navigate";
 const PRIMARY_BUTTON = 0;

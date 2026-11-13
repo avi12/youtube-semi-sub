@@ -1,5 +1,6 @@
-import { setFilterFlag } from "./filter-flags";
 import { describe, expect, it } from "vitest";
+
+import { setFilterFlag } from "./filter-flags";
 
 describe("setFilterFlag", () => {
   it("adds a flag in canonical order", () => {

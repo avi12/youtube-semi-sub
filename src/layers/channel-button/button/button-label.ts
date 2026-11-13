@@ -25,23 +25,27 @@ const ACCESSIBILITY_TEXT = {
  * The words on a channel's button, wherever one opens its dialog: active - adding videos while following, hiding
  * something while subscribed - it gets the filter glyph and the past tense
  */
-export function describeChannelButton({ channelTitle, subscription, mode }: {
+export function describeChannelButton({
+  channelTitle,
+  subscription,
+  mode
+}: {
   channelTitle: string;
   /** Undefined while the channel isn't semi-subscribed */
   subscription: SemiSubscription | undefined;
   mode: SubscriptionMode;
 }) {
   const text = ACCESSIBILITY_TEXT[mode];
-  const isActive = !!subscription && (
-    !isFilterInert({
+  const isActive =
+    !!subscription &&
+    (!isFilterInert({
       filter: getModeFilter({
         subscription,
         mode
       }),
       mode
     }) ||
-    mode === SubscriptionMode.hide && isAllowListHiding(subscription)
-  );
+      (mode === SubscriptionMode.hide && isAllowListHiding(subscription)));
   if (!isActive) {
     return {
       isActive,

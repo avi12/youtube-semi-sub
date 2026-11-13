@@ -26,9 +26,11 @@ export function buildNativeButtonClasses(subscribeButtonClass: string) {
   const tokens = subscribeButtonClass.split(/\s+/).filter(Boolean);
   const isBemNaming = tokens.some(token => token.startsWith(BEM_PREFIX));
   const classNames = isBemNaming ? BEM_CLASS_NAMES : CAMEL_CASE_CLASS_NAMES;
-  const buttonTokens = new Set(tokens
-    .filter(token => !ICON_LAYOUT_CLASS_PATTERN.test(token))
-    .map(token => token === classNames.filled ? classNames.tonal : token));
+  const buttonTokens = new Set(
+    tokens
+      .filter(token => !ICON_LAYOUT_CLASS_PATTERN.test(token))
+      .map(token => (token === classNames.filled ? classNames.tonal : token))
+  );
   buttonTokens.add(classNames.tonal);
 
   const button = [...buttonTokens].join(" ");

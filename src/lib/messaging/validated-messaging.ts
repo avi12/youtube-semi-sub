@@ -1,5 +1,6 @@
-import type { z } from "@/lib/zod";
 import type { MaybePromise } from "@webext-core/messaging";
+
+import type { z } from "@/lib/zod";
 
 /** A messenger whose payloads are not trusted yet: `@webext-core/messaging`'s, before the schemas validate them */
 interface UncheckedMessenger<TMessageType extends string> {
@@ -19,10 +20,7 @@ type MessageSchemas<TSchemas> = {
 type RequestArgs<TRequest> = undefined extends TRequest ? [data?: TRequest] : [data: TRequest];
 
 /** Parses through a generic schema, so the result keeps that schema's own output type */
-function parseWith<TSchema extends z.ZodType>({ schema, value }: {
-  schema: TSchema;
-  value: unknown;
-}) {
+function parseWith<TSchema extends z.ZodType>({ schema, value }: { schema: TSchema; value: unknown }) {
   return schema.parse(value);
 }
 
@@ -30,7 +28,10 @@ function parseWith<TSchema extends z.ZodType>({ schema, value }: {
  * Wraps a messenger so each message's zod schemas are the one source of its types and its checks: the handler gets
  * the payload parsed (a malformed one rejects the sender), and the sender gets the reply parsed
  */
-export function defineValidatedMessaging<TSchemas extends MessageSchemas<TSchemas>>({ schemas, messenger }: {
+export function defineValidatedMessaging<TSchemas extends MessageSchemas<TSchemas>>({
+  schemas,
+  messenger
+}: {
   schemas: TSchemas;
   messenger: UncheckedMessenger<Extract<keyof TSchemas, string>>;
 }) {
@@ -49,12 +50,14 @@ export function defineValidatedMessaging<TSchemas extends MessageSchemas<TSchema
       type: TType,
       onReceived: (data: z.output<TSchemas[TType]["request"]>) => MaybePromise<z.input<TSchemas[TType]["reply"]>>
     ) {
-      return messenger.onMessage(type, ({ data }) => onReceived(
-        parseWith<TSchemas[TType]["request"]>({
-          schema: schemas[type].request,
-          value: data
-        })
-      ));
+      return messenger.onMessage(type, ({ data }) =>
+        onReceived(
+          parseWith<TSchemas[TType]["request"]>({
+            schema: schemas[type].request,
+            value: data
+          })
+        )
+      );
     }
   };
 }

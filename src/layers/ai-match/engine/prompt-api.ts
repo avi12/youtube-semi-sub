@@ -31,10 +31,12 @@ const downloadProgressEventSchema = z.looseObject({
 // The reply is JSON with English keys, so English is the one output language declared. Input languages are left
 // out on purpose: titles and descriptions come in any language
 const LANGUAGE_MODEL_OPTIONS: LanguageModelOptions = {
-  expectedOutputs: [{
-    type: "text",
-    languages: ["en"]
-  }]
+  expectedOutputs: [
+    {
+      type: "text",
+      languages: ["en"]
+    }
+  ]
 };
 
 interface LanguageModelDownloadMonitor {
@@ -43,10 +45,13 @@ interface LanguageModelDownloadMonitor {
 
 /** A Prompt API session; a fake with the same three members stands in for it in tests */
 export interface PromptSession {
-  prompt(input: string, options?: {
-    responseConstraint?: unknown;
-    signal?: AbortSignal;
-  }): Promise<string>;
+  prompt(
+    input: string,
+    options?: {
+      responseConstraint?: unknown;
+      signal?: AbortSignal;
+    }
+  ): Promise<string>;
   /** Missing in some implementations - then each batch opens its own session */
   clone?(options?: { signal?: AbortSignal }): Promise<PromptSession>;
   destroy(): void;
@@ -54,11 +59,13 @@ export interface PromptSession {
 
 interface LanguageModelFactory {
   availability(options?: LanguageModelOptions): Promise<unknown>;
-  create(options?: LanguageModelOptions & {
-    initialPrompts?: ChatMessage[];
-    monitor?: (monitor: LanguageModelDownloadMonitor) => void;
-    signal?: AbortSignal;
-  }): Promise<PromptSession>;
+  create(
+    options?: LanguageModelOptions & {
+      initialPrompts?: ChatMessage[];
+      monitor?: (monitor: LanguageModelDownloadMonitor) => void;
+      signal?: AbortSignal;
+    }
+  ): Promise<PromptSession>;
 }
 
 declare global {
@@ -68,7 +75,7 @@ declare global {
 }
 
 function getLanguageModel() {
-  return typeof LanguageModel === "undefined" ? null : LanguageModel ?? null;
+  return typeof LanguageModel === "undefined" ? null : (LanguageModel ?? null);
 }
 
 /** null when this context has no Prompt API at all; otherwise what it can do for our options */
@@ -95,18 +102,23 @@ export async function openBuiltInSession(initialPrompts: ChatMessage[]) {
     return null;
   }
 
-  return await languageModel.create({
-    ...LANGUAGE_MODEL_OPTIONS,
-    initialPrompts,
-    signal: AbortSignal.timeout(SESSION_TIMEOUT_MS)
-  }).catch(() => null);
+  return await languageModel
+    .create({
+      ...LANGUAGE_MODEL_OPTIONS,
+      initialPrompts,
+      signal: AbortSignal.timeout(SESSION_TIMEOUT_MS)
+    })
+    .catch(() => null);
 }
 
 /**
  * Downloads the built-in model, reporting 0..1 progress. Call it synchronously from a click: the browser only lets
  * create() download with a user gesture, and the gesture expires. Resolves to whether the model ended up on disk
  */
-export async function downloadBuiltInModel({ onProgress, signal }: {
+export async function downloadBuiltInModel({
+  onProgress,
+  signal
+}: {
   onProgress: (fraction: number) => void;
   signal: AbortSignal;
 }) {
@@ -119,12 +131,13 @@ export async function downloadBuiltInModel({ onProgress, signal }: {
     const session = await languageModel.create({
       ...LANGUAGE_MODEL_OPTIONS,
       signal,
-      monitor: downloadMonitor => downloadMonitor.addEventListener("downloadprogress", e => {
-        const parsed = downloadProgressEventSchema.safeParse(e);
-        if (parsed.success) {
-          onProgress(parsed.data.loaded);
-        }
-      })
+      monitor: downloadMonitor =>
+        downloadMonitor.addEventListener("downloadprogress", e => {
+          const parsed = downloadProgressEventSchema.safeParse(e);
+          if (parsed.success) {
+            onProgress(parsed.data.loaded);
+          }
+        })
     });
     session.destroy();
     return true;

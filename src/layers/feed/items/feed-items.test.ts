@@ -1,4 +1,5 @@
-import { ShelfRendererKind } from "@/lib/youtube/schemas/renderers";
+import { describe, expect, it } from "vitest";
+
 import {
   CHANNEL_ID,
   continuationItem,
@@ -15,7 +16,7 @@ import {
   thumbnailUrlFromGridItem,
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
-import { describe, expect, it } from "vitest";
+import { ShelfRendererKind } from "@/lib/youtube/schemas/renderers";
 
 const PUBLISHED = "2 hours ago";
 

@@ -31,10 +31,7 @@ const previewRowSchema = z.object({
 export type PreviewRow = z.infer<typeof previewRowSchema>;
 
 /** Splits a title into the substrings the filter matched and the plain text between them */
-export function highlightMatches({ title, regex }: {
-  title: string;
-  regex: RegExp;
-}) {
+export function highlightMatches({ title, regex }: { title: string; regex: RegExp }) {
   const globalRegex = new RegExp(regex, regex.global ? regex.flags : `${regex.flags}${GLOBAL_FLAG}`);
   const segments: TitleSegment[] = [];
   let iSegmentStart = 0;
@@ -81,10 +78,7 @@ const SHOWN_STATE_BY_MODE = {
  * Splits the rows by what the feed ends up showing, in either mode: shown rows (a pending one may still show, in
  * upload order) and hidden rows - the ones a follow filter leaves out or a hide filter hides
  */
-export function partitionPreviewRows({ rows, mode }: {
-  rows: PreviewRow[];
-  mode: SubscriptionMode;
-}) {
+export function partitionPreviewRows({ rows, mode }: { rows: PreviewRow[]; mode: SubscriptionMode }) {
   const shownState = SHOWN_STATE_BY_MODE[mode];
   const shownRows: PreviewRow[] = [];
   const hiddenRows: PreviewRow[] = [];
@@ -126,7 +120,13 @@ function findHighlightRegex(filter: VideoFilter) {
  * every video (`isFilterInert`). Not valid while a condition can't run - a pattern mid-edit, a blank description, AI
  * match off with nothing else to judge by - then nothing is judged at all
  */
-export function previewVideoFilter({ filter, videos, mode, isMember, ...context }: AiJudgeContext & {
+export function previewVideoFilter({
+  filter,
+  videos,
+  mode,
+  isMember,
+  ...context
+}: AiJudgeContext & {
   filter: VideoFilter;
   videos: FeedVideo[];
   mode: SubscriptionMode;
@@ -151,22 +151,26 @@ export function previewVideoFilter({ filter, videos, mode, isMember, ...context 
   }
 
   const rows = videos.map(video => {
-    const isLeftOut = mode === SubscriptionMode.follow && isMembersOnlyLocked({
-      video,
-      isMember
-    });
+    const isLeftOut =
+      mode === SubscriptionMode.follow &&
+      isMembersOnlyLocked({
+        video,
+        isMember
+      });
     const row: PreviewRow = {
       video,
       matchState: isLeftOut ? MatchState.doesNotMatch : judge(video),
-      segments: regex ?
-        highlightMatches({
-          title: video.title,
-          regex
-        }) :
-        [{
-          text: video.title,
-          isHighlighted: false
-        }]
+      segments: regex
+        ? highlightMatches({
+            title: video.title,
+            regex
+          })
+        : [
+            {
+              text: video.title,
+              isHighlighted: false
+            }
+          ]
     };
     return row;
   });

@@ -161,10 +161,7 @@ export function getFilterMatch(filter: VideoFilter) {
 }
 
 /** The one way a filter is put together: a single condition stands alone, more are grouped */
-export function buildVideoFilter({ conditions, match }: {
-  conditions: FilterCondition[];
-  match: FilterMatch;
-}) {
+export function buildVideoFilter({ conditions, match }: { conditions: FilterCondition[]; match: FilterMatch }) {
   const [onlyCondition] = conditions;
   if (onlyCondition && conditions.length === 1) {
     const filter: VideoFilter = onlyCondition;
@@ -371,10 +368,7 @@ export function listRestrictingConditions(filter: VideoFilter) {
 }
 
 /** All: one miss decides, any: one match does; short of that, a pending condition keeps the whole pending */
-function combineMatchStates({ matchStates, match }: {
-  matchStates: MatchState[];
-  match: FilterMatch;
-}) {
+function combineMatchStates({ matchStates, match }: { matchStates: MatchState[]; match: FilterMatch }) {
   const decisiveState = match === FilterMatch.all ? MatchState.doesNotMatch : MatchState.matches;
   if (matchStates.includes(decisiveState)) {
     return decisiveState;
@@ -403,10 +397,12 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
     return judgeMatch;
   }
 
-  const judges = conditions.map(condition => createConditionJudge({
-    condition,
-    ...context
-  }));
+  const judges = conditions.map(condition =>
+    createConditionJudge({
+      condition,
+      ...context
+    })
+  );
   const isPatternBroken = conditions.some((condition, i) => condition.kind === FilterKind.regex && !judges[i]);
   const workingJudges = judges.filter(judge => judge !== null);
   if (isPatternBroken || workingJudges.length === 0) {
@@ -435,10 +431,7 @@ export function createVideoJudge({ filter, ...context }: AiJudgeContext & { filt
  * every video through (an empty pattern) hides nothing as a hide filter and lets every video through as a follow
  * filter - either way, the whole channel
  */
-export function isFilterInert({ filter, mode }: {
-  filter: VideoFilter | null;
-  mode: SubscriptionMode;
-}) {
+export function isFilterInert({ filter, mode }: { filter: VideoFilter | null; mode: SubscriptionMode }) {
   if (!filter) {
     return true;
   }
@@ -469,7 +462,11 @@ function judgeNoMatch() {
 }
 
 /** `createVideoJudge` for a mode's filter: an inert one (`isFilterInert`) matches no video */
-export function createModeJudge({ filter, mode, ...context }: AiJudgeContext & {
+export function createModeJudge({
+  filter,
+  mode,
+  ...context
+}: AiJudgeContext & {
   filter: VideoFilter | null;
   mode: SubscriptionMode;
 }) {
@@ -491,7 +488,10 @@ export function createModeJudge({ filter, mode, ...context }: AiJudgeContext & {
  * A members-only video only a member can watch, so following adds it only for one. RSS lists these unmarked; the
  * Videos tab marks them (`isMembersOnly`). A subscribed channel needs no such rule: YouTube's own feed leaves them out
  */
-export function isMembersOnlyLocked({ video, isMember }: {
+export function isMembersOnlyLocked({
+  video,
+  isMember
+}: {
   video: Pick<FeedVideo, "isMembersOnly">;
   isMember: boolean | undefined;
 }) {
@@ -502,7 +502,11 @@ export function isMembersOnlyLocked({ video, isMember }: {
  * One of the two places the feed is filtered: a video lands only on a definite match of its channel's follow filter,
  * never while pending or paused, nor from a channel the user is subscribed to, nor members-only for a non-member
  */
-export function selectFeedVideos({ subscriptions, videosByChannel, ...context }: AiJudgeContext & {
+export function selectFeedVideos({
+  subscriptions,
+  videosByChannel,
+  ...context
+}: AiJudgeContext & {
   subscriptions: SemiSubscriptions;
   videosByChannel: VideosByChannel;
 }) {
@@ -510,11 +514,13 @@ export function selectFeedVideos({ subscriptions, videosByChannel, ...context }:
   for (const channelId in subscriptions) {
     const subscription = subscriptions[channelId];
     const isFollowed = subscription && !subscription.isSubscribed;
-    const judge = isFollowed && createModeJudge({
-      filter: subscription.followFilter,
-      mode: SubscriptionMode.follow,
-      ...context
-    });
+    const judge =
+      isFollowed &&
+      createModeJudge({
+        filter: subscription.followFilter,
+        mode: SubscriptionMode.follow,
+        ...context
+      });
     if (!judge) {
       continue;
     }
@@ -537,7 +543,10 @@ export function selectFeedVideos({ subscriptions, videosByChannel, ...context }:
  * match, the Allow list a definite non-match. Null when the channel isn't subscribed or neither list can judge (an
  * AI filter while AI match is off, a pattern that doesn't compile)
  */
-export function createSubscribedHideCheck({ subscription, ...context }: AiJudgeContext & {
+export function createSubscribedHideCheck({
+  subscription,
+  ...context
+}: AiJudgeContext & {
   subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">;
 }) {
   if (!subscription.isSubscribed) {
@@ -548,20 +557,21 @@ export function createSubscribedHideCheck({ subscription, ...context }: AiJudgeC
     filter: subscription.hideFilter,
     mode: SubscriptionMode.hide
   });
-  const blockJudge = isBlockListInert ?
-    null :
-    createModeJudge({
-      filter: subscription.hideFilter,
-      mode: SubscriptionMode.hide,
-      ...context
-    });
+  const blockJudge = isBlockListInert
+    ? null
+    : createModeJudge({
+        filter: subscription.hideFilter,
+        mode: SubscriptionMode.hide,
+        ...context
+      });
   const { followFilter } = subscription;
-  const allowJudge = followFilter && isAllowListRestricting(followFilter) ?
-    createVideoJudge({
-      filter: followFilter,
-      ...context
-    }) :
-    null;
+  const allowJudge =
+    followFilter && isAllowListRestricting(followFilter)
+      ? createVideoJudge({
+          filter: followFilter,
+          ...context
+        })
+      : null;
   if (!blockJudge && !allowJudge) {
     return null;
   }
@@ -576,16 +586,20 @@ export function createSubscribedHideCheck({ subscription, ...context }: AiJudgeC
  * verdict hides a video - one still waiting for its AI verdict or its length stays, and so does everything while a
  * filter is paused
  */
-export function selectHiddenVideoIds({ subscriptions, videosByChannel, ...context }: Parameters<
-  typeof selectFeedVideos
->[0]) {
+export function selectHiddenVideoIds({
+  subscriptions,
+  videosByChannel,
+  ...context
+}: Parameters<typeof selectFeedVideos>[0]) {
   const hiddenIds = new Set<string>();
   for (const channelId in subscriptions) {
     const subscription = subscriptions[channelId];
-    const isHidden = subscription && createSubscribedHideCheck({
-      subscription,
-      ...context
-    });
+    const isHidden =
+      subscription &&
+      createSubscribedHideCheck({
+        subscription,
+        ...context
+      });
     if (!isHidden) {
       continue;
     }

@@ -1,10 +1,12 @@
-import { getAiFilterKey } from "./ai-filter-key";
-import { countAiVerdicts, pruneAiVerdicts } from "./ai-verdicts";
-import { FilterKind, type TitleFilter } from "./title-filter";
+import { describe, expect, it } from "vitest";
+
 import { DEFAULT_TITLE_FILTER } from "@/lib/filter/title-filter";
 import type { ChannelVideosCache, FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
-import { describe, expect, it } from "vitest";
+
+import { getAiFilterKey } from "./ai-filter-key";
+import { countAiVerdicts, pruneAiVerdicts } from "./ai-verdicts";
+import { FilterKind, type TitleFilter } from "./title-filter";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const OTHER_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";

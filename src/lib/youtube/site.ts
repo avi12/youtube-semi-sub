@@ -47,10 +47,7 @@ export function buildShortsPath(videoId: string) {
 }
 
 /** Whether `url` is on www or m.youtube.com at exactly `pathname` (a trailing slash aside) */
-export function isYouTubeUrlAt({ url, pathname }: {
-  url: string;
-  pathname: string;
-}) {
+export function isYouTubeUrlAt({ url, pathname }: { url: string; pathname: string }) {
   if (!URL.canParse(url)) {
     return false;
   }

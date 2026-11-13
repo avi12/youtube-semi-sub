@@ -1,7 +1,3 @@
-import { collectAiFilterKeys } from "@/lib/filter/ai-verdicts";
-import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
-import { isUploadsWatched, isVideosTabRead, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
-import { semiSubscriptionsItem } from "@/lib/storage";
 import { classifyPendingVideos, startAiMatch } from "#ai-match";
 import {
   pruneChannelCaches,
@@ -11,6 +7,10 @@ import {
   UPLOADS_UNAVAILABLE_ERROR
 } from "#background/cache/channel-cache";
 import { browser } from "#imports";
+import { collectAiFilterKeys } from "@/lib/filter/ai-verdicts";
+import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
+import { isUploadsWatched, isVideosTabRead, type SemiSubscriptions } from "@/lib/schemas/semi-subscription";
+import { semiSubscriptionsItem } from "@/lib/storage";
 
 const REFRESH_ALARM_NAME = "refresh-channels";
 const REFRESH_PERIOD_MINUTES = 15;
@@ -50,17 +50,23 @@ function hasDroppedAiFilter({ subscriptions, previousSubscriptions }: Parameters
   return false;
 }
 
-async function handleSubscriptionsChange({ subscriptions, previousSubscriptions }: {
+async function handleSubscriptionsChange({
+  subscriptions,
+  previousSubscriptions
+}: {
   subscriptions: SemiSubscriptions;
   previousSubscriptions: SemiSubscriptions;
 }) {
   // Never pruned on a plain addition: the dialog's preview verdicts for a newly saved channel are kept that way
-  const isChannelRemoved = Object.keys(previousSubscriptions)
-    .some(channelId => !Object.hasOwn(subscriptions, channelId));
-  const isPruneNeeded = isChannelRemoved || hasDroppedAiFilter({
-    subscriptions,
-    previousSubscriptions
-  });
+  const isChannelRemoved = Object.keys(previousSubscriptions).some(
+    channelId => !Object.hasOwn(subscriptions, channelId)
+  );
+  const isPruneNeeded =
+    isChannelRemoved ||
+    hasDroppedAiFilter({
+      subscriptions,
+      previousSubscriptions
+    });
   if (isPruneNeeded) {
     await pruneChannelCaches();
   }
@@ -74,7 +80,7 @@ async function handleSubscriptionsChange({ subscriptions, previousSubscriptions 
         const wasWatched = !!previous && isUploadsWatched(previous);
         const wasTabRead = !!previous && isVideosTabRead(previous);
         const isNewlyWatched = isUploadsWatched(subscription) && !wasWatched;
-        return isNewlyWatched || isVideosTabRead(subscription) && !wasTabRead;
+        return isNewlyWatched || (isVideosTabRead(subscription) && !wasTabRead);
       })
       .map(({ channelId }) => channelId),
     isForced: true
@@ -99,7 +105,9 @@ export function startBackground() {
       // New uploads trigger classification by themselves; this also retries what an earlier pass left pending
       refreshAllChannels({
         isForced: false
-      }).then(() => classifyPendingVideos()).catch(console.error);
+      })
+        .then(() => classifyPendingVideos())
+        .catch(console.error);
     }
   });
 

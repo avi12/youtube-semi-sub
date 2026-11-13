@@ -1,3 +1,5 @@
+import { defineExtensionMessaging, type ProtocolWithReturn } from "@webext-core/messaging";
+
 import { aiStatusSchema, downloadFractionSchema, modelDownloadChangeSchema } from "@/lib/ai/ai-status";
 import { chatMessageSchema } from "@/lib/ai/chat-message";
 import { aiFilterSchema } from "@/lib/filter/title-filter";
@@ -5,7 +7,6 @@ import { defineValidatedMessaging } from "@/lib/messaging/validated-messaging";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { feedVideoSchema, MAX_CACHED_VIDEOS_PER_CHANNEL } from "@/lib/schemas/feed-video";
 import { z } from "@/lib/zod";
-import { defineExtensionMessaging, type ProtocolWithReturn } from "@webext-core/messaging";
 
 export enum MessageType {
   refreshChannel = "refresh-channel",

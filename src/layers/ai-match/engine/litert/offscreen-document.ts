@@ -20,13 +20,15 @@ async function createOffscreenDocument() {
     return;
   }
 
-  await browser.offscreen.createDocument({
-    url: OFFSCREEN_DOCUMENT_PATH,
-    reasons: ["BLOBS"],
-    justification: OFFSCREEN_JUSTIFICATION
-  }).catch(() => {
-    // Created by a concurrent caller - the one document is there either way
-  });
+  await browser.offscreen
+    .createDocument({
+      url: OFFSCREEN_DOCUMENT_PATH,
+      reasons: ["BLOBS"],
+      justification: OFFSCREEN_JUSTIFICATION
+    })
+    .catch(() => {
+      // Created by a concurrent caller - the one document is there either way
+    });
 }
 
 function ensureOffscreenDocument() {
@@ -56,7 +58,10 @@ function delay(milliseconds: number) {
 export async function sendToOffscreenDocument<Result>(send: () => Promise<Result>) {
   await ensureOffscreenDocument();
   for (let attempt = 1; attempt < SEND_ATTEMPTS; attempt++) {
-    const outcome = await send().then(value => ({ value }), () => null);
+    const outcome = await send().then(
+      value => ({ value }),
+      () => null
+    );
     if (outcome) {
       return outcome.value;
     }

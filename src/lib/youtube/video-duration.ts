@@ -18,7 +18,8 @@ export function parseDurationText(text: string | undefined) {
   }
 
   const [, hours, minutes = "0", seconds = "0"] = match;
-  const isUnitOverflowing = hours !== undefined && Number(minutes) > MAX_UNIT_VALUE || Number(seconds) > MAX_UNIT_VALUE;
+  const isUnitOverflowing =
+    (hours !== undefined && Number(minutes) > MAX_UNIT_VALUE) || Number(seconds) > MAX_UNIT_VALUE;
   if (isUnitOverflowing) {
     return null;
   }
@@ -29,7 +30,7 @@ export function parseDurationText(text: string | undefined) {
 /** "12:34" or "1:02:03", the way YouTube writes a length */
 export function formatDuration(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-  const minutes = Math.floor(totalSeconds % SECONDS_PER_HOUR / SECONDS_PER_MINUTE);
+  const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
   const seconds = String(totalSeconds % SECONDS_PER_MINUTE).padStart(PADDED_UNIT_LENGTH, "0");
   if (hours === 0) {
     return `${minutes}:${seconds}`;

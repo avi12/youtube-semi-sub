@@ -1,6 +1,6 @@
+import type { VideoRenderer } from "#feed/items/feed-schemas";
 import { type Lockup, lockupSchema, RendererKind } from "@/lib/youtube/schemas/renderers";
 import { z } from "@/lib/zod";
-import type { VideoRenderer } from "#feed/items/feed-schemas";
 
 // Adds a "Semi-unsubscribe" item to a built tile's own three-dot menu, in the shape its renderer uses: a lockup's or a
 // Short's sheet list (`listItemViewModel`) or a classic renderer's `menuRenderer`. YouTube's own items stay as they are
@@ -26,11 +26,13 @@ function semiUnsubscribeListItem(channelId: string) {
         content: SEMI_UNSUBSCRIBE_LABEL
       },
       leadingImage: {
-        sources: [{
-          clientResource: {
-            imageName: SEMI_UNSUBSCRIBE_ICON
+        sources: [
+          {
+            clientResource: {
+              imageName: SEMI_UNSUBSCRIBE_ICON
+            }
           }
-        }]
+        ]
       },
       rendererContext: {
         commandContext: {
@@ -110,10 +112,7 @@ function sheetCommand(listItems: unknown[]) {
 }
 
 /** The inline sheet command with the item appended after YouTube's own */
-function withSheetItem({ command, ownItem }: {
-  command: z.infer<typeof inlineSheetCommandSchema>;
-  ownItem: unknown;
-}) {
+function withSheetItem({ command, ownItem }: { command: z.infer<typeof inlineSheetCommandSchema>; ownItem: unknown }) {
   const { showSheetCommand } = command;
   const { sheetViewModel } = showSheetCommand.panelLoadingStrategy.inlineContent;
   const { listViewModel } = sheetViewModel.content;
@@ -131,7 +130,7 @@ function withSheetItem({ command, ownItem }: {
               ...sheetViewModel.content,
               listViewModel: {
                 ...listViewModel,
-                listItems: [...listViewModel.listItems ?? [], ownItem]
+                listItems: [...(listViewModel.listItems ?? []), ownItem]
               }
             }
           }
@@ -141,17 +140,14 @@ function withSheetItem({ command, ownItem }: {
   };
 }
 
-function lockupMenuButton({ menuButton, channelId }: {
-  menuButton: unknown;
-  channelId: string;
-}) {
+function lockupMenuButton({ menuButton, channelId }: { menuButton: unknown; channelId: string }) {
   const parsed = lockupMenuButtonSchema.safeParse(menuButton);
   const ownItem = semiUnsubscribeListItem(channelId);
   if (!parsed.success) {
     const existing = existingButtonSchema.safeParse(menuButton);
     return {
       buttonViewModel: {
-        ...existing.success && existing.data.buttonViewModel,
+        ...(existing.success && existing.data.buttonViewModel),
         iconName: MORE_ICON,
         accessibilityText: MORE_ACCESSIBILITY_TEXT,
         onTap: {
@@ -178,30 +174,24 @@ function lockupMenuButton({ menuButton, channelId }: {
 }
 
 /** A Short's menu with the item added - a menu of that item alone when the Short opens none inline */
-function withShortsItem({ renderer, channelId }: {
-  renderer: object;
-  channelId: string;
-}) {
+function withShortsItem({ renderer, channelId }: { renderer: object; channelId: string }) {
   const parsed = shortsMenuSchema.safeParse(renderer);
   const ownItem = semiUnsubscribeListItem(channelId);
   return {
     ...renderer,
     menuOnTap: {
-      ...parsed.success && parsed.data.menuOnTap,
+      ...(parsed.success && parsed.data.menuOnTap),
       innertubeCommand: parsed.success
         ? withSheetItem({
-          command: parsed.data.menuOnTap.innertubeCommand,
-          ownItem
-        })
+            command: parsed.data.menuOnTap.innertubeCommand,
+            ownItem
+          })
         : sheetCommand([ownItem])
     }
   };
 }
 
-function withLockupItem({ lockup, channelId }: {
-  lockup: Lockup;
-  channelId: string;
-}) {
+function withLockupItem({ lockup, channelId }: { lockup: Lockup; channelId: string }) {
   const lockupMetadata = lockup.metadata?.lockupMetadataViewModel;
   return {
     ...lockup,
@@ -218,27 +208,28 @@ function withLockupItem({ lockup, channelId }: {
   };
 }
 
-function withClassicItem({ renderer, channelId }: {
-  renderer: object;
-  channelId: string;
-}) {
+function withClassicItem({ renderer, channelId }: { renderer: object; channelId: string }) {
   const parsed = classicWithMenuSchema.safeParse(renderer);
   const ownItem = semiUnsubscribeMenuServiceItem(channelId);
   const menuRenderer = parsed.success ? parsed.data.menu.menuRenderer : {};
   return {
     ...renderer,
     menu: {
-      ...parsed.success && parsed.data.menu,
+      ...(parsed.success && parsed.data.menu),
       menuRenderer: {
         ...menuRenderer,
-        items: [...menuRenderer.items ?? [], ownItem]
+        items: [...(menuRenderer.items ?? []), ownItem]
       }
     }
   };
 }
 
 /** The built renderer with a "Semi-unsubscribe" item appended to its menu (a menu is created when it has none) */
-export function withSemiUnsubscribeItem({ kind, renderer, channelId }: {
+export function withSemiUnsubscribeItem({
+  kind,
+  renderer,
+  channelId
+}: {
   kind: VideoRenderer["kind"] | RendererKind.shortsLockupViewModel;
   renderer: object;
   channelId: string;

@@ -1,7 +1,9 @@
-import { describeFilterRule } from "./filter-literal";
+import { describe, expect, it } from "vitest";
+
 import { DEFAULT_TITLE_FILTER, FilterKind, FilterMatch, VideoType } from "@/lib/filter/title-filter";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
-import { describe, expect, it } from "vitest";
+
+import { describeFilterRule } from "./filter-literal";
 
 describe("describeFilterRule", () => {
   it("reads an Allow list as the videos it shows, joined by its match", () => {
@@ -10,15 +12,18 @@ describe("describeFilterRule", () => {
         filter: {
           kind: FilterKind.group,
           match: FilterMatch.all,
-          conditions: [{
-            kind: FilterKind.regex,
-            pattern: "review",
-            flags: "i"
-          }, {
-            kind: FilterKind.length,
-            minSeconds: 120,
-            maxSeconds: 1200
-          }]
+          conditions: [
+            {
+              kind: FilterKind.regex,
+              pattern: "review",
+              flags: "i"
+            },
+            {
+              kind: FilterKind.length,
+              minSeconds: 120,
+              maxSeconds: 1200
+            }
+          ]
         },
         mode: SubscriptionMode.follow
       })
@@ -36,10 +41,13 @@ describe("describeFilterRule", () => {
       filter: {
         kind: FilterKind.group,
         match: FilterMatch.any,
-        conditions: [DEFAULT_TITLE_FILTER, {
-          kind: FilterKind.length,
-          maxSeconds: 60
-        }]
+        conditions: [
+          DEFAULT_TITLE_FILTER,
+          {
+            kind: FilterKind.length,
+            maxSeconds: 60
+          }
+        ]
       },
       mode: SubscriptionMode.hide
     });

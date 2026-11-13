@@ -1,5 +1,6 @@
-import { AiEngine, AiUnavailableReason, isAiEngineAvailable, isAiModelReady } from "@/lib/ai/ai-status";
 import { describe, expect, it } from "vitest";
+
+import { AiEngine, AiUnavailableReason, isAiEngineAvailable, isAiModelReady } from "@/lib/ai/ai-status";
 
 describe("AI status checks", () => {
   it("counts an engine as available whether its model is on disk or not", () => {

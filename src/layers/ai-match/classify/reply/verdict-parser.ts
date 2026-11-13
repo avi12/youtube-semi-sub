@@ -20,10 +20,7 @@ const modelReplySchema = z.union([
  * The model's verdicts by video id (1..count). Ids outside the batch are ignored, the first verdict for an id wins,
  * and an id the model skipped stays out of the map - that video stays pending rather than guessed
  */
-export function parseVerdictReply({ reply, count }: {
-  reply: unknown;
-  count: number;
-}) {
+export function parseVerdictReply({ reply, count }: { reply: unknown; count: number }) {
   const verdictsById = new Map<number, boolean>();
   const parsed = modelReplySchema.safeParse(reply);
   if (!parsed.success) {

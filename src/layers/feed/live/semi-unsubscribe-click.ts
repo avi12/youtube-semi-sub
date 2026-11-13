@@ -1,8 +1,9 @@
-import { FeedTileTag, videoIdFromTile } from "./feed-grid";
+import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
 import { IRON_DROPDOWN_SELECTOR, isIronDropdown } from "@/lib/youtube/page/iron-dropdown";
-import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
+
+import { FeedTileTag, videoIdFromTile } from "./feed-grid";
 
 // Handles the "Semi-unsubscribe" item the built tiles carry in their menus. Its command is not one YouTube knows, so
 // the tap is taken in the capture phase before YouTube resolves it. A menu is detached from its tile, so the tile a

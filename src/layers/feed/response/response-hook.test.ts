@@ -1,7 +1,5 @@
-import { readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
-import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
-import type { PageState } from "@/lib/messaging/page-messaging";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
 import { isSemiSubscribedItem } from "#feed/compose/semi-subscribed-tag";
 import {
@@ -31,16 +29,11 @@ import {
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
 import { browseResponseSchema } from "#feed/items/feed-schemas";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
+import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
+import type { PageState } from "@/lib/messaging/page-messaging";
+
+import { readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
 
 const BROWSE_URL = "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false";
 const GUIDE_URL = "https://www.youtube.com/youtubei/v1/guide?prettyPrint=false";
@@ -60,27 +53,24 @@ vi.mock("@/lib/youtube/page/innertube", () => ({
   InnerTubeEndpoint: {
     browse: "/youtubei/v1/browse?prettyPrint=false"
   },
-  postInnerTube: ({ payload }: {
-    payload: { params?: string };
-  }) => Promise.resolve(
-    payload.params === SHORTS_TAB_PARAMS
-      ? channelShortsTabResponse([
-        richItem({
-          shortsLockupViewModel: shortsLockup({
-            index: 60,
-            views: "29M views",
-            entityPrefix: "shorts-shelf-item-"
-          })
-        })
-      ])
-      : channelVideosTabResponse([
-        richItem({ lockupViewModel: desktopChannelTabLockup(50) })
-      ])
-  )
+  postInnerTube: ({ payload }: { payload: { params?: string } }) =>
+    Promise.resolve(
+      payload.params === SHORTS_TAB_PARAMS
+        ? channelShortsTabResponse([
+            richItem({
+              shortsLockupViewModel: shortsLockup({
+                index: 60,
+                views: "29M views",
+                entityPrefix: "shorts-shelf-item-"
+              })
+            })
+          ])
+        : channelVideosTabResponse([richItem({ lockupViewModel: desktopChannelTabLockup(50) })])
+    )
 }));
 
 vi.mock("@/lib/youtube/site", async importOriginal => ({
-  ...await importOriginal<typeof import("@/lib/youtube/site")>(),
+  ...(await importOriginal<typeof import("@/lib/youtube/site")>()),
   getYouTubeSite: () => site.current
 }));
 
@@ -119,10 +109,7 @@ function feedWithShortsShelf() {
   ]);
 }
 
-function responseAt({ url, body }: {
-  url: string;
-  body: string;
-}) {
+function responseAt({ url, body }: { url: string; body: string }) {
   const response = new Response(body);
   Object.defineProperty(response, "url", { value: url });
   return response;
@@ -261,8 +248,9 @@ describe("the feed response hook", () => {
       body: JSON.stringify(feedResponseBody())
     }).json();
     const contents = readSubscriptionsFeed(data)?.contents ?? [];
-    expect(contents.filter(item => JSON.stringify(item).includes(SEMI_SUBSCRIBED_TAG)).map(videoIdFromGridItem))
-      .toEqual([videoId(50)]);
+    expect(
+      contents.filter(item => JSON.stringify(item).includes(SEMI_SUBSCRIBED_TAG)).map(videoIdFromGridItem)
+    ).toEqual([videoId(50)]);
   });
 
   it("injects it into a /browse feed read with text(), and into its clone", async () => {
@@ -414,9 +402,11 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
     description: "Livestreams"
   };
 
-  function hideWith({ hideFilter, hiddenVideoIds = [], ...aiState }: Partial<
-    Pick<PageState, "hiddenVideoIds" | "aiVerdicts" | "isAiEnabled">
-  > & {
+  function hideWith({
+    hideFilter,
+    hiddenVideoIds = [],
+    ...aiState
+  }: Partial<Pick<PageState, "hiddenVideoIds" | "aiVerdicts" | "isAiEnabled">> & {
     hideFilter: TitleFilter;
   }) {
     pageState.current = pageState.current && {
@@ -494,15 +484,18 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
     [1, false],
     [2, true],
     [3, true]
-  ])("lists the hidden ids beside the grid for a YouTube Auto Feed on contract version %j: %j", async (version, isListed) => {
-    vi.stubGlobal(YTAF_CONTRACT_VERSION_GLOBAL, version);
-    hideWith({
-      hideFilter: TITLE_HIDE_FILTER,
-      hiddenVideoIds: [videoId(90)]
-    });
-    const data = await readFeedWithShelf();
-    expect(hiddenIdList(data)).toEqual(isListed ? [videoId(90), videoId(2)] : undefined);
-  });
+  ])(
+    "lists the hidden ids beside the grid for a YouTube Auto Feed on contract version %j: %j",
+    async (version, isListed) => {
+      vi.stubGlobal(YTAF_CONTRACT_VERSION_GLOBAL, version);
+      hideWith({
+        hideFilter: TITLE_HIDE_FILTER,
+        hiddenVideoIds: [videoId(90)]
+      });
+      const data = await readFeedWithShelf();
+      expect(hiddenIdList(data)).toEqual(isListed ? [videoId(90), videoId(2)] : undefined);
+    }
+  );
 
   it("lists nothing while nothing is hidden", async () => {
     vi.stubGlobal(YTAF_CONTRACT_VERSION_GLOBAL, 2);

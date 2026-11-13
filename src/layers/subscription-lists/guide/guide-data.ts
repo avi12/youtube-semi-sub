@@ -1,8 +1,8 @@
+import { buildListedChannelEndpoint } from "#subscription-lists/semi-channels";
+import { SEMI_LIST_TITLE } from "#subscription-lists/semi-channels";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";
-import { buildListedChannelEndpoint } from "#subscription-lists/semi-channels";
-import { SEMI_LIST_TITLE } from "#subscription-lists/semi-channels";
 
 // The desktop guide (sidebar) and the mini guide's Subscriptions flyout both render from the /youtubei/v1/guide
 // response. Semi-subscribed channels are written into that data as native guide entries, tagged so they can be
@@ -15,7 +15,7 @@ const SUBSCRIPTIONS_HEADER_ENTRY_ID = "subscriptions-channels-header";
 /** The guide opens with its main section; signed out, the sign-in promo comes next */
 const SIGN_IN_PROMO_INDEX = 1;
 /** Any of YouTube's continuation keys - a section that has one was cut short and loads the rest later */
-const CONTINUATION_KEY_PREFIX = "\"continuation";
+const CONTINUATION_KEY_PREFIX = '"continuation';
 const SUBSCRIBE_ACTION_HANDLER = "GUIDE_ACTION_ADD_TO_SUBSCRIPTIONS";
 const NO_AVATAR_ICON = "ACCOUNT_CIRCLE";
 const PLAIN_PRESENTATION_STYLE = "GUIDE_ENTRY_PRESENTATION_STYLE_NONE";
@@ -121,17 +121,17 @@ const cachedFlyoutHeaderItemSchema = z.looseObject({
  */
 export function buildSemiGuideEntry(subscription: SemiSubscription) {
   const { channelId, title, avatarUrl } = subscription;
-  const picture = avatarUrl ?
-    {
-      thumbnail: {
-        thumbnails: [{ url: avatarUrl }]
+  const picture = avatarUrl
+    ? {
+        thumbnail: {
+          thumbnails: [{ url: avatarUrl }]
+        }
       }
-    } :
-    {
-      icon: {
-        iconType: NO_AVATAR_ICON
-      }
-    };
+    : {
+        icon: {
+          iconType: NO_AVATAR_ICON
+        }
+      };
   return {
     guideEntryRenderer: {
       navigationEndpoint: buildListedChannelEndpoint(subscription),
@@ -187,15 +187,15 @@ function isSubscriptionsHeaderItem(item: unknown) {
 }
 
 /** Same references where nothing moved; our freshly built entries compare by content */
-function isSameGuideItems({ current, next }: {
-  current: unknown[];
-  next: unknown[];
-}) {
+function isSameGuideItems({ current, next }: { current: unknown[]; next: unknown[] }) {
   const isSameLength = current.length === next.length;
-  return isSameLength && current.every((item, i) => {
-    const nextItem = next[i];
-    return item === nextItem || JSON.stringify(item) === JSON.stringify(nextItem);
-  });
+  return (
+    isSameLength &&
+    current.every((item, i) => {
+      const nextItem = next[i];
+      return item === nextItem || JSON.stringify(item) === JSON.stringify(nextItem);
+    })
+  );
 }
 
 function placeSemiEntries({ items, entries }: Parameters<typeof patchGuideItems>[0]) {
@@ -223,8 +223,8 @@ function readSubscriptionsSection(item: unknown) {
 
   const section = plainSection.data[GuideItemKey.section];
   const actionHandling = actionHandlingSectionSchema.safeParse(section);
-  const isSubscribeHandler = actionHandling.success &&
-    actionHandling.data.handlerDatas.includes(SUBSCRIBE_ACTION_HANDLER);
+  const isSubscribeHandler =
+    actionHandling.success && actionHandling.data.handlerDatas.includes(SUBSCRIBE_ACTION_HANDLER);
   const isSubscriptionsSection = isSubscribeHandler || section.items.some(isSubscriptionsHeaderItem);
   if (!isSubscriptionsSection) {
     return null;
@@ -237,7 +237,11 @@ function readSubscriptionsSection(item: unknown) {
   };
 }
 
-function withEntriesInSubscriptionsSection({ items, iSection, entries }: Parameters<typeof patchGuideItems>[0] & {
+function withEntriesInSubscriptionsSection({
+  items,
+  iSection,
+  entries
+}: Parameters<typeof patchGuideItems>[0] & {
   iSection: number;
 }) {
   const subscriptions = readSubscriptionsSection(items[iSection]);
@@ -281,22 +285,20 @@ function withSemiSection({ items, entries }: Parameters<typeof patchGuideItems>[
 }
 
 /** The guide's top-level `items` with the semi-subscribed entries in place, or null when they already are */
-export function patchGuideItems({ items, entries }: {
-  items: unknown[];
-  entries: unknown[];
-}) {
+export function patchGuideItems({ items, entries }: { items: unknown[]; entries: unknown[] }) {
   const ownItems = items.filter(item => !isSemiSectionItem(item));
   const iSubscriptions = ownItems.findIndex(item => readSubscriptionsSection(item) !== null);
-  const patched = iSubscriptions === -1 ?
-    withSemiSection({
-      items: ownItems,
-      entries
-    }) :
-    withEntriesInSubscriptionsSection({
-      items: ownItems,
-      iSection: iSubscriptions,
-      entries
-    });
+  const patched =
+    iSubscriptions === -1
+      ? withSemiSection({
+          items: ownItems,
+          entries
+        })
+      : withEntriesInSubscriptionsSection({
+          items: ownItems,
+          iSection: iSubscriptions,
+          entries
+        });
   const isUnchanged = isSameGuideItems({
     current: items,
     next: patched
@@ -311,8 +313,11 @@ function withoutCachedFlyout(item: unknown) {
   }
 
   const collapsible = parsed.data.guideCollapsibleSectionEntryRenderer;
-  const { mouseEnterEndpoint: _flyout, mouseLeaveEndpoint: _flyoutClose, ...headerEntry } =
-    collapsible.headerEntry.guideEntryRenderer;
+  const {
+    mouseEnterEndpoint: _flyout,
+    mouseLeaveEndpoint: _flyoutClose,
+    ...headerEntry
+  } = collapsible.headerEntry.guideEntryRenderer;
   return {
     ...parsed.data,
     guideCollapsibleSectionEntryRenderer: {
@@ -346,10 +351,7 @@ export function withoutCachedSubscriptionsFlyout(items: unknown[]) {
 }
 
 /** A whole /youtubei/v1/guide response body, or null when it is not one or needs no change */
-export function patchGuideResponse({ response, entries }: {
-  response: unknown;
-  entries: unknown[];
-}) {
+export function patchGuideResponse({ response, entries }: { response: unknown; entries: unknown[] }) {
   const parsed = guideDataSchema.safeParse(response);
   if (!parsed.success) {
     return null;
@@ -396,9 +398,9 @@ function collectSubscribedChannelIds(root: unknown) {
  */
 export function readGuideSubscriptions(response: unknown) {
   const parsed = guideDataSchema.safeParse(response);
-  const subscriptions = parsed.success ?
-    parsed.data.items.map(readSubscriptionsSection).find(section => section !== null) :
-    undefined;
+  const subscriptions = parsed.success
+    ? parsed.data.items.map(readSubscriptionsSection).find(section => section !== null)
+    : undefined;
   if (!subscriptions) {
     return null;
   }

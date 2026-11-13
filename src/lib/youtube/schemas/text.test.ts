@@ -1,5 +1,6 @@
-import { readText } from "@/lib/youtube/schemas/text";
 import { describe, expect, it } from "vitest";
+
+import { readText } from "@/lib/youtube/schemas/text";
 
 describe("readText", () => {
   it("reads simple text, joins runs, and is empty without either", () => {

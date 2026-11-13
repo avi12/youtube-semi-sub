@@ -1,7 +1,9 @@
-import { parseRssFeed, summarizeDescription } from "./rss-feed";
-import { VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
-import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
 import { describe, expect, it } from "vitest";
+
+import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
+import { VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
+
+import { parseRssFeed, summarizeDescription } from "./rss-feed";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 
@@ -13,7 +15,12 @@ function buildFeed(entries: string) {
 </feed>`;
 }
 
-function buildEntry({ videoId, title, group = "", link = "" }: {
+function buildEntry({
+  videoId,
+  title,
+  group = "",
+  link = ""
+}: {
   videoId: string;
   title: string;
   group?: string;
@@ -53,9 +60,9 @@ describe("parseRssFeed", () => {
   });
 
   it.each([
-    ["<link rel=\"alternate\" href=\"https://www.youtube.com/shorts/abcdefghijk\"/>", true],
-    ["<link rel=\"alternate\" href=\"https://www.youtube.com/watch?v=abcdefghijk\"/>", false],
-    ["<link rel=\"alternate\" href=\"not a url\"/>", false],
+    ['<link rel="alternate" href="https://www.youtube.com/shorts/abcdefghijk"/>', true],
+    ['<link rel="alternate" href="https://www.youtube.com/watch?v=abcdefghijk"/>', false],
+    ['<link rel="alternate" href="not a url"/>', false],
     ["", false]
   ])("reads %j as isShort %j", (link, isShort) => {
     const xml = buildFeed(
@@ -80,7 +87,7 @@ describe("parseRssFeed", () => {
         videoId: "abcdefghijk",
         channelId: CHANNEL_ID,
         channelTitle: "Channel & Friends",
-        title: "Tom & Jerry \"live\" <3 it's ☺",
+        title: 'Tom & Jerry "live" <3 it\'s ☺',
         publishedAt: Date.parse("2026-10-01T10:00:00+00:00"),
         thumbnailUrl: "https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg",
         isShort: false
@@ -94,7 +101,7 @@ describe("parseRssFeed", () => {
         buildEntry({
           videoId: "abcdefghijk",
           title: "1984",
-          group: "<media:group><media:thumbnail url=\"not a url\"/></media:group>"
+          group: '<media:group><media:thumbnail url="not a url"/></media:group>'
         }),
         buildEntry({
           videoId: "too-short",
@@ -114,7 +121,8 @@ describe("parseRssFeed", () => {
         buildEntry({
           videoId: "abcdefghijk",
           title: "With a description",
-          group: "<media:group><media:thumbnail url=\"not a url\"/><media:description>Unboxing day</media:description></media:group>"
+          group:
+            '<media:group><media:thumbnail url="not a url"/><media:description>Unboxing day</media:description></media:group>'
         }),
         buildEntry({
           videoId: "lmnopqrstuv",
@@ -139,7 +147,9 @@ describe("parseRssFeed", () => {
 
 describe("summarizeDescription", () => {
   it("drops links and collapses whitespace", () => {
-    expect(summarizeDescription("Full review\n\nSponsor: https://example.com/deal?x=1  \n Thanks!")).toBe("Full review Sponsor: Thanks!");
+    expect(summarizeDescription("Full review\n\nSponsor: https://example.com/deal?x=1  \n Thanks!")).toBe(
+      "Full review Sponsor: Thanks!"
+    );
   });
 
   it("cuts to the length limit without splitting a character", () => {

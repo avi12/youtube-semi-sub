@@ -1,10 +1,4 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
@@ -14,14 +8,16 @@ const CHECKED_AT = 1_800_000_000_000;
 const V1_CHANNEL_VIDEOS = {
   [CHANNEL_ID]: {
     fetchedAt: CHECKED_AT,
-    videos: [{
-      videoId: "R6yNUnRXZ64",
-      channelId: CHANNEL_ID,
-      channelTitle: "Marques Brownlee",
-      title: "iPhone Duo is here",
-      publishedAt: CHECKED_AT,
-      thumbnailUrl: "https://i3.ytimg.com/vi/R6yNUnRXZ64/hqdefault.jpg"
-    }]
+    videos: [
+      {
+        videoId: "R6yNUnRXZ64",
+        channelId: CHANNEL_ID,
+        channelTitle: "Marques Brownlee",
+        title: "iPhone Duo is here",
+        publishedAt: CHECKED_AT,
+        thumbnailUrl: "https://i3.ytimg.com/vi/R6yNUnRXZ64/hqdefault.jpg"
+      }
+    ]
   }
 };
 
@@ -59,10 +55,12 @@ describe("the channel cache migration", () => {
     const channelVideos = {
       [CHANNEL_ID]: {
         fetchedAt: CHECKED_AT,
-        videos: [{
-          ...V1_CHANNEL_VIDEOS[CHANNEL_ID].videos[0],
-          isShort: true
-        }]
+        videos: [
+          {
+            ...V1_CHANNEL_VIDEOS[CHANNEL_ID].videos[0],
+            isShort: true
+          }
+        ]
       }
     };
     await fakeBrowser.storage.local.set({

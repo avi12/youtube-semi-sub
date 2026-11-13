@@ -1,12 +1,16 @@
 # Purpose
+
 A browser extension that filters what a YouTube channel puts into the user's subscriptions feed (`/feed/subscriptions`). A button next to YouTube's own Subscribe button opens a dialog where the user sets a filter: a RegExp on the title, a plain-language description a model judges (AI match), a video length range, or several of them combined (all or any). Each semi-subscribed channel is in one of two modes, decided by the user's real YouTube subscription - the user subscribes and unsubscribes with YouTube's own button, the extension never does:
-- **"Follow without subscribing"** - not subscribed: the channel's *follow filter* picks its videos to **add** - animated - to the feed: regular videos into its Latest band, Shorts into the Shorts shelf the feed already has.
-- **"Subscribe with a filter"** - subscribed, so YouTube keeps recommending the channel: the channel's *hide filter* picks its videos to **hide** from the feed's Latest band and Shorts shelf.
+
+- **"Follow without subscribing"** - not subscribed: the channel's _follow filter_ picks its videos to **add** - animated - to the feed: regular videos into its Latest band, Shorts into the Shorts shelf the feed already has.
+- **"Subscribe with a filter"** - subscribed, so YouTube keeps recommending the channel: the channel's _hide filter_ picks its videos to **hide** from the feed's Latest band and Shorts shelf.
 
 Works on `www.youtube.com` and `m.youtube.com`.
 
 # Architecture
+
 Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `entrypoints/` (if any) and exposes what other layers use through an `index.ts` barrel, imported as `#<name>`. Inside a layer, import its own files as `#<name>/...` (same directory: `./`); across layers only through the barrel. Code shared by several layers lives in `src/lib` (`@/lib/...`): `schemas/` (the core data shapes), `filter/` (the filter union, the AI verdict cache and its key), `ai/` (the AI status and chat-message shapes), `messaging/`, `page/`, `youtube/` (`schemas/`: the shared InnerTube pieces; `page/`: the MAIN-world page runtime, with the one `declare global` for YouTube's page globals and custom elements in `globals.ts`; plus URLs, endpoints and relative times), `utils/`, plus `storage.ts`, `semi-subscription-storage.ts` and `zod.ts`. A directory past about 8 files is split into meaningful subfolders.
+
 - `background` - polls the uploads (RSS) of every followed channel, and of every subscribed one whose hide filter hides something (`isUploadsWatched`), on an alarm and caches them, unfiltered, in `local:channelVideos`; an upload RSS links as `/shorts/<id>` is marked `isShort` (the Videos-tab fallback never lists Shorts). RSS has no lengths: while a filter judging the channel reads them (`isUploadsLengthFiltered`), or an editor asks (`refreshChannel`), regular videos still lacking a `durationSeconds` get it from the Videos tab (`withDurations`); the cache keeps known lengths across refetches. The only context that talks to the network outside the page. Its entrypoint stays at `src/entrypoints/background.ts`: wxt-module-layers turns any layer `background` entrypoint into its own virtual aggregate background. Also starts `#ai-match`.
 - `ai-match` - judges AI filters, in the background: engine resolution (`engine/`), the Prompt API wrapper, the LiteRT-LM host (`engine/litert/`), the classifier (`classify/`: batching and the prompt, `classify/judges/` one judge per engine, `classify/reply/` reading the model's verdicts) and the passes and opt-in lifecycle (`background/`). Owns the Chromium-only `offscreen-ai` entrypoint; also exports the popup's built-in-model download helper and the local model's size label.
 - `youtube` - the content scripts, composing the in-page layers (named in its `layer.config.ts`, so the output names stay `content-scripts/<name>.js`):
@@ -26,6 +30,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - Filtering lives in exactly one module, `@/lib/filter/title-filter`: `selectFeedVideos` (the follow filters' additions - the page runs it over the followed uploads with the title each tile will show, the native renderer's once loaded, since a YouTube title test can show the viewer another title than the cached one) and `selectHiddenVideoIds` (the hide filters' cached uploads), through `createModeJudge`/`createVideoJudge`, which the feed's per-tile hiding, the editor preview and the popup rows reuse. A mode's filter is null until the user saves one in that mode, and an unset filter adds or hides nothing; an empty RegExp lets every video through as a follow filter and hides nothing as a hide filter. Both cases are decided only by `isFilterInert`. Storage holds unfiltered uploads, so a filter edit applies instantly without a refetch. AI verdicts live in `local:aiVerdicts`, keyed by `getAiFilterKey` (normalized description + `AI_PROMPT_VERSION` - bump it with any prompt change) and video id; they are pruned with the channel caches.
 
 # Constraints
+
 - The channel button appears on **every** channel and opens the dialog for the mode that applies: always "Semi-subscribe", or "Semi-subscribed" (filter glyph) once the mode's filter adds or hides something.
 - A semi-subscription stores `isSubscribed` plus a `followFilter` and a `hideFilter` (storage v4 migrated `filter` into `followFilter` and `isHalted` into `isSubscribed`, with no hide filter set). Pressing YouTube's own Subscribe switches the channel to hiding: nothing is deleted, the follow filter is kept for a later unsubscribe, and `selectFeedVideos` adds nothing of it (nor its Semi-unsubscribe menu item). The follow filter is the channel's **Allow list** and keeps filtering while subscribed: `createSubscribedHideCheck` hides a video the Allow list definitely rejects (an empty pattern restricts nothing, `isAllowListRestricting`), next to the hide filter (the **Block list**) hiding its matches, so the feed is pre-filtered on load; `isUploadsWatched` and the AI classification (`getJudgingFilters`) count it. A new semi-subscription sets only the filter of the mode it is saved in; the other stays null, so a channel first saved while subscribed adds nothing after an unsubscribe until its follow filter is set. Officially unsubscribing switches it back to following. A subscribe or unsubscribe made elsewhere (another device, the app) is caught from server snapshots - the guide response's Subscriptions section and the `subscriptionStateEntity` values in YouTube's raw InnerTube data (a hard load's `ytInitialData`, every /browse and /next body - the app drops `frameworkUpdates` from its page data, so they are read on the way in) - through `applySubscriptionSnapshot` (`#channel-button`): each snapshot is applied once, what the tab saw the user do outranks it, and the guide only switches a channel back to following when its list wasn't cut short. On an open feed (`#feed` session), subscribing hands the channel's inserted videos over to YouTube - never taken out as follow videos; unsubscribing (a "resume" in the session's terms) takes out the channel's videos its follow filter rejects, judged per tile (title, or AI verdict - pending stays), animated; with ytaf present the grid is never written, ytaf is nudged to refetch instead. Every management surface names the mode ("Follow without subscribing" / "Subscribe with a filter", `SUBSCRIPTION_MODE_NAME`) and edits that mode's filter.
 - **Members-only videos**: RSS lists them unmarked; the Videos tab marks them (`BADGE_MEMBERS_ONLY` on a lockup's metadata row, `BADGE_STYLE_TYPE_MEMBERS_ONLY` on m's classic renderers, `@/lib/youtube/members-only`), so a followed channel always reads its Videos tab for new uploads (`isVideosTabRead`) and the cache keeps `isMembersOnly` across RSS refetches. Following never adds one unless the user ticked "I'm a member" for that channel (`isMember`, `isMembersOnlyLocked` in `title-filter`) - membership can't be read from YouTube's data, so the user says it. A subscribed channel needs no rule: YouTube's own feed leaves them out.
@@ -40,7 +45,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - InnerTube shapes are modelled as zod schemas (optional fields, `looseObject` passthrough) and read only through those guards - never index into raw shapes.
 - Section structure of the feed is read-only: only add or remove videos within a section - never create, move or reorder sections or their markers.
 - A Short goes only into the Shorts shelf YouTube already put in the feed - never into the Latest band, and no shelf is ever created. www has it on the first page (a `richShelfRenderer`); m sends its `reelShelfRenderer` with a later page, which only the response hook reaches, since m's grid is not written live. Shelf Shorts carry no publish time, so semi-sub Shorts lead the shelf newest first, before every Short YouTube put there, held to the band's loaded span (or the last 24 hours when no time can be read).
-- **Pairing with YouTube Auto Feed** (`avi12/youtube-auto-feed`, "ytaf"): ytaf rewrites the feed grid from YouTube's own `FEsubscriptions` `/browse` response every 5 s and removes anything not in it. So semi-sub videos are injected into the *response* (hooked below every `fetch` wrapper), which makes ytaf keep and animate them itself. The extension must work in all three setups - without ytaf, with ytaf running, and with ytaf installed but switched off in its popup - and a change is verified in all three. ytaf runs when it is installed (`globalThis.__ytafFeedMessenger`) *and* switched on: `isYouTubeAutoFeedActive()` in `#feed/live/ytaf` overhears its `ytaf-settings` custom events, read-only (never register a messenger in its namespace: it would answer ytaf's own requests). While ytaf runs, never write the grid or handle tile menus - nudge it to refetch with `BroadcastChannel("ytaf")` `{ type: "subscription-change" }`, which is also done right after any hide-filter edit, mode switch or extension switch; otherwise the grid is ours to write, exactly as without ytaf. The contract both extensions keep (ytaf's side is in its own CLAUDE.md):
+- **Pairing with YouTube Auto Feed** (`avi12/youtube-auto-feed`, "ytaf"): ytaf rewrites the feed grid from YouTube's own `FEsubscriptions` `/browse` response every 5 s and removes anything not in it. So semi-sub videos are injected into the _response_ (hooked below every `fetch` wrapper), which makes ytaf keep and animate them itself. The extension must work in all three setups - without ytaf, with ytaf running, and with ytaf installed but switched off in its popup - and a change is verified in all three. ytaf runs when it is installed (`globalThis.__ytafFeedMessenger`) _and_ switched on: `isYouTubeAutoFeedActive()` in `#feed/live/ytaf` overhears its `ytaf-settings` custom events, read-only (never register a messenger in its namespace: it would answer ytaf's own requests). While ytaf runs, never write the grid or handle tile menus - nudge it to refetch with `BroadcastChannel("ytaf")` `{ type: "subscription-change" }`, which is also done right after any hide-filter edit, mode switch or extension switch; otherwise the grid is ours to write, exactly as without ytaf. The contract both extensions keep (ytaf's side is in its own CLAUDE.md):
   - Grid and menu ownership move together: whoever writes `ytd-rich-grid-renderer` `data.contents` also keeps an open tile menu with its video (`#feed/live/open-menu`), and the other side stands down. Both flip on the same `settingsChanged` event.
   - The shared `tp-yt-iron-dropdown` is left clean at rest: no inline `translate`, no `yss-feed-gliding` class - ytaf reads either as a glide in flight.
   - A tile menu is identified by its video id (from the tile's Polymer data) and its button's `aria-label`: built tiles keep their video id in the lockup/renderer data, and menu additions (Semi-unsubscribe) go into the menu data, never as another tile button.
@@ -51,6 +56,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
   - Known edges, documented not fixed: a followed channel's collaborations as a guest are never added - YouTube lists a collaboration only in its uploader's RSS and Videos tab. an un-hidden native Short stays hidden until a reload while ytaf runs, since ytaf never adopts untagged shelf items. Without ytaf (or with it off), any un-hidden video returns on the next feed load, as the live grid never rebuilds YouTube's own items. Without ytaf only the Latest band and the Shorts shelf lose hidden videos; ytaf drops them from every rich shelf (such as "Most relevant") too.
 
 # Stack
+
 - pnpm
 - WXT extension framework, with `wxt-module-layers` for the layers (WXT 0.21 needs the `@davestewart/wxt-utils` patch in `patches/`)
 - Svelte 5 for every UI surface; popup with `m3-svelte` (Material 3 Expressive, its CSS needs the `vite-plugin-functions-mixins` plugin registered in `wxt.config.ts`)
@@ -60,6 +66,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - Chromium (Chrome, Edge, Opera) MV3 + Firefox MV3, single shared code path; branch only when an API genuinely diverges
 
 # Code style
+
 - Use the `browser` namespace
 - Use early returns for readability and maintainability
 - Use functional programming
@@ -84,20 +91,24 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - Zod first, never TypeScript alone: every data shape is a zod schema with its type derived via `z.infer` - no hand-written object type aliases or data-only interfaces (lint-enforced). Interfaces remain only for behaviour (method signatures such as protocol maps and element APIs), `declare global` augmentation and Svelte `Props`. Validate at every boundary: storage (`defineSchemaItem` in `@/lib/storage` validates every read and write), messages, InnerTube/RSS/DOM data and model output. Reuse zod objects: one schema per shape, and derive variants from it (`.extend`, `.pick`, `.omit`, `.partial`, shared sub-schemas such as InnerTube text/thumbnail/renderer/browse pieces in `@/lib/youtube/schemas`) instead of redefining a shape that already exists
 
 # Naming conventions
+
 - Variables and functions: `camelCase`, full words (no abbreviations)
 - Module-level constants: `SCREAMING_SNAKE_CASE`
 - Exception: event handler first parameter is always `e`
 
 ## Variable prefixes
+
 - Element: `el` prefix (e.g. `elButton`)
 - Index: `i` prefix (e.g. `iItem`), or bare `i` when iterating in a for loop/higher-order function
 - Boolean: `is` prefix (e.g. `isLoading`), phrased positively (e.g. `isEnabled`, not `isDisabled`)
 
 # Hardcoded values
+
 - Strings: use enums; if no enum fits, use a descriptive `SCREAMING_SNAKE_CASE` constant
 - Numbers: use a descriptive `SCREAMING_SNAKE_CASE` constant
 
 # Svelte
+
 - Single-use functions: inline them
 - Event handlers used in exactly one place: inline them as an arrow function in the template
 - Never put a ternary inside `$derived` - use `$derived.by` with if/else
@@ -105,6 +116,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - Flow-gating buttons use both `disabled={!condition}` AND a guard in the handler
 
 # CSS
+
 - Use native CSS nesting
 - Always respect `prefers-reduced-motion` - never ship an ungated transition/animation. In JS read `prefersReducedMotion()` from `@/lib/utils/motion`
 - On www.youtube.com `Element.prototype.getAnimations`/`animate` and the `Animation` globals are YouTube's Web Animations polyfill, blind to CSS motion: read motion through `document.getAnimations()` filtered by `effect.target`, and tell CSS animations and transitions apart by shape (`#feed/live/feed-motion`)
@@ -113,16 +125,20 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 - On YouTube, style with YouTube's own tokens (`--yt-sys-color-baseline--*`, `--yt-spec-*`) with fallbacks, so injected UI follows its light/dark theme
 
 # Storage
+
 - Don't automatically persist to storage - rely on fallback values; only write when the user has explicitly set something (the background's upload cache and AI verdict cache are the exceptions: they are caches)
 - Use the `storage.defineItem` items in `@/lib/storage`; read-modify-write goes through `mutateStorageItem`, and every semi-subscription write through `@/lib/semi-subscription-storage`
 - Only `local:` or `sync:` - never `session:` (Firefox)
 
 # UI copy
+
 - No full stops at end of messages
 - Informal tone
 
 # Linting
+
 After each modification - every bug fix included, before reporting it done - run the whole list below, not only the checks that look relevant:
+
 - `pnpm lint` (oxlint `--fix` pass, `eslint --fix`, then oxlint as the gate) - oxlint owns logic and type-aware rules, ESLint owns style
 - `pnpm stylelint`
 - `pnpm svelte:check`
@@ -131,5 +147,6 @@ After each modification - every bug fix included, before reporting it done - run
 - `pnpm fallow` - dead-code audit; remove what a change left unused (never `fallow fix`)
 
 # Dev
+
 - `pnpm dev` (Chromium) / `pnpm dev:firefox`
 - Firefox first when verifying cross-browser behaviour - it is the strictest environment

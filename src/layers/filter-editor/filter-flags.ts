@@ -28,10 +28,13 @@ export const FILTER_FLAG_DETAILS = {
     label: "Unicode sets",
     description: "Unicode plus set operations like [\\p{L}--[a-z]]"
   }
-} satisfies Record<FilterFlag, {
-  label: string;
-  description: string;
-}>;
+} satisfies Record<
+  FilterFlag,
+  {
+    label: string;
+    description: string;
+  }
+>;
 
 /** `u` and `v` can't be combined - turning one on turns the other off */
 const CONFLICTING_FLAG: Partial<Record<FilterFlag, FilterFlag>> = {
@@ -39,11 +42,7 @@ const CONFLICTING_FLAG: Partial<Record<FilterFlag, FilterFlag>> = {
   v: "u"
 };
 
-export function setFilterFlag({ flags, flag, isEnabled }: {
-  flags: string;
-  flag: FilterFlag;
-  isEnabled: boolean;
-}) {
+export function setFilterFlag({ flags, flag, isEnabled }: { flags: string; flag: FilterFlag; isEnabled: boolean }) {
   const enabledFlags = new Set(flags);
   const conflictingFlag = CONFLICTING_FLAG[flag];
   if (isEnabled) {

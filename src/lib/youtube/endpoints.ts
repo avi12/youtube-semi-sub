@@ -46,7 +46,11 @@ export function buildReelWatchEndpoint(videoId: string) {
 }
 
 /** Opens the channel at `url`; `canonicalBaseUrl`, when given, is the handle path YouTube shows for it */
-export function buildChannelEndpoint({ channelId, url, canonicalBaseUrl }: {
+export function buildChannelEndpoint({
+  channelId,
+  url,
+  canonicalBaseUrl
+}: {
   channelId: string;
   url: string;
   canonicalBaseUrl: string | undefined;
@@ -62,9 +66,9 @@ export function buildChannelEndpoint({ channelId, url, canonicalBaseUrl }: {
     },
     browseEndpoint: {
       browseId: channelId,
-      ...canonicalBaseUrl && {
+      ...(canonicalBaseUrl && {
         canonicalBaseUrl
-      }
+      })
     }
   };
 }

@@ -1,12 +1,3 @@
-import { writeGridContents } from "./feed-flip";
-import { type FeedGrid, findFeedGrid } from "./feed-grid";
-import { isYouTubeAutoFeedActive, nudgeYouTubeAutoFeed, watchYouTubeAutoFeedSwitch } from "./ytaf";
-import { getPageState, onPageState } from "@/lib/page/page-state";
-import { observeSubtree } from "@/lib/utils/dom";
-import { onYouTubeNavigate, onYouTubeNavigateStart } from "@/lib/youtube/page/navigation";
-import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
-import { FeedPathname } from "@/lib/youtube/site";
-import { z } from "@/lib/zod";
 import {
   composeForPageState,
   findRemovedVideoIds,
@@ -27,6 +18,16 @@ import {
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
 import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
+import { getPageState, onPageState } from "@/lib/page/page-state";
+import { observeSubtree } from "@/lib/utils/dom";
+import { onYouTubeNavigate, onYouTubeNavigateStart } from "@/lib/youtube/page/navigation";
+import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
+import { FeedPathname } from "@/lib/youtube/site";
+import { z } from "@/lib/zod";
+
+import { writeGridContents } from "./feed-flip";
+import { type FeedGrid, findFeedGrid } from "./feed-grid";
+import { isYouTubeAutoFeedActive, nudgeYouTubeAutoFeed, watchYouTubeAutoFeedSwitch } from "./ytaf";
 
 // Keeps an open subscriptions feed in step with the semi-sub videos: on a hard load (rendered from ytInitialData,
 // which no response hook saw), after every navigation, and whenever the filtered videos change. Inserted videos
@@ -40,9 +41,11 @@ const LIVE_NATIVES_BUDGET_MS = 4000;
 const navigationDetailSchema = z.looseObject({
   url: z.string().optional(),
   href: z.string().optional(),
-  endpoint: z.looseObject({
-    browseEndpoint: browseEndpointSchema.optional()
-  }).optional()
+  endpoint: z
+    .looseObject({
+      browseEndpoint: browseEndpointSchema.optional()
+    })
+    .optional()
 });
 
 let isReconciling = false;
@@ -53,10 +56,7 @@ function isOnFeedPage() {
   return location.pathname === FeedPathname.subscriptions;
 }
 
-function isSameContents({ left, right }: {
-  left: readonly unknown[] | null;
-  right: readonly unknown[];
-}) {
+function isSameContents({ left, right }: { left: readonly unknown[] | null; right: readonly unknown[] }) {
   return left?.length === right.length && left.every((item, i) => item === right[i]);
 }
 
@@ -99,10 +99,7 @@ function waitForFeedGrid() {
 }
 
 /** Polymer re-renders a slot only for a new object, so an item that changed index is handed over as a copy */
-function cloneMovedItems({ previous, next }: {
-  previous: readonly unknown[];
-  next: readonly unknown[];
-}) {
+function cloneMovedItems({ previous, next }: { previous: readonly unknown[]; next: readonly unknown[] }) {
   const iPreviousByItem = new Map(previous.map((item, i) => [item, i]));
   return next.map((item, i) => {
     const iPrevious = iPreviousByItem.get(item);
@@ -121,17 +118,20 @@ function cloneMovedGridItems({ previous, next }: Parameters<typeof cloneMovedIte
     const shelf = previousItems.has(item) ? null : readShelf(item);
     return shelf
       ? shelf.withItems(
-        cloneMovedItems({
-          previous: shelfItemsFromGridItem(previous[i]),
-          next: shelf.items
-        })
-      )
+          cloneMovedItems({
+            previous: shelfItemsFromGridItem(previous[i]),
+            next: shelf.items
+          })
+        )
       : item;
   });
 }
 
 /** The thumbnails of the items just inserted, in the grid or its Shorts shelf */
-function collectInsertedThumbnailUrls({ contents, insertedIds }: {
+function collectInsertedThumbnailUrls({
+  contents,
+  insertedIds
+}: {
   contents: readonly unknown[];
   insertedIds: ReadonlySet<string>;
 }) {
@@ -239,10 +239,12 @@ async function reconcile() {
       insertedIds
     }),
     isAnimated: currentState.isAnimationsEnabled,
-    isCurrent: () => isOnFeedPage() && isSameContents({
-      left: grid.readContents(),
-      right: currentContents
-    })
+    isCurrent: () =>
+      isOnFeedPage() &&
+      isSameContents({
+        left: grid.readContents(),
+        right: currentContents
+      })
   });
   if (!isWritten) {
     // YouTube re-rendered the grid meanwhile: start over from what it holds now

@@ -107,11 +107,7 @@ function isLetter(character: string) {
   return character.toLowerCase() !== character.toUpperCase();
 }
 
-function readWhile({ text, iStart, isPart }: {
-  text: string;
-  iStart: number;
-  isPart: (character: string) => boolean;
-}) {
+function readWhile({ text, iStart, isPart }: { text: string; iStart: number; isPart: (character: string) => boolean }) {
   let iEnd = iStart;
   while (iEnd < text.length && isPart(text.charAt(iEnd))) {
     iEnd++;
@@ -120,10 +116,7 @@ function readWhile({ text, iStart, isPart }: {
 }
 
 /** Digits with colons ("1:30") or one decimal point - a second point starts a ".." range separator instead */
-function readNumberEnd({ text, iStart }: {
-  text: string;
-  iStart: number;
-}) {
+function readNumberEnd({ text, iStart }: { text: string; iStart: number }) {
   let iEnd = iStart;
   let isPointSeen = false;
   while (iEnd < text.length) {
@@ -146,12 +139,9 @@ function isSymbolPart(character: string) {
   return SYMBOL_CHARACTERS.includes(character);
 }
 
-function readTokenKind({ text, i }: {
-  text: string;
-  i: number;
-}) {
+function readTokenKind({ text, i }: { text: string; i: number }) {
   const character = text.charAt(i);
-  const isNumberStart = isDigit(character) || character === "." && isDigit(text.charAt(i + 1));
+  const isNumberStart = isDigit(character) || (character === "." && isDigit(text.charAt(i + 1)));
   if (isNumberStart) {
     return TokenKind.number;
   }
@@ -174,18 +164,20 @@ function tokenize(text: string) {
       i
     });
 
-    const iEnd = kind === TokenKind.number ?
-      readNumberEnd({
-        text,
-        iStart: i
-      }) :
-      Math.max(
-        readWhile({
-          text,
-          iStart: i,
-          isPart: kind === TokenKind.word ? isLetter : isSymbolPart
-        }), i + 1
-      );
+    const iEnd =
+      kind === TokenKind.number
+        ? readNumberEnd({
+            text,
+            iStart: i
+          })
+        : Math.max(
+            readWhile({
+              text,
+              iStart: i,
+              isPart: kind === TokenKind.word ? isLetter : isSymbolPart
+            }),
+            i + 1
+          );
     tokens.push({
       kind,
       text: text.slice(i, iEnd).toLowerCase()
@@ -288,18 +280,12 @@ function takeDuration(cursor: Cursor) {
 
 type Duration = NonNullable<ReturnType<typeof takeDuration>>;
 
-function toSeconds({ duration, fallbackUnitSeconds }: {
-  duration: Duration;
-  fallbackUnitSeconds: number;
-}) {
+function toSeconds({ duration, fallbackUnitSeconds }: { duration: Duration; fallbackUnitSeconds: number }) {
   const unitless = (duration.unitlessValue ?? 0) * (duration.unitSeconds ?? fallbackUnitSeconds);
   return Math.round(duration.seconds + unitless);
 }
 
-function requireDuration({ cursor, after }: {
-  cursor: Cursor;
-  after: string;
-}) {
+function requireDuration({ cursor, after }: { cursor: Cursor; after: string }) {
   const duration = takeDuration(cursor);
   if (!duration) {
     throw new ExpressionError(`Add a length after "${after}", like 10m`);
@@ -308,10 +294,7 @@ function requireDuration({ cursor, after }: {
   return duration;
 }
 
-function boundsOfComparison({ comparison, seconds }: {
-  comparison: Comparison;
-  seconds: number;
-}) {
+function boundsOfComparison({ comparison, seconds }: { comparison: Comparison; seconds: number }) {
   const bounds: Bounds = {
     [Comparison.lessThan]: {
       maxSeconds: seconds - 1
@@ -333,20 +316,19 @@ function boundsOfComparison({ comparison, seconds }: {
   return bounds;
 }
 
-function takeRange({ cursor, first }: {
-  cursor: Cursor;
-  first: Duration;
-}) {
+function takeRange({ cursor, first }: { cursor: Cursor; first: Duration }) {
   const separator = cursor.take()?.text ?? "";
   const second = requireDuration({
     cursor,
     after: separator
   });
   const fallbackUnitSeconds = second.unitSeconds ?? first.unitSeconds ?? DEFAULT_UNIT_SECONDS;
-  const ends = [first, second].map(duration => toSeconds({
-    duration,
-    fallbackUnitSeconds
-  }));
+  const ends = [first, second].map(duration =>
+    toSeconds({
+      duration,
+      fallbackUnitSeconds
+    })
+  );
   const bounds: Bounds = {
     minSeconds: Math.min(...ends),
     maxSeconds: Math.max(...ends)
@@ -406,12 +388,12 @@ function intersectBounds(boundsList: Bounds[]) {
   const mins = boundsList.flatMap(bounds => bounds.minSeconds ?? []);
   const maxes = boundsList.flatMap(bounds => bounds.maxSeconds ?? []);
   const bounds: Bounds = {
-    ...mins.length > 0 && {
+    ...(mins.length > 0 && {
       minSeconds: Math.max(0, ...mins)
-    },
-    ...maxes.length > 0 && {
+    }),
+    ...(maxes.length > 0 && {
       maxSeconds: Math.min(...maxes)
-    }
+    })
   };
   return bounds;
 }
@@ -442,7 +424,7 @@ export function parseLengthExpression(text: string) {
   try {
     const bounds = parseClauses(text);
     const isEmptyRange = (bounds.maxSeconds ?? Infinity) < (bounds.minSeconds ?? 0);
-    if (isEmptyRange || bounds.maxSeconds !== undefined && bounds.maxSeconds < 0) {
+    if (isEmptyRange || (bounds.maxSeconds !== undefined && bounds.maxSeconds < 0)) {
       return {
         bounds: null,
         error: "No video can be that long and that short at once"
@@ -468,7 +450,7 @@ export function parseLengthExpression(text: string) {
 /** A length in the shortest units it reads in: "45s", "20m", "1h", "1h30m" */
 function formatLengthValue(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-  const minutes = Math.floor(totalSeconds % SECONDS_PER_HOUR / SECONDS_PER_MINUTE);
+  const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
   const seconds = totalSeconds % SECONDS_PER_MINUTE;
   if (seconds !== 0 && totalSeconds >= SECONDS_PER_MINUTE) {
     return formatDuration(totalSeconds);
@@ -485,9 +467,9 @@ function formatLengthValue(totalSeconds: number) {
 /** The expression a stored length filter reads as, for the field to start from */
 export function formatLengthExpression({ minSeconds, maxSeconds }: LengthFilter) {
   if (minSeconds !== undefined && maxSeconds !== undefined) {
-    return minSeconds === maxSeconds ?
-      `=${formatLengthValue(minSeconds)}` :
-      `${formatLengthValue(minSeconds)}-${formatLengthValue(maxSeconds)}`;
+    return minSeconds === maxSeconds
+      ? `=${formatLengthValue(minSeconds)}`
+      : `${formatLengthValue(minSeconds)}-${formatLengthValue(maxSeconds)}`;
   }
 
   if (maxSeconds !== undefined) {

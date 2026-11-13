@@ -1,3 +1,5 @@
+import { on } from "svelte/events";
+
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { focusPlayer } from "@/lib/page/focus-player";
 import { channelInfoSchema } from "@/lib/schemas/channel";
@@ -11,7 +13,6 @@ import {
   ButtonViewModelType
 } from "@/lib/youtube/page/button-view-model";
 import { z } from "@/lib/zod";
-import { on } from "svelte/events";
 
 // MAIN world: a collaboration's picker. YouTube's own Subscribe opens a "Collaborators" dialog with one Subscribe
 // button per channel; this opens that same dialog with our button in every row
@@ -94,45 +95,57 @@ function closeDialog(elDialog: Element) {
 /** Our buttons carry no command of their own: a press is told apart by its row and its accessible name */
 function listenForPick(choices: CollaboratorChoice[]) {
   stopListeningForPick?.();
-  const stopListeningForClose = on(document, OVERLAY_CLOSED_EVENT, e => {
-    const isCollaboratorsDialog = e.target instanceof Element && e.target.matches(DIALOG_SELECTOR);
-    if (!isCollaboratorsDialog) {
-      return;
-    }
+  const stopListeningForClose = on(
+    document,
+    OVERLAY_CLOSED_EVENT,
+    e => {
+      const isCollaboratorsDialog = e.target instanceof Element && e.target.matches(DIALOG_SELECTOR);
+      if (!isCollaboratorsDialog) {
+        return;
+      }
 
-    stopListening();
-    stopListeningForPick = null;
-    focusPlayer();
-  }, { capture: true });
+      stopListening();
+      stopListeningForPick = null;
+      focusPlayer();
+    },
+    { capture: true }
+  );
   function stopListening() {
     stopListeningForClick();
     stopListeningForClose();
   }
-  const stopListeningForClick = on(document, "click", e => {
-    const elTarget = e.target instanceof Element ? e.target : null;
-    const elRow = elTarget?.closest(ROW_SELECTOR);
-    const elDialog = elRow?.closest(DIALOG_SELECTOR);
-    const elButton = elTarget?.closest(ROW_BUTTON_SELECTOR);
-    const iRow = elRow?.parentElement ? Array.from(elRow.parentElement.children).indexOf(elRow) : -1;
-    const choice = choices.at(iRow);
-    const isOurButton = !!elDialog && !!choice && elButton?.getAttribute("aria-label") === choice.accessibilityText;
-    if (!isOurButton) {
-      return;
-    }
+  const stopListeningForClick = on(
+    document,
+    "click",
+    e => {
+      const elTarget = e.target instanceof Element ? e.target : null;
+      const elRow = elTarget?.closest(ROW_SELECTOR);
+      const elDialog = elRow?.closest(DIALOG_SELECTOR);
+      const elButton = elTarget?.closest(ROW_BUTTON_SELECTOR);
+      const iRow = elRow?.parentElement ? Array.from(elRow.parentElement.children).indexOf(elRow) : -1;
+      const choice = choices.at(iRow);
+      const isOurButton = !!elDialog && !!choice && elButton?.getAttribute("aria-label") === choice.accessibilityText;
+      if (!isOurButton) {
+        return;
+      }
 
-    e.preventDefault();
-    e.stopPropagation();
-    stopListening();
-    stopListeningForPick = null;
-    closeDialog(elDialog);
-    pageMessenger.sendMessage(PageMessage.openSemiSubDialog, {
-      channelId: choice.channelId,
-      title: choice.title,
-      handle: choice.handle,
-      avatarUrl: choice.avatarUrl,
-      isSubscribed: choice.isSubscribed
-    }).catch(() => {});
-  }, { capture: true });
+      e.preventDefault();
+      e.stopPropagation();
+      stopListening();
+      stopListeningForPick = null;
+      closeDialog(elDialog);
+      pageMessenger
+        .sendMessage(PageMessage.openSemiSubDialog, {
+          channelId: choice.channelId,
+          title: choice.title,
+          handle: choice.handle,
+          avatarUrl: choice.avatarUrl,
+          isSubscribed: choice.isSubscribed
+        })
+        .catch(() => {});
+    },
+    { capture: true }
+  );
   stopListeningForPick = stopListening;
 }
 
@@ -164,14 +177,17 @@ export function openCollaboratorsPopup(choices: CollaboratorChoice[]) {
       composed: true,
       detail: {
         actionName: OPEN_POPUP_ACTION,
-        args: [{
-          openPopupAction: {
-            popup: {
-              dialogViewModel
-            },
-            popupType: POPUP_TYPE_DIALOG
-          }
-        }, elApp],
+        args: [
+          {
+            openPopupAction: {
+              popup: {
+                dialogViewModel
+              },
+              popupType: POPUP_TYPE_DIALOG
+            }
+          },
+          elApp
+        ],
         optionalAction: false,
         returnValue: []
       }

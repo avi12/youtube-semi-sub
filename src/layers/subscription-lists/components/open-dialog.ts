@@ -1,8 +1,9 @@
+import { on } from "svelte/events";
+
+import { describeChannelButton } from "#channel-button";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { channelInfoSchema } from "@/lib/schemas/channel";
 import { getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
-import { describeChannelButton } from "#channel-button";
-import { on } from "svelte/events";
 
 /** Opens the ISOLATED-world dialog (edit the filter, remove the semi-subscription) */
 export function openSemiSubDialog(subscription: SemiSubscription) {

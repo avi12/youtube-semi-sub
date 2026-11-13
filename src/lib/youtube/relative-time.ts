@@ -71,10 +71,7 @@ const UNIT_BY_SPELLING = new Map<string, TimeUnit>([
 const RELATIVE_TIME_PATTERN = /(\d+)\s*([a-z]+)\s+ago\b/i;
 
 /** `approximateTime` is the newest moment the text can mean ("3 hours ago" = 3 hours), `earliestTime` the oldest (4) */
-export function parseRelativeTime({ text, now }: {
-  text: string;
-  now: number;
-}) {
+export function parseRelativeTime({ text, now }: { text: string; now: number }) {
   const [, countText = "", spelling = ""] = RELATIVE_TIME_PATTERN.exec(text) ?? [];
   const unit = UNIT_BY_SPELLING.get(spelling.toLowerCase());
   if (!unit) {
@@ -89,10 +86,7 @@ export function parseRelativeTime({ text, now }: {
   };
 }
 
-export function parseFirstRelativeTime({ texts, now }: {
-  texts: readonly string[];
-  now: number;
-}) {
+export function parseFirstRelativeTime({ texts, now }: { texts: readonly string[]; now: number }) {
   for (const text of texts) {
     const publishedTime = parseRelativeTime({
       text,
@@ -126,7 +120,11 @@ function createRelativeTimeFormat(locale: string) {
 }
 
 /** "3 hours ago" like YouTube's own upload dates, in the page's language when given */
-export function formatRelativeTime({ time, now, locale = DEFAULT_LOCALE }: {
+export function formatRelativeTime({
+  time,
+  now,
+  locale = DEFAULT_LOCALE
+}: {
   time: number;
   now: number;
   locale?: string;

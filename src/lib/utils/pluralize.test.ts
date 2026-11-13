@@ -1,5 +1,6 @@
-import { pluralize } from "@/lib/utils/pluralize";
 import { describe, expect, it } from "vitest";
+
+import { pluralize } from "@/lib/utils/pluralize";
 
 describe("pluralize", () => {
   it("picks the singular for one and the plural for any other count", () => {

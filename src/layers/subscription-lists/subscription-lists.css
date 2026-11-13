@@ -5,21 +5,18 @@
 .yss-m-channels,
 .yss-m-strip-item {
   --yss-text-primary: var(--yt-sys-color-baseline--text-primary, var(--yt-spec-text-primary, currentcolor));
-  --yss-text-secondary:
-    var(
-      --yt-sys-color-baseline--text-secondary,
-      var(--yt-spec-text-secondary, color-mix(in srgb, currentcolor 62%, transparent))
-    );
-  --yss-tonal:
-    var(
-      --yt-sys-color-baseline--additive-background,
-      var(--yt-spec-badge-chip-background, color-mix(in srgb, currentcolor 5%, transparent))
-    );
-  --yss-hover:
-    var(
-      --yt-sys-color-baseline--mono-tonal-hover,
-      var(--yt-spec-10-percent-layer, color-mix(in srgb, currentcolor 10%, transparent))
-    );
+  --yss-text-secondary: var(
+    --yt-sys-color-baseline--text-secondary,
+    var(--yt-spec-text-secondary, color-mix(in srgb, currentcolor 62%, transparent))
+  );
+  --yss-tonal: var(
+    --yt-sys-color-baseline--additive-background,
+    var(--yt-spec-badge-chip-background, color-mix(in srgb, currentcolor 5%, transparent))
+  );
+  --yss-hover: var(
+    --yt-sys-color-baseline--mono-tonal-hover,
+    var(--yt-spec-10-percent-layer, color-mix(in srgb, currentcolor 10%, transparent))
+  );
   --yss-ease: cubic-bezier(0.2, 0, 0, 1);
 }
 
@@ -292,6 +289,8 @@
   .yss-guide-action,
   .yss-button,
   .yss-icon-button {
-    transition: background-color 100ms var(--yss-ease), color 100ms var(--yss-ease);
+    transition:
+      background-color 100ms var(--yss-ease),
+      color 100ms var(--yss-ease);
   }
 }

@@ -1,6 +1,7 @@
-import { BuiltInAvailability } from "./prompt-api";
 import { AiEngine, type AiEngineChoice, AiUnavailableReason } from "@/lib/ai/ai-status";
 import { z } from "@/lib/zod";
+
+import { BuiltInAvailability } from "./prompt-api";
 
 /** What the local LiteRT-LM model needs from the browser */
 const liteRtSupportSchema = z.object({

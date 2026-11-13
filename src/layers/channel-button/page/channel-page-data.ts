@@ -60,26 +60,33 @@ const collaboratorItemSchema = z.looseObject({
   listItemViewModel: z.looseObject({
     title: z.looseObject({
       content: z.string(),
-      commandRuns: z.tuple([
-        z.looseObject({
-          onTap: z.looseObject({
-            innertubeCommand: z.looseObject({
-              browseEndpoint: browseEndpointSchema
+      commandRuns: z.tuple(
+        [
+          z.looseObject({
+            onTap: z.looseObject({
+              innertubeCommand: z.looseObject({
+                browseEndpoint: browseEndpointSchema
+              })
             })
           })
-        })
-      ], z.unknown())
+        ],
+        z.unknown()
+      )
     }),
-    subtitle: z.looseObject({
-      content: z.string()
-    }).optional(),
-    leadingAccessory: z.looseObject({
-      avatarViewModel: z.looseObject({
-        image: z.looseObject({
-          sources: z.array(thumbnailSchema)
+    subtitle: z
+      .looseObject({
+        content: z.string()
+      })
+      .optional(),
+    leadingAccessory: z
+      .looseObject({
+        avatarViewModel: z.looseObject({
+          image: z.looseObject({
+            sources: z.array(thumbnailSchema)
+          })
         })
       })
-    }).optional()
+      .optional()
   })
 });
 
@@ -167,15 +174,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** Searches a renderer tree for the first value stored under one of `keys` that `isMatch` accepts */
-function findValueByKey({ root, keys, isMatch }: {
+function findValueByKey({
+  root,
+  keys,
+  isMatch
+}: {
   root: unknown;
   keys: string[];
   isMatch: (candidate: unknown) => boolean;
 }) {
-  const pending = [{
-    value: root,
-    depth: 0
-  }];
+  const pending = [
+    {
+      value: root,
+      depth: 0
+    }
+  ];
   for (let next = pending.pop(); next; next = pending.pop()) {
     const { value, depth } = next;
     const isTooDeep = depth > MAX_SEARCH_DEPTH;
@@ -250,7 +263,11 @@ export function readSubscriptionEntities(response: unknown) {
   return subscribedByChannel;
 }
 
-function readOfficialSubscription({ response, searchRoot, channelId }: {
+function readOfficialSubscription({
+  response,
+  searchRoot,
+  channelId
+}: {
   response: unknown;
   searchRoot: unknown;
   channelId: string;
@@ -273,10 +290,7 @@ function readOfficialSubscription({ response, searchRoot, channelId }: {
   return renderer.success ? renderer.data.subscribed : undefined;
 }
 
-function readCollaborators({ response, searchRoot }: {
-  response: unknown;
-  searchRoot: unknown;
-}) {
+function readCollaborators({ response, searchRoot }: { response: unknown; searchRoot: unknown }) {
   const parsedList = collaboratorListSchema.safeParse(
     findValueByKey({
       root: searchRoot,
@@ -390,7 +404,7 @@ function readChannelPageChannel(response: unknown) {
   const parsedAvatar = pageHeaderAvatarSchema.safeParse(header);
   const headerAvatars = parsedAvatar.success
     ? parsedAvatar.data.pageHeaderRenderer.content.pageHeaderViewModel.image.decoratedAvatarViewModel.avatar
-      .avatarViewModel.image.sources
+        .avatarViewModel.image.sources
     : undefined;
   const channel = toChannelInfo({
     channelId: metadata.externalId,
@@ -428,10 +442,7 @@ function readChannelPageChannel(response: unknown) {
  * relation to it. `hasSubscribeControl` is false on a channel page without YouTube's Subscribe button - the viewer's
  * own channel when signed in
  */
-export function readPageChannel({ pageData, kind }: {
-  pageData: unknown;
-  kind: PageKind;
-}) {
+export function readPageChannel({ pageData, kind }: { pageData: unknown; kind: PageKind }) {
   const parsed = pageDataSchema.safeParse(pageData);
   if (!parsed.success) {
     return null;

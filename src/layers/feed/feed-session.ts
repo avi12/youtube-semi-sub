@@ -1,17 +1,3 @@
-import {
-  findLoadedAvatarUrl,
-  findLoadedIsVerified,
-  findNativeRenderer,
-  findNativeShort,
-  loadChannelNatives
-} from "./channel-natives";
-import { createModeJudge, createSubscribedHideCheck, MatchState, selectFeedVideos } from "@/lib/filter/title-filter";
-import type { PageState } from "@/lib/messaging/page-messaging";
-import { getPageState, onPageState } from "@/lib/page/page-state";
-import type { FeedVideo, VideosByChannel } from "@/lib/schemas/feed-video";
-import { isUploadsTabDetailFiltered } from "@/lib/schemas/semi-subscription";
-import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
-import { settleBefore } from "@/lib/utils/promise";
 import { readOfficialSubscription } from "#channel-button";
 import { composeFeedContents, planFeed } from "#feed/compose/feed-compose";
 import type { PlacementAnchor } from "#feed/compose/feed-slot";
@@ -27,6 +13,21 @@ import {
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
 import { isShortsInjectionAllowed } from "#feed/live/ytaf";
+import { createModeJudge, createSubscribedHideCheck, MatchState, selectFeedVideos } from "@/lib/filter/title-filter";
+import type { PageState } from "@/lib/messaging/page-messaging";
+import { getPageState, onPageState } from "@/lib/page/page-state";
+import type { FeedVideo, VideosByChannel } from "@/lib/schemas/feed-video";
+import { isUploadsTabDetailFiltered } from "@/lib/schemas/semi-subscription";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
+import { settleBefore } from "@/lib/utils/promise";
+
+import {
+  findLoadedAvatarUrl,
+  findLoadedIsVerified,
+  findNativeRenderer,
+  findNativeShort,
+  loadChannelNatives
+} from "./channel-natives";
 
 // Page-session glue between the pure feed composition and the live page: the extension state, the natives cache,
 // and the ids this page session inserted. Those are the only semi-sub videos it may later take out; besides them it
@@ -59,12 +60,12 @@ function withShownTitle(video: FeedVideo) {
   return {
     ...video,
     title: shownTitle ?? video.title,
-    ...durationSeconds !== undefined && {
+    ...(durationSeconds !== undefined && {
       durationSeconds
-    },
-    ...isMembersOnly !== undefined && {
+    }),
+    ...(isMembersOnly !== undefined && {
       isMembersOnly
-    }
+    })
   };
 }
 
@@ -72,7 +73,7 @@ function withShownTitle(video: FeedVideo) {
 function selectPageFeedVideos({ followedUploads, ...state }: PageState) {
   const videosByChannel: VideosByChannel = {};
   for (const video of followedUploads.map(withShownTitle)) {
-    videosByChannel[video.channelId] = [...videosByChannel[video.channelId] ?? [], video];
+    videosByChannel[video.channelId] = [...(videosByChannel[video.channelId] ?? []), video];
   }
   return selectFeedVideos({
     subscriptions: state.subscriptions,
@@ -91,10 +92,10 @@ function desiredFeedVideos(state: PageState) {
   return isShortsInjectionAllowed() ? feedVideos : feedVideos.filter(video => !video.isShort);
 }
 
-export function recordFeedChange({ insertedIds, removedIds }: Pick<
-  NonNullable<ReturnType<typeof composeFeedContents>>,
-  "insertedIds" | "removedIds"
->) {
+export function recordFeedChange({
+  insertedIds,
+  removedIds
+}: Pick<NonNullable<ReturnType<typeof composeFeedContents>>, "insertedIds" | "removedIds">) {
   for (const videoId of insertedIds) {
     insertedVideoIds.add(videoId);
   }
@@ -178,10 +179,7 @@ export function hasResumedChannels() {
  * Whether the user is subscribed to a channel on YouTube: a semi-subscription's mode, else what this tab's data tells
  * (undefined when it tells nothing)
  */
-function readIsChannelSubscribed({ channelId, state }: {
-  channelId: string;
-  state: PageState;
-}) {
+function readIsChannelSubscribed({ channelId, state }: { channelId: string; state: PageState }) {
   return state.subscriptions[channelId]?.isSubscribed ?? readOfficialSubscription(channelId);
 }
 
@@ -191,19 +189,20 @@ function readIsChannelSubscribed({ channelId, state }: {
  * filter lets none through. A collaboration is judged only when the user is known not to be subscribed to any other
  * channel on it - one they are, or may be, subscribed to keeps it in the feed
  */
-function judgeResumedChannelVideos({ contents, state }: {
-  contents: readonly unknown[];
-  state: PageState;
-}) {
+function judgeResumedChannelVideos({ contents, state }: { contents: readonly unknown[]; state: PageState }) {
   return contents.flatMap(item => {
     const channelIds = [...channelIdsFromGridItem(item)];
     const channelId = channelIds.find(id => resumedChannelIds.has(id));
     const videoId = videoIdFromGridItem(item);
     const subscription = channelId ? state.subscriptions[channelId] : undefined;
-    const isKeptByOtherChannel = channelIds.some(id => id !== channelId && readIsChannelSubscribed({
-      channelId: id,
-      state
-    }) !== false);
+    const isKeptByOtherChannel = channelIds.some(
+      id =>
+        id !== channelId &&
+        readIsChannelSubscribed({
+          channelId: id,
+          state
+        }) !== false
+    );
     if (!subscription || !videoId || isKeptByOtherChannel) {
       return [];
     }
@@ -214,17 +213,19 @@ function judgeResumedChannelVideos({ contents, state }: {
       aiVerdicts: state.aiVerdicts,
       isAiEnabled: state.isAiEnabled
     });
-    const matchState = judge ?
-      judge({
+    const matchState = judge
+      ? judge({
+          videoId,
+          title: titleFromGridItem(item) ?? "",
+          durationSeconds: durationFromGridItem(item)
+        })
+      : MatchState.doesNotMatch;
+    return [
+      {
         videoId,
-        title: titleFromGridItem(item) ?? "",
-        durationSeconds: durationFromGridItem(item)
-      }) :
-      MatchState.doesNotMatch;
-    return [{
-      videoId,
-      matchState
-    }];
+        matchState
+      }
+    ];
   });
 }
 
@@ -237,17 +238,15 @@ function judgeResumedChannelVideos({ contents, state }: {
  * know from the channel's tabs
  */
 function createShownTitleHideCheck(state: PageState) {
-  return function isHiddenByShownTitle({ item, videoId }: {
-    item: unknown;
-    videoId: string;
-  }) {
+  return function isHiddenByShownTitle({ item, videoId }: { item: unknown; videoId: string }) {
     const channelIds = [...channelIdsFromGridItem(item)];
     if (channelIds.length === 0) {
       return null;
     }
 
-    const isKeptByPlainSubscription = channelIds.some(channelId => !state.subscriptions[channelId] &&
-      readOfficialSubscription(channelId) === true);
+    const isKeptByPlainSubscription = channelIds.some(
+      channelId => !state.subscriptions[channelId] && readOfficialSubscription(channelId) === true
+    );
     const filteredSubscriptions = channelIds.flatMap(channelId => {
       const subscription = state.subscriptions[channelId];
       return subscription?.isSubscribed ? [subscription] : [];
@@ -305,10 +304,7 @@ function readShownVerdicts(state: PageState) {
  * page may lack one an earlier page put in the grid, then each feed item that names its channels, in the band or a
  * shelf, judged again by the title it shows - a verdict remembered for the pages that lack the item
  */
-export function findHiddenVideoIds({ contents, state }: {
-  contents: readonly unknown[];
-  state: PageState;
-}) {
+export function findHiddenVideoIds({ contents, state }: { contents: readonly unknown[]; state: PageState }) {
   if (!state.isExtensionEnabled) {
     return new Set<string>();
   }
@@ -387,7 +383,11 @@ function pageLocale() {
   return document.documentElement.lang || navigator.language;
 }
 
-export function planForPageState({ contents, state, removedVideoIds }: {
+export function planForPageState({
+  contents,
+  state,
+  removedVideoIds
+}: {
   contents: readonly unknown[];
   state: PageState;
   removedVideoIds: ReadonlySet<string>;
@@ -445,10 +445,7 @@ export function waitForPageState(deadline: number) {
   });
 }
 
-export function loadNativesFor({ videos, deadline }: {
-  videos: readonly FeedVideo[];
-  deadline: number;
-}) {
+export function loadNativesFor({ videos, deadline }: { videos: readonly FeedVideo[]; deadline: number }) {
   return settleBefore({
     promise: loadChannelNatives(videos),
     deadline

@@ -1,19 +1,14 @@
-import { pruneChannelCaches, refreshChannel, refreshChannels } from "./channel-cache";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { fakeBrowser } from "wxt/testing/fake-browser";
+
+import channelVideosPageHtml from "#background/fixtures/channel-videos-page.html?raw";
+import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { aiVerdictsItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
-import channelVideosPageHtml from "#background/fixtures/channel-videos-page.html?raw";
-import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
-import { fakeBrowser } from "wxt/testing/fake-browser";
+
+import { pruneChannelCaches, refreshChannel, refreshChannels } from "./channel-cache";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const OTHER_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
@@ -23,17 +18,14 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 const fetchMock = vi.fn<typeof fetch>();
 
-function respondWith({ rss, videosTab }: {
-  rss: string | null;
-  videosTab: string | null;
-}) {
+function respondWith({ rss, videosTab }: { rss: string | null; videosTab: string | null }) {
   fetchMock.mockImplementation(async input => {
     const url = new URL(input instanceof Request ? input.url : input);
     const body = url.pathname === RSS_PATH ? rss : videosTab;
     return body === null
       ? new Response(null, {
-        status: NOT_FOUND_STATUS
-      })
+          status: NOT_FOUND_STATUS
+        })
       : new Response(body);
   });
 }
@@ -94,7 +86,12 @@ describe("refreshChannels", () => {
     ).toBe(true);
 
     const cache = await channelVideosItem.getValue();
-    expect(cache[CHANNEL_ID]?.videos.map(video => video.videoId)).toEqual(["QVv3mQzlrN0", "_0G4OG39XjI", "3iRUwVzRDZQ", "R6yNUnRXZ64"]);
+    expect(cache[CHANNEL_ID]?.videos.map(video => video.videoId)).toEqual([
+      "QVv3mQzlrN0",
+      "_0G4OG39XjI",
+      "3iRUwVzRDZQ",
+      "R6yNUnRXZ64"
+    ]);
     expect(cache[CHANNEL_ID]?.fetchedAt).toBe(Date.now());
   });
 

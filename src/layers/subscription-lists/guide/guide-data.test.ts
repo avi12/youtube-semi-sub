@@ -1,3 +1,11 @@
+import { describe, expect, it } from "vitest";
+
+import signedInGuide from "#subscription-lists/guide/fixtures/guide-signed-in.json";
+import signedOutGuide from "#subscription-lists/guide/fixtures/guide-signed-out.json";
+import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
+import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+import { z } from "@/lib/zod";
+
 import {
   buildSemiGuideEntry,
   patchGuideItems,
@@ -7,12 +15,6 @@ import {
   readSubscribedGuideEntryChannelId,
   withoutCachedSubscriptionsFlyout
 } from "./guide-data";
-import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
-import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-import { z } from "@/lib/zod";
-import signedInGuide from "#subscription-lists/guide/fixtures/guide-signed-in.json";
-import signedOutGuide from "#subscription-lists/guide/fixtures/guide-signed-out.json";
-import { describe, expect, it } from "vitest";
 
 const HANDLE_CHANNEL: SemiSubscription = {
   channelId: "UCX6OQ3DkcsbYNE6H8uQQuVA",
@@ -52,11 +54,7 @@ function cloneItems(guide: { items: unknown[] }) {
   return structuredClone(guide.items);
 }
 
-function readSectionTitles({ items, index, key }: {
-  items: unknown[] | null;
-  index: number;
-  key: string;
-}) {
+function readSectionTitles({ items, index, key }: { items: unknown[] | null; index: number; key: string }) {
   const sectionItems = sectionItemSchema.parse(items?.[index])[key]?.items ?? [];
   return sectionItems.map(item => JSON.stringify(item).match(FIRST_TITLE_PATTERN)?.[1]);
 }
@@ -88,12 +86,16 @@ describe("buildSemiGuideEntry", () => {
   });
 
   it("uses the avatar when there is one and a generic icon otherwise", () => {
-    expect(buildSemiGuideEntry(HANDLE_CHANNEL).guideEntryRenderer).toHaveProperty("thumbnail.thumbnails.0.url", HANDLE_CHANNEL.avatarUrl);
+    expect(buildSemiGuideEntry(HANDLE_CHANNEL).guideEntryRenderer).toHaveProperty(
+      "thumbnail.thumbnails.0.url",
+      HANDLE_CHANNEL.avatarUrl
+    );
 
     const { guideEntryRenderer } = buildSemiGuideEntry(HANDLELESS_CHANNEL);
     expect(guideEntryRenderer).toHaveProperty("icon.iconType", "ACCOUNT_CIRCLE");
-    expect(guideEntryRenderer.navigationEndpoint.commandMetadata.webCommandMetadata.url)
-      .toBe(`/channel/${HANDLELESS_CHANNEL.channelId}`);
+    expect(guideEntryRenderer.navigationEndpoint.commandMetadata.webCommandMetadata.url).toBe(
+      `/channel/${HANDLELESS_CHANNEL.channelId}`
+    );
   });
 
   it("does not mistake YouTube's own entries for ours", () => {
@@ -136,10 +138,11 @@ describe("patchGuideItems - signed in", () => {
   });
 
   it("returns null once the entries are in place", () => {
-    const patched = patchGuideItems({
-      items: cloneItems(signedInGuide),
-      entries: ENTRIES
-    }) ?? [];
+    const patched =
+      patchGuideItems({
+        items: cloneItems(signedInGuide),
+        entries: ENTRIES
+      }) ?? [];
 
     expect(
       patchGuideItems({
@@ -156,10 +159,11 @@ describe("patchGuideItems - signed in", () => {
   });
 
   it("updates and removes only its own entries", () => {
-    const patched = patchGuideItems({
-      items: cloneItems(signedInGuide),
-      entries: ENTRIES
-    }) ?? [];
+    const patched =
+      patchGuideItems({
+        items: cloneItems(signedInGuide),
+        entries: ENTRIES
+      }) ?? [];
     const withOne = patchGuideItems({
       items: patched,
       entries: [buildSemiGuideEntry(HANDLELESS_CHANNEL)]
@@ -231,10 +235,11 @@ describe("patchGuideItems - signed out (real guide response)", () => {
   });
 
   it("is idempotent and removes its section when the list empties", () => {
-    const patched = patchGuideItems({
-      items: cloneItems(signedOutGuide),
-      entries: ENTRIES
-    }) ?? [];
+    const patched =
+      patchGuideItems({
+        items: cloneItems(signedOutGuide),
+        entries: ENTRIES
+      }) ?? [];
 
     expect(
       patchGuideItems({
@@ -291,30 +296,32 @@ describe("patchGuideResponse", () => {
 
 describe("withoutCachedSubscriptionsFlyout", () => {
   function buildSubscriptionsSection(headerFlyout: Record<string, unknown>) {
-    return [{
-      guideSubscriptionsSectionRenderer: {
-        items: [
-          {
-            guideCollapsibleSectionEntryRenderer: {
-              headerEntry: {
-                guideEntryRenderer: {
-                  formattedTitle: {
-                    simpleText: "Subscriptions"
-                  },
-                  entryData: {
-                    guideEntryData: {
-                      guideEntryId: "subscriptions-channels-header"
-                    }
-                  },
-                  ...headerFlyout
+    return [
+      {
+        guideSubscriptionsSectionRenderer: {
+          items: [
+            {
+              guideCollapsibleSectionEntryRenderer: {
+                headerEntry: {
+                  guideEntryRenderer: {
+                    formattedTitle: {
+                      simpleText: "Subscriptions"
+                    },
+                    entryData: {
+                      guideEntryData: {
+                        guideEntryId: "subscriptions-channels-header"
+                      }
+                    },
+                    ...headerFlyout
+                  }
                 }
               }
-            }
-          },
-          buildSemiGuideEntry(HANDLE_CHANNEL)
-        ]
+            },
+            buildSemiGuideEntry(HANDLE_CHANNEL)
+          ]
+        }
       }
-    }];
+    ];
   }
 
   const CACHED_FLYOUT = {
@@ -374,9 +381,11 @@ describe("readGuideSubscriptions", () => {
 
   it("can't tell about an unlisted channel when the section loads more later", () => {
     const [firstItem, subscriptionsItem, ...otherItems] = cloneItems(signedInGuide);
-    const parsed = z.looseObject({
-      [SUBSCRIPTIONS_KEY]: z.looseObject({ items: z.array(z.unknown()) })
-    }).parse(subscriptionsItem);
+    const parsed = z
+      .looseObject({
+        [SUBSCRIPTIONS_KEY]: z.looseObject({ items: z.array(z.unknown()) })
+      })
+      .parse(subscriptionsItem);
     const cutShort = {
       items: [
         firstItem,

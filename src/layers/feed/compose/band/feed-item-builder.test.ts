@@ -1,5 +1,5 @@
-import { buildFeedItem, findTemplate } from "./feed-item-builder";
-import type { ChannelInfo } from "@/lib/schemas/channel";
+import { describe, expect, it } from "vitest";
+
 import { SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
 import {
   CHANNEL_ID,
@@ -14,7 +14,9 @@ import {
   videoId
 } from "#feed/fixtures/feed-fixtures";
 import { rendererFromContent, rendererFromGridItem } from "#feed/items/feed-items";
-import { describe, expect, it } from "vitest";
+import type { ChannelInfo } from "@/lib/schemas/channel";
+
+import { buildFeedItem, findTemplate } from "./feed-item-builder";
 
 const CHANNEL: ChannelInfo = {
   channelId: CHANNEL_ID,
@@ -37,7 +39,11 @@ function templateOf(item: unknown) {
   return template;
 }
 
-function build({ template, native = null, channel = CHANNEL }: {
+function build({
+  template,
+  native = null,
+  channel = CHANNEL
+}: {
   template: unknown;
   native?: unknown;
   channel?: ChannelInfo;
@@ -189,16 +195,18 @@ describe("buildFeedItem on m", () => {
     expect(lockup.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.delimiter).toBe(" • ");
     expect(lockup.contentImage?.thumbnailViewModel?.overlays?.[0]).toMatchObject({
       thumbnailBottomOverlayViewModel: {
-        badges: [{
-          thumbnailBadgeViewModel: {
-            text: "11:47",
-            rendererContext: {
-              accessibilityContext: {
-                label: "11 minutes, 47 seconds"
+        badges: [
+          {
+            thumbnailBadgeViewModel: {
+              text: "11:47",
+              rendererContext: {
+                accessibilityContext: {
+                  label: "11 minutes, 47 seconds"
+                }
               }
             }
           }
-        }]
+        ]
       }
     });
   });

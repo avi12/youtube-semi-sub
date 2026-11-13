@@ -1,5 +1,6 @@
-import { parseVerdictReply } from "./verdict-parser";
 import { describe, expect, it } from "vitest";
+
+import { parseVerdictReply } from "./verdict-parser";
 
 describe("parseVerdictReply", () => {
   it("reads one verdict per id", () => {
@@ -19,17 +20,24 @@ describe("parseVerdictReply", () => {
         },
         count: 2
       })
-    ).toEqual(new Map([[1, true], [2, false]]));
+    ).toEqual(
+      new Map([
+        [1, true],
+        [2, false]
+      ])
+    );
   });
 
   it("leaves a skipped id out, so its video stays pending", () => {
     expect(
       parseVerdictReply({
         reply: {
-          verdicts: [{
-            id: 2,
-            match: true
-          }]
+          verdicts: [
+            {
+              id: 2,
+              match: true
+            }
+          ]
         },
         count: 3
       })
@@ -83,7 +91,12 @@ describe("parseVerdictReply", () => {
         ],
         count: 2
       })
-    ).toEqual(new Map([[1, true], [2, false]]));
+    ).toEqual(
+      new Map([
+        [1, true],
+        [2, false]
+      ])
+    );
   });
 
   it("skips malformed entries but keeps the rest", () => {

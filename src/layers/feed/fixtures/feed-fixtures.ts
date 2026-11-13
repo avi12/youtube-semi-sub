@@ -17,7 +17,12 @@ function hoursAgo(hours: number) {
   return NOW - hours * MILLISECONDS_PER_HOUR;
 }
 
-export function feedVideo({ index, hours, channelId = CHANNEL_ID, isShort = false }: {
+export function feedVideo({
+  index,
+  hours,
+  channelId = CHANNEL_ID,
+  isShort = false
+}: {
   index: number;
   hours: number;
   channelId?: string;
@@ -34,10 +39,7 @@ export function feedVideo({ index, hours, channelId = CHANNEL_ID, isShort = fals
   } satisfies FeedVideo;
 }
 
-function avatarImage({ channelTitle, channelId }: {
-  channelTitle: string;
-  channelId: string;
-}) {
+function avatarImage({ channelTitle, channelId }: { channelTitle: string; channelId: string }) {
   return {
     decoratedAvatarViewModel: {
       avatar: {
@@ -69,20 +71,24 @@ function thumbnailViewModel(id: string) {
     image: {
       sources: [{ url: `https://i.ytimg.com/vi/${id}/hq720.jpg` }]
     },
-    overlays: [{
-      thumbnailBottomOverlayViewModel: {
-        badges: [{
-          thumbnailBadgeViewModel: {
-            text: "11:47",
-            rendererContext: {
-              accessibilityContext: {
-                label: "11 minutes, 47 seconds"
+    overlays: [
+      {
+        thumbnailBottomOverlayViewModel: {
+          badges: [
+            {
+              thumbnailBadgeViewModel: {
+                text: "11:47",
+                rendererContext: {
+                  accessibilityContext: {
+                    label: "11 minutes, 47 seconds"
+                  }
+                }
               }
             }
-          }
-        }]
+          ]
+        }
       }
-    }]
+    ]
   };
 }
 
@@ -132,7 +138,12 @@ function subscribedFeedItem({
 }
 
 /** A www subscriptions-feed tile: channel row, then views and published time */
-export function desktopFeedItem({ index, published, channelId, title }: {
+export function desktopFeedItem({
+  index,
+  published,
+  channelId,
+  title
+}: {
   index: number;
   published: string;
   channelId?: string;
@@ -145,11 +156,13 @@ export function desktopFeedItem({ index, published, channelId, title }: {
     contentMetadataViewModel: {
       metadataRows: [
         {
-          metadataParts: [{
-            text: {
-              content: "Subscribed Channel"
+          metadataParts: [
+            {
+              text: {
+                content: "Subscribed Channel"
+              }
             }
-          }]
+          ]
         },
         {
           metadataParts: [
@@ -173,33 +186,32 @@ export function desktopFeedItem({ index, published, channelId, title }: {
 }
 
 /** An m subscriptions-feed tile: one row led by the channel name */
-export function mobileFeedItem({ index, published }: {
-  index: number;
-  published: string;
-}) {
+export function mobileFeedItem({ index, published }: { index: number; published: string }) {
   return subscribedFeedItem({
     index,
     contentMetadataViewModel: {
-      metadataRows: [{
-        metadataParts: [
-          {
-            text: {
-              content: "Subscribed Channel"
-            }
-          },
-          {
-            text: {
-              content: "4.5M views"
-            }
-          },
-          {
-            text: {
-              content: published
+      metadataRows: [
+        {
+          metadataParts: [
+            {
+              text: {
+                content: "Subscribed Channel"
+              }
             },
-            accessibilityLabel: published
-          }
-        ]
-      }],
+            {
+              text: {
+                content: "4.5M views"
+              }
+            },
+            {
+              text: {
+                content: published
+              },
+              accessibilityLabel: published
+            }
+          ]
+        }
+      ],
       delimiter: " • "
     }
   });
@@ -220,22 +232,24 @@ export function desktopChannelTabLockup(index: number) {
         },
         metadata: {
           contentMetadataViewModel: {
-            metadataRows: [{
-              metadataParts: [
-                {
-                  text: {
-                    content: "6.8M"
+            metadataRows: [
+              {
+                metadataParts: [
+                  {
+                    text: {
+                      content: "6.8M"
+                    },
+                    accessibilityLabel: "6.8 million views"
                   },
-                  accessibilityLabel: "6.8 million views"
-                },
-                {
-                  text: {
-                    content: "1d ago"
-                  },
-                  accessibilityLabel: "1 day ago"
-                }
-              ]
-            }],
+                  {
+                    text: {
+                      content: "1d ago"
+                    },
+                    accessibilityLabel: "1 day ago"
+                  }
+                ]
+              }
+            ],
             delimiter: " "
           }
         },
@@ -281,10 +295,7 @@ export function mobileChannelTabRenderer(index: number) {
   };
 }
 
-export function contextRendererItem({ index, published }: {
-  index: number;
-  published: string;
-}) {
+export function contextRendererItem({ index, published }: { index: number; published: string }) {
   return richItem({
     videoWithContextRenderer: {
       videoId: videoId(index),
@@ -299,7 +310,11 @@ export function contextRendererItem({ index, published }: {
 }
 
 /** A Short as the subscriptions feed's Shorts shelf and a channel's Shorts tab show it (www and m alike) */
-export function shortsLockup({ index, views = "28K views", entityPrefix = "subscriptions-shorts-shelf-item-" }: {
+export function shortsLockup({
+  index,
+  views = "28K views",
+  entityPrefix = "subscriptions-shorts-shelf-item-"
+}: {
   index: number;
   views?: string;
   entityPrefix?: string;
@@ -330,25 +345,27 @@ export function shortsLockup({ index, views = "28K views", entityPrefix = "subsc
               sheetViewModel: {
                 content: {
                   listViewModel: {
-                    listItems: [{
-                      listItemViewModel: {
-                        title: {
-                          content: "Hide"
-                        },
-                        rendererContext: {
-                          commandContext: {
-                            onTap: {
-                              innertubeCommand: {
-                                feedbackEndpoint: {
-                                  feedbackToken: `hide-${videoId(index)}`,
-                                  contentId: videoId(index)
+                    listItems: [
+                      {
+                        listItemViewModel: {
+                          title: {
+                            content: "Hide"
+                          },
+                          rendererContext: {
+                            commandContext: {
+                              onTap: {
+                                innertubeCommand: {
+                                  feedbackEndpoint: {
+                                    feedbackToken: `hide-${videoId(index)}`,
+                                    contentId: videoId(index)
+                                  }
                                 }
                               }
                             }
                           }
                         }
                       }
-                    }]
+                    ]
                   }
                 }
               }
@@ -369,11 +386,13 @@ export function shortsLockup({ index, views = "28K views", entityPrefix = "subsc
     thumbnailViewModel: {
       thumbnailViewModel: {
         image: {
-          sources: [{
-            url: `https://i.ytimg.com/vi/${videoId(index)}/sardefault.jpg?sqp=signed`,
-            width: 405,
-            height: 720
-          }]
+          sources: [
+            {
+              url: `https://i.ytimg.com/vi/${videoId(index)}/sardefault.jpg?sqp=signed`,
+              width: 405,
+              height: 720
+            }
+          ]
         }
       }
     },
@@ -390,9 +409,11 @@ export function shortsShelf(indexes: number[]) {
           title: {
             runs: [{ text: "Shorts" }]
           },
-          contents: indexes.map(index => richItem({
-            shortsLockupViewModel: shortsLockup({ index })
-          })),
+          contents: indexes.map(index =>
+            richItem({
+              shortsLockupViewModel: shortsLockup({ index })
+            })
+          ),
           isExpanded: false,
           icon: {
             iconType: "YOUTUBE_SHORTS_BRAND_24"
@@ -433,10 +454,12 @@ export function mostRelevantShelf(indexes: number[]) {
           title: {
             runs: [{ text: "Most relevant" }]
           },
-          contents: indexes.map(index => desktopFeedItem({
-            index,
-            published: "1 hour ago"
-          }))
+          contents: indexes.map(index =>
+            desktopFeedItem({
+              index,
+              published: "1 hour ago"
+            })
+          )
         }
       }
     }
@@ -457,13 +480,17 @@ export function continuationItem() {
 
 function trackingParams(browseId: string) {
   return {
-    serviceTrackingParams: [{
-      service: "GFEEDBACK",
-      params: [{
-        key: "browse_id",
-        value: browseId
-      }]
-    }]
+    serviceTrackingParams: [
+      {
+        service: "GFEEDBACK",
+        params: [
+          {
+            key: "browse_id",
+            value: browseId
+          }
+        ]
+      }
+    ]
   };
 }
 
@@ -472,16 +499,18 @@ export function desktopFeedResponse(contents: unknown[]) {
     responseContext: trackingParams("FEsubscriptions"),
     contents: {
       twoColumnBrowseResultsRenderer: {
-        tabs: [{
-          tabRenderer: {
-            selected: true,
-            content: {
-              richGridRenderer: {
-                contents
+        tabs: [
+          {
+            tabRenderer: {
+              selected: true,
+              content: {
+                richGridRenderer: {
+                  contents
+                }
               }
             }
           }
-        }]
+        ]
       }
     },
     header: {
@@ -494,12 +523,14 @@ export function desktopFeedResponse(contents: unknown[]) {
 export function feedContinuationResponse(contents: unknown[]) {
   return {
     responseContext: trackingParams("FEsubscriptions"),
-    onResponseReceivedActions: [{
-      appendContinuationItemsAction: {
-        continuationItems: contents,
-        targetId: "browse-feedFEsubscriptions"
+    onResponseReceivedActions: [
+      {
+        appendContinuationItemsAction: {
+          continuationItems: contents,
+          targetId: "browse-feedFEsubscriptions"
+        }
       }
-    }]
+    ]
   };
 }
 
@@ -508,26 +539,25 @@ export function mobileFeedResponse(contents: unknown[]) {
     responseContext: {},
     contents: {
       singleColumnBrowseResultsRenderer: {
-        tabs: [{
-          tabRenderer: {
-            tabIdentifier: "FEsubscriptions",
-            content: {
-              richGridRenderer: {
-                contents,
-                targetId: "browse-feedFEsubscriptions"
+        tabs: [
+          {
+            tabRenderer: {
+              tabIdentifier: "FEsubscriptions",
+              content: {
+                richGridRenderer: {
+                  contents,
+                  targetId: "browse-feedFEsubscriptions"
+                }
               }
             }
           }
-        }]
+        ]
       }
     }
   };
 }
 
-function channelTabResponse({ title, contents }: {
-  title: string;
-  contents: unknown[];
-}) {
+function channelTabResponse({ title, contents }: { title: string; contents: unknown[] }) {
   return {
     responseContext: trackingParams(CHANNEL_ID),
     contents: {

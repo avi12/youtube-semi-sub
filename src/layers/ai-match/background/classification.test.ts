@@ -1,9 +1,11 @@
-import { collectClassificationJobs } from "./classification";
+import { describe, expect, it } from "vitest";
+
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
-import { describe, expect, it } from "vitest";
+
+import { collectClassificationJobs } from "./classification";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const REGEX_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
@@ -88,10 +90,12 @@ describe("collectClassificationJobs", () => {
       },
       [REGEX_CHANNEL_ID]: {
         fetchedAt: 0,
-        videos: [createVideo({
-          videoId: "ddddddddddd",
-          publishedAt: 4
-        })]
+        videos: [
+          createVideo({
+            videoId: "ddddddddddd",
+            publishedAt: 4
+          })
+        ]
       }
     },
     aiVerdicts: {

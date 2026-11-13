@@ -1,5 +1,6 @@
-import { type FeedVideo, sortNewestFirst, videosByChannelFromCache } from "@/lib/schemas/feed-video";
 import { describe, expect, it } from "vitest";
+
+import { type FeedVideo, sortNewestFirst, videosByChannelFromCache } from "@/lib/schemas/feed-video";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 

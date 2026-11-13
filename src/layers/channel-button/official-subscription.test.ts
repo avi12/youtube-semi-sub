@@ -1,20 +1,15 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { DEFAULT_TITLE_FILTER } from "@/lib/filter/title-filter";
+import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
+import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
+
 import {
   applySubscriptionSnapshot,
   getObservedOfficialSubscription,
   installSubscriptionWatch,
   setObservedOfficialSubscription
 } from "./official-subscription";
-import { DEFAULT_TITLE_FILTER } from "@/lib/filter/title-filter";
-import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
-import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
 
 vi.mock("@/lib/messaging/page-messaging", () => ({
   PageMessage: {
@@ -159,7 +154,10 @@ describe("applySubscriptionSnapshot", () => {
   });
 
   it("switches what the snapshot shows subscribed to hiding and the rest to following, once the state is known", () => {
-    const snapshot = new Map([[FOLLOWED_CHANNEL_ID, true], [SUBSCRIBED_CHANNEL_ID, false]]);
+    const snapshot = new Map([
+      [FOLLOWED_CHANNEL_ID, true],
+      [SUBSCRIBED_CHANNEL_ID, false]
+    ]);
     applySubscriptionSnapshot(channelId => snapshot.get(channelId));
     expect(pageMessenger.sendMessage).not.toHaveBeenCalled();
 

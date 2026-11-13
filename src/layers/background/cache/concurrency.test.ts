@@ -1,5 +1,6 @@
-import { mapWithConcurrency } from "./concurrency";
 import { describe, expect, it } from "vitest";
+
+import { mapWithConcurrency } from "./concurrency";
 
 describe("mapWithConcurrency", () => {
   it("keeps the input order and never exceeds the limit", async () => {

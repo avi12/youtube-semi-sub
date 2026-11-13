@@ -1,15 +1,11 @@
-import { YOUTUBE_MATCHES } from "./src/lib/youtube/site";
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  statSync
-} from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
+
 import { functionsMixins } from "vite-plugin-functions-mixins";
 import { defineConfig } from "wxt";
+
+import { YOUTUBE_MATCHES } from "./src/lib/youtube/site";
 
 const REPOSITORY_URL = "https://github.com/avi12/youtube-semi-sub";
 const AUTHOR_NAME = "Avi";
@@ -44,7 +40,8 @@ function copyLiteRtWasm(outDir: string) {
 export default defineConfig({
   manifest: ({ browser }) => ({
     name: "YouTube Semi-Subscribe",
-    description: "Filter what a YouTube channel puts in your feed: follow it without subscribing, or subscribe and hide what you don't want",
+    description:
+      "Filter what a YouTube channel puts in your feed: follow it without subscribing, or subscribe and hide what you don't want",
     homepage_url: REPOSITORY_URL,
     permissions: [
       "storage",
@@ -52,17 +49,17 @@ export default defineConfig({
       // The opt-in local AI model is 1.9 GB of CacheStorage
       "unlimitedStorage",
       // Chromium's service worker runs that model in an offscreen page; Firefox's background page runs it itself
-      ...browser === "firefox" ? [] : ["offscreen"]
+      ...(browser === "firefox" ? [] : ["offscreen"])
     ],
     host_permissions: YOUTUBE_MATCHES,
     content_security_policy: {
       extension_pages: EXTENSION_PAGES_CSP
     },
     // Floor set by the popup's m3-svelte live theme (relative colour syntax, CSS sign()/abs())
-    ...browser === "chrome" && {
+    ...(browser === "chrome" && {
       minimum_chrome_version: "138"
-    },
-    ...browser === "firefox" && {
+    }),
+    ...(browser === "firefox" && {
       developer: {
         name: AUTHOR_NAME,
         url: AUTHOR_URL
@@ -79,7 +76,7 @@ export default defineConfig({
           }
         }
       }
-    }
+    })
   }),
   modules: ["@wxt-dev/module-svelte", "wxt-module-layers"],
   // wxt-module-layers' glob sources ("src/layers/*") break on Windows (path.resolve turns the trailing /* into \*,

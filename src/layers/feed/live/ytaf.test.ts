@@ -1,11 +1,4 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type YtafModule = typeof import("#feed/live/ytaf");
 
@@ -15,10 +8,7 @@ const RESPONSE_EVENT = "@webext-core/messaging/custom-events/response";
 let ytaf: YtafModule;
 let page: EventTarget;
 
-function dispatch({ eventName, detail }: {
-  eventName: string;
-  detail: unknown;
-}) {
+function dispatch({ eventName, detail }: { eventName: string; detail: unknown }) {
   page.dispatchEvent(new CustomEvent(eventName, { detail }));
 }
 

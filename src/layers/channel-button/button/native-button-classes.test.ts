@@ -1,5 +1,6 @@
-import { buildNativeButtonClasses } from "./native-button-classes";
 import { describe, expect, it } from "vitest";
+
+import { buildNativeButtonClasses } from "./native-button-classes";
 
 describe("buildNativeButtonClasses", () => {
   it("restyles m.youtube.com's filled Subscribe button as tonal", () => {
@@ -9,15 +10,19 @@ describe("buildNativeButtonClasses", () => {
     );
     expect(classes).toEqual({
       host: "ytSpecButtonViewModelHost",
-      button: "ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextMono ytSpecButtonShapeNextSizeS ytSpecButtonShapeNextEnableBackdropFilterExperiment ytSpecButtonShapeNextMainstageIconSize ytSpecButtonShapeNextMainstagePadding",
-      buttonWithIcon: "ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextMono ytSpecButtonShapeNextSizeS ytSpecButtonShapeNextEnableBackdropFilterExperiment ytSpecButtonShapeNextMainstageIconSize ytSpecButtonShapeNextMainstagePadding ytSpecButtonShapeNextIconLeading",
+      button:
+        "ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextMono ytSpecButtonShapeNextSizeS ytSpecButtonShapeNextEnableBackdropFilterExperiment ytSpecButtonShapeNextMainstageIconSize ytSpecButtonShapeNextMainstagePadding",
+      buttonWithIcon:
+        "ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextMono ytSpecButtonShapeNextSizeS ytSpecButtonShapeNextEnableBackdropFilterExperiment ytSpecButtonShapeNextMainstageIconSize ytSpecButtonShapeNextMainstagePadding ytSpecButtonShapeNextIconLeading",
       icon: "ytSpecButtonShapeNextIcon",
       text: "ytSpecButtonShapeNextButtonTextContent"
     });
   });
 
   it("drops the icon layout of a button that had one", () => {
-    const { button } = buildNativeButtonClasses("ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextIconLeadingTrailing");
+    const { button } = buildNativeButtonClasses(
+      "ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal ytSpecButtonShapeNextIconLeadingTrailing"
+    );
     expect(button).toBe("ytSpecButtonShapeNextHost ytSpecButtonShapeNextTonal");
   });
 
@@ -27,8 +32,10 @@ describe("buildNativeButtonClasses", () => {
     );
     expect(classes).toEqual({
       host: "yt-spec-button-view-model",
-      button: "yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m",
-      buttonWithIcon: "yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading",
+      button:
+        "yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m",
+      buttonWithIcon:
+        "yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading",
       icon: "yt-spec-button-shape-next__icon",
       text: "yt-spec-button-shape-next__button-text-content"
     });

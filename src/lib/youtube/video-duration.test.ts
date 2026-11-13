@@ -1,5 +1,6 @@
-import { formatDuration, parseDurationText } from "./video-duration";
 import { describe, expect, it } from "vitest";
+
+import { formatDuration, parseDurationText } from "./video-duration";
 
 describe("parseDurationText", () => {
   it("reads minutes and hours", () => {

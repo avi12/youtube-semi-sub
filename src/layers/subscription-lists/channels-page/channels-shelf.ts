@@ -1,11 +1,11 @@
+import { describeManageButton } from "#subscription-lists/components/open-dialog";
+import { buildListedChannelEndpoint, SEMI_LIST_TITLE } from "#subscription-lists/semi-channels";
 import { describeFilterLiteral, formatFilterLiteral } from "@/lib/filter/filter-literal";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { formatHandle } from "@/lib/youtube/channel-link";
 import { z } from "@/lib/zod";
-import { describeManageButton } from "#subscription-lists/components/open-dialog";
-import { buildListedChannelEndpoint, SEMI_LIST_TITLE } from "#subscription-lists/semi-channels";
 
 // www.youtube.com/feed/channels renders a section list of item sections, each a shelf of `channelRenderer` items.
 // Semi-subscriptions are one more such section at the top, written into that data, so YouTube lays them out, themes
@@ -58,11 +58,11 @@ function buildManageButton(subscription: SemiSubscription) {
       style: ButtonStyle.standard,
       size: ButtonSize.standard,
       isDisabled: false,
-      ...isActive && {
+      ...(isActive && {
         icon: {
           iconType: FILTER_ICON
         }
-      },
+      }),
       text: {
         runs: [{ text: label }]
       },
@@ -73,7 +73,10 @@ function buildManageButton(subscription: SemiSubscription) {
   };
 }
 
-function buildChannelItem({ subscription, isAiEnabled }: Pick<PageState, "isAiEnabled"> & {
+function buildChannelItem({
+  subscription,
+  isAiEnabled
+}: Pick<PageState, "isAiEnabled"> & {
   subscription: SemiSubscription;
 }) {
   const { channelId, title, handle, avatarUrl } = subscription;
@@ -89,21 +92,23 @@ function buildChannelItem({ subscription, isAiEnabled }: Pick<PageState, "isAiEn
         simpleText: title
       },
       navigationEndpoint: buildListedChannelEndpoint(subscription),
-      ...avatarUrl && {
+      ...(avatarUrl && {
         thumbnail: {
-          thumbnails: [{
-            url: avatarUrl,
-            width: AVATAR_SIZE_PX,
-            height: AVATAR_SIZE_PX
-          }]
+          thumbnails: [
+            {
+              url: avatarUrl,
+              width: AVATAR_SIZE_PX,
+              height: AVATAR_SIZE_PX
+            }
+          ]
         }
-      },
+      }),
       // YouTube's own rows put the handle in this field, and the line after it in `videoCountText`
-      ...handle && {
+      ...(handle && {
         subscriberCountText: {
           simpleText: formatHandle(handle)
         }
-      },
+      }),
       videoCountText: {
         simpleText: literal.modeName
       },
@@ -116,7 +121,11 @@ function buildChannelItem({ subscription, isAiEnabled }: Pick<PageState, "isAiEn
   };
 }
 
-function buildSemiSection({ subscriptions, isAiEnabled, signature }: Pick<PageState, "isAiEnabled"> & {
+function buildSemiSection({
+  subscriptions,
+  isAiEnabled,
+  signature
+}: Pick<PageState, "isAiEnabled"> & {
   subscriptions: readonly SemiSubscription[];
   signature: string;
 }) {
@@ -124,21 +133,25 @@ function buildSemiSection({ subscriptions, isAiEnabled, signature }: Pick<PageSt
     itemSectionRenderer: {
       [SEMI_SECTION_KEY]: true,
       [SEMI_SECTION_SIGNATURE_KEY]: signature,
-      contents: [{
-        shelfRenderer: {
-          title: {
-            runs: [{ text: SEMI_LIST_TITLE }]
-          },
-          content: {
-            expandedShelfContentsRenderer: {
-              items: subscriptions.map(subscription => buildChannelItem({
-                subscription,
-                isAiEnabled
-              }))
+      contents: [
+        {
+          shelfRenderer: {
+            title: {
+              runs: [{ text: SEMI_LIST_TITLE }]
+            },
+            content: {
+              expandedShelfContentsRenderer: {
+                items: subscriptions.map(subscription =>
+                  buildChannelItem({
+                    subscription,
+                    isAiEnabled
+                  })
+                )
+              }
             }
           }
         }
-      }]
+      ]
     }
   };
 }
@@ -147,7 +160,11 @@ function buildSemiSection({ subscriptions, isAiEnabled, signature }: Pick<PageSt
  * The section list's data with the semi-subscriptions section first - or without one when there is nothing to list -
  * or null when it already reads that way
  */
-export function withSemiChannelsSection({ data, subscriptions, isAiEnabled }: Pick<PageState, "isAiEnabled"> & {
+export function withSemiChannelsSection({
+  data,
+  subscriptions,
+  isAiEnabled
+}: Pick<PageState, "isAiEnabled"> & {
   data: unknown;
   subscriptions: readonly SemiSubscription[];
 }) {
@@ -169,11 +186,15 @@ export function withSemiChannelsSection({ data, subscriptions, isAiEnabled }: Pi
   }
 
   const ownContents = contents.filter(item => !isSemiSection(item));
-  const section = isListed ? [buildSemiSection({
-    subscriptions,
-    isAiEnabled,
-    signature
-  })] : [];
+  const section = isListed
+    ? [
+        buildSemiSection({
+          subscriptions,
+          isAiEnabled,
+          signature
+        })
+      ]
+    : [];
   return {
     ...listData,
     contents: [...section, ...ownContents]

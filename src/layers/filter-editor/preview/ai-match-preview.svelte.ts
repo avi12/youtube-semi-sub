@@ -1,10 +1,11 @@
+import { untrack } from "svelte";
+
 import { type AiStatus, isAiEngineAvailable } from "@/lib/ai/ai-status";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, type AiJudgeContext, isVideoFilterValid } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { aiVerdictsItem, isAiEnabledItem } from "@/lib/storage";
-import { untrack } from "svelte";
 
 /** Typing pauses this long before the preview's videos are sent off to be judged */
 const CLASSIFY_DEBOUNCE_MS = 800;
@@ -19,10 +20,12 @@ function isWaitingForModel(aiStatus: AiStatus | null) {
  * preview's videos once typing stops. The verdicts land in the shared cache, keyed by filter and video, so a channel
  * previewed before it is saved needs no judging again once it is
  */
-export function watchAiMatchPreview(readPreview: () => {
-  filter: AiFilter | null;
-  videos: FeedVideo[];
-}) {
+export function watchAiMatchPreview(
+  readPreview: () => {
+    filter: AiFilter | null;
+    videos: FeedVideo[];
+  }
+) {
   const aiState = $state<AiJudgeContext & { aiStatus: AiStatus | null }>({
     aiVerdicts: {},
     isAiEnabled: false,
@@ -30,18 +33,26 @@ export function watchAiMatchPreview(readPreview: () => {
   });
 
   function refreshStatus() {
-    sendMessage(MessageType.getAiStatus).then(aiStatus => {
-      aiState.aiStatus = aiStatus;
-    }).catch(() => {});
+    sendMessage(MessageType.getAiStatus)
+      .then(aiStatus => {
+        aiState.aiStatus = aiStatus;
+      })
+      .catch(() => {});
   }
 
   $effect(() => {
-    isAiEnabledItem.getValue().then(isAiEnabled => {
-      aiState.isAiEnabled = isAiEnabled;
-    }).catch(() => {});
-    aiVerdictsItem.getValue().then(aiVerdicts => {
-      aiState.aiVerdicts = aiVerdicts;
-    }).catch(() => {});
+    isAiEnabledItem
+      .getValue()
+      .then(isAiEnabled => {
+        aiState.isAiEnabled = isAiEnabled;
+      })
+      .catch(() => {});
+    aiVerdictsItem
+      .getValue()
+      .then(aiVerdicts => {
+        aiState.aiVerdicts = aiVerdicts;
+      })
+      .catch(() => {});
     const unwatchers = [
       isAiEnabledItem.watch(isAiEnabled => {
         aiState.isAiEnabled = isAiEnabled;

@@ -1,7 +1,7 @@
+import { downloadBuiltInModel } from "#ai-match";
 import { type AiDownload, AiEngine, type AiStatus, isAiEngineAvailable } from "@/lib/ai/ai-status";
 import { MessageType, onMessage, sendMessage } from "@/lib/messaging/extension-messaging";
 import { isAiEnabledItem } from "@/lib/storage";
-import { downloadBuiltInModel } from "#ai-match";
 
 // The popup's one AI match opt-in flow, shared by the settings card and the filter editor's "turn it on" prompt, so
 // both show the same download and never start a second one

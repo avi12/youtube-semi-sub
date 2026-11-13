@@ -1,8 +1,10 @@
-import { describeChannelButton } from "./button-label";
+import { describe, expect, it } from "vitest";
+
 import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
-import { describe, expect, it } from "vitest";
+
+import { describeChannelButton } from "./button-label";
 
 const SUBSCRIPTION: SemiSubscription = {
   channelId: "UCBJycsmduvYEL83R_U4JriQ",

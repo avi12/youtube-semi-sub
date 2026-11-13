@@ -3,7 +3,6 @@ import type { ButtonViewModelData } from "@/lib/youtube/page/button-view-model";
 // MAIN world: what YouTube's own scripts define on the page - its globals and the custom elements typed here
 
 declare global {
-
   var ytcfg: { get(key: string): unknown } | undefined;
 
   var ytInitialData: unknown;

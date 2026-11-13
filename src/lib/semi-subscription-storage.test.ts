@@ -1,8 +1,9 @@
+import { describe, expect, it } from "vitest";
+
 import { FilterKind, type RegexFilter } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { applyOfficialSubscription, mergeSemiSubscription } from "@/lib/semi-subscription-storage";
-import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const CREATED_AT = 1_700_000_000_000;

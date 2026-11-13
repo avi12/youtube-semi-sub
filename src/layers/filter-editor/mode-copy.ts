@@ -1,5 +1,5 @@
-import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import type { PreviewHints } from "#filter-editor/preview/title-matches";
+import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 
 // The editor's words per mode: a follow filter picks what is added to the feed, a hide filter what is hidden from it
 
@@ -42,7 +42,8 @@ export const MODE_COPY = {
     regexPlaceholder: "tutorial|review",
     aiPlaceholder: "Only phone reviews, not unboxings",
     emptyPatternHint: "Leave it empty to add every video",
-    aiHint: "A model reads each video's title and description, and adds the ones that fit - it reads topics broadly, so say what to leave out too",
+    aiHint:
+      "A model reads each video's title and description, and adds the ones that fit - it reads topics broadly, so say what to leave out too",
     skippedLabel: "left out",
     regexHints: FOLLOW_REGEX_HINTS,
     aiHints: FOLLOW_AI_HINTS,
@@ -55,7 +56,8 @@ export const MODE_COPY = {
     regexPlaceholder: "live|reaction",
     aiPlaceholder: "Livestreams and reaction videos, not interviews",
     emptyPatternHint: "Leave it empty to hide nothing",
-    aiHint: "A model reads each video's title and description, and hides the ones that fit - it reads topics broadly, so say what to keep too",
+    aiHint:
+      "A model reads each video's title and description, and hides the ones that fit - it reads topics broadly, so say what to keep too",
     skippedLabel: "hidden",
     regexHints: HIDE_REGEX_HINTS,
     aiHints: HIDE_AI_HINTS,

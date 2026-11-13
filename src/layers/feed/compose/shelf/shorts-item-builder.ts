@@ -1,20 +1,17 @@
+import { buildSemiSubscribedBareItem, buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
+import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { buildReelWatchEndpoint } from "@/lib/youtube/endpoints";
 import { formatRelativeTime } from "@/lib/youtube/relative-time";
 import { RendererKind, ShelfRendererKind, type ShortsLockup } from "@/lib/youtube/schemas/renderers";
 import { buildShortsThumbnailUrl } from "@/lib/youtube/video-thumbnail";
-import { buildSemiSubscribedBareItem, buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
-import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
 
 // Builds a Shorts-shelf tile for a semi-subscribed Short. The channel's own Shorts-tab tile ("native") supplies views,
 // thumbnails and menu when known. Otherwise the tile is made from the cached upload in the shape of the shelf's own
 // Shorts (a sibling is the template), its publish time standing in for the view count
 
 /** The template's per-video entity id, re-pointed at this Short */
-function entityIdFor({ template, videoId }: {
-  template: ShortsLockup;
-  videoId: string;
-}) {
+function entityIdFor({ template, videoId }: { template: ShortsLockup; videoId: string }) {
   const { entityId } = template;
   const templateVideoId = template.onTap.innertubeCommand.reelWatchEndpoint.videoId;
   if (!entityId?.endsWith(templateVideoId)) {
@@ -24,7 +21,11 @@ function entityIdFor({ template, videoId }: {
   return `${entityId.slice(0, -templateVideoId.length)}${videoId}`;
 }
 
-function fabricateShortsLockup({ video, template, publishedText }: {
+function fabricateShortsLockup({
+  video,
+  template,
+  publishedText
+}: {
   video: FeedVideo;
   template: ShortsLockup;
   publishedText: string;
@@ -34,16 +35,16 @@ function fabricateShortsLockup({ video, template, publishedText }: {
     videoId: video.videoId
   });
   return {
-    ...entityId && {
+    ...(entityId && {
       entityId
-    },
+    }),
     accessibilityText: video.title,
     onTap: {
       innertubeCommand: buildReelWatchEndpoint(video.videoId)
     },
-    ...template.menuOnTapA11yLabel && {
+    ...(template.menuOnTapA11yLabel && {
       menuOnTapA11yLabel: template.menuOnTapA11yLabel
-    },
+    }),
     overlayMetadata: {
       primaryText: {
         content: video.title
@@ -59,14 +60,21 @@ function fabricateShortsLockup({ video, template, publishedText }: {
         }
       }
     },
-    ...template.titleTruncationStyle && {
+    ...(template.titleTruncationStyle && {
       titleTruncationStyle: template.titleTruncationStyle
-    }
+    })
   };
 }
 
 /** A shelf item for `video` in the shelf's own item shape, tagged as semi-subscribed */
-export function buildShortsItem({ video, native, template, shelfKind, now, locale }: {
+export function buildShortsItem({
+  video,
+  native,
+  template,
+  shelfKind,
+  now,
+  locale
+}: {
   video: FeedVideo;
   native: ShortsLockup | null;
   template: ShortsLockup;
@@ -86,13 +94,13 @@ export function buildShortsItem({ video, native, template, shelfKind, now, local
   // The native's own fields win; what it lacks - title, views, thumbnail - is filled in from the cached upload
   const lockup = native
     ? {
-      ...fabricated,
-      ...native,
-      overlayMetadata: {
-        ...fabricated.overlayMetadata,
-        ...native.overlayMetadata
+        ...fabricated,
+        ...native,
+        overlayMetadata: {
+          ...fabricated.overlayMetadata,
+          ...native.overlayMetadata
+        }
       }
-    }
     : fabricated;
   const content = {
     [RendererKind.shortsLockupViewModel]: withSemiUnsubscribeItem({

@@ -84,8 +84,7 @@ function readYouTubeAutoFeedContractVersion() {
  * Shorts of channels outside the user's subscriptions, so they would only flash in and out
  */
 export function isShortsInjectionAllowed() {
-  return !isYouTubeAutoFeedActive()
-    || readYouTubeAutoFeedContractVersion() >= YtafContractVersion.honorsSemiSubTags;
+  return !isYouTubeAutoFeedActive() || readYouTubeAutoFeedContractVersion() >= YtafContractVersion.honorsSemiSubTags;
 }
 
 /** Whether ytaf, when installed, reads the hidden videos a feed response lists - its contract version 2 on */

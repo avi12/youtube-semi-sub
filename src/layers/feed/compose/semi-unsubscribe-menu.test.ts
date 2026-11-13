@@ -1,7 +1,9 @@
-import { SEMI_UNSUBSCRIBE_LABEL, withSemiUnsubscribeItem } from "./semi-unsubscribe-menu";
-import { RendererKind } from "@/lib/youtube/schemas/renderers";
-import { CHANNEL_ID, desktopChannelTabLockup, shortsLockup, videoId } from "#feed/fixtures/feed-fixtures";
 import { describe, expect, it } from "vitest";
+
+import { CHANNEL_ID, desktopChannelTabLockup, shortsLockup, videoId } from "#feed/fixtures/feed-fixtures";
+import { RendererKind } from "@/lib/youtube/schemas/renderers";
+
+import { SEMI_UNSUBSCRIBE_LABEL, withSemiUnsubscribeItem } from "./semi-unsubscribe-menu";
 
 const OWN_LIST_ITEM = {
   listItemViewModel: {
@@ -9,11 +11,13 @@ const OWN_LIST_ITEM = {
       content: SEMI_UNSUBSCRIBE_LABEL
     },
     leadingImage: {
-      sources: [{
-        clientResource: {
-          imageName: "PERSON_MINUS"
+      sources: [
+        {
+          clientResource: {
+            imageName: "PERSON_MINUS"
+          }
         }
-      }]
+      ]
     },
     rendererContext: {
       commandContext: {
@@ -76,7 +80,10 @@ function lockupWithMenu(menuButton: unknown) {
   };
 }
 
-function addItem({ renderer, kind = RendererKind.lockupViewModel }: {
+function addItem({
+  renderer,
+  kind = RendererKind.lockupViewModel
+}: {
   renderer: object;
   kind?: Parameters<typeof withSemiUnsubscribeItem>[0]["kind"];
 }) {
@@ -224,8 +231,9 @@ describe("withSemiUnsubscribeItem", () => {
       renderer: original,
       kind: RendererKind.shortsLockupViewModel
     });
-    const hideItem = original.menuOnTap.innertubeCommand.showSheetCommand.panelLoadingStrategy.inlineContent
-      .sheetViewModel.content.listViewModel.listItems[0];
+    const hideItem =
+      original.menuOnTap.innertubeCommand.showSheetCommand.panelLoadingStrategy.inlineContent.sheetViewModel.content
+        .listViewModel.listItems[0];
     expect(built).toMatchObject({
       overlayMetadata: original.overlayMetadata,
       menuOnTap: {

@@ -1,6 +1,3 @@
-import { AiEngine } from "@/lib/ai/ai-status";
-import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
-import { channelVideosItem, isAiEnabledItem, semiSubscriptionsItem } from "@/lib/storage";
 import { classifyPendingVideos } from "#ai-match/background/classification";
 import { readAiStatus } from "#ai-match/background/read-ai-status";
 import {
@@ -10,6 +7,9 @@ import {
 } from "#ai-match/engine/litert/litert-client";
 import { isLiteRtModelCached } from "#ai-match/engine/litert/litert-model";
 import { browser } from "#imports";
+import { AiEngine } from "@/lib/ai/ai-status";
+import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
+import { channelVideosItem, isAiEnabledItem, semiSubscriptionsItem } from "@/lib/storage";
 
 /** Fire and forget: a pass reports its own errors and the triggers don't wait on it */
 function scheduleClassification() {
@@ -26,8 +26,8 @@ async function handleLocalModelDownloadEnded() {
     return;
   }
 
-  const isAnotherDownloadRunning = await readLocalModelDownloadFraction() !== null;
-  if (!isAnotherDownloadRunning && await isAiEnabledItem.getValue()) {
+  const isAnotherDownloadRunning = (await readLocalModelDownloadFraction()) !== null;
+  if (!isAnotherDownloadRunning && (await isAiEnabledItem.getValue())) {
     await isAiEnabledItem.setValue(false);
   }
 }
@@ -47,7 +47,7 @@ async function downloadRequestedModel() {
 
 /** Opt-out deletes the local model; also catches up on a deletion an earlier worker didn't get to finish */
 async function deleteModelWhileOff() {
-  const isModelLeftOver = !await isAiEnabledItem.getValue() && await isLiteRtModelCached();
+  const isModelLeftOver = !(await isAiEnabledItem.getValue()) && (await isLiteRtModelCached());
   if (isModelLeftOver) {
     await deleteLocalModel();
   }

@@ -1,3 +1,4 @@
+import type { ContentScriptContext } from "#imports";
 import { selectHiddenVideoIds } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
@@ -5,21 +6,14 @@ import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
 import { removeSemiSubscription, setSemiSubscriptionSubscribed } from "@/lib/semi-subscription-storage";
 import { readStoredState, watchStoredState } from "@/lib/storage";
 import { prefersReducedMotion } from "@/lib/utils/motion";
-import type { ContentScriptContext } from "#imports";
 
 // ISOLATED world: the only page-side context with storage access. It owns the state the MAIN world mirrors
 
 let currentState: PageState | null = null;
 
 async function readPageState() {
-  const {
-    isExtensionEnabled,
-    isAnimationsEnabled,
-    isAiEnabled,
-    subscriptions,
-    channelVideos,
-    aiVerdicts
-  } = await readStoredState();
+  const { isExtensionEnabled, isAnimationsEnabled, isAiEnabled, subscriptions, channelVideos, aiVerdicts } =
+    await readStoredState();
   const filterInput = {
     subscriptions,
     videosByChannel: videosByChannelFromCache(channelVideos),
@@ -34,7 +28,7 @@ async function readPageState() {
     aiVerdicts,
     followedUploads: Object.values(subscriptions).flatMap(subscription => {
       const isFollowed = subscription && !subscription.isSubscribed;
-      return isFollowed ? filterInput.videosByChannel[subscription.channelId] ?? [] : [];
+      return isFollowed ? (filterInput.videosByChannel[subscription.channelId] ?? []) : [];
     }),
     hiddenVideoIds: selectHiddenVideoIds(filterInput)
   };

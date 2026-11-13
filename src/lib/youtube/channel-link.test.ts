@@ -1,5 +1,6 @@
-import { buildChannelPath, formatHandle, getChannelUrl } from "./channel-link";
 import { describe, expect, it } from "vitest";
+
+import { buildChannelPath, formatHandle, getChannelUrl } from "./channel-link";
 
 const CHANNEL_ID = "UC0123456789abcdefghijkl";
 

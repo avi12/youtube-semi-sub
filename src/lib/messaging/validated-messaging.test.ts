@@ -1,6 +1,7 @@
+import { describe, expect, it } from "vitest";
+
 import { defineValidatedMessaging } from "@/lib/messaging/validated-messaging";
 import { z } from "@/lib/zod";
-import { describe, expect, it } from "vitest";
 
 enum TestMessage {
   double = "double",

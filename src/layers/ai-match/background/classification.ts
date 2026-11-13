@@ -1,3 +1,10 @@
+import { readAiStatus } from "#ai-match/background/read-ai-status";
+import { type BatchJudge, classifyVideos, videoBatchSchema } from "#ai-match/classify/classifier";
+import { createBuiltInJudge } from "#ai-match/classify/judges/built-in-judge";
+import { createLiteRtJudge } from "#ai-match/classify/judges/litert-judge";
+import { buildPrefaceMessages } from "#ai-match/classify/prompt";
+import { inferLocally } from "#ai-match/engine/litert/litert-client";
+import { openBuiltInSession } from "#ai-match/engine/prompt-api";
 import { AiEngine, isAiModelReady } from "@/lib/ai/ai-status";
 import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
 import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
@@ -14,13 +21,6 @@ import {
   semiSubscriptionsItem
 } from "@/lib/storage";
 import { z } from "@/lib/zod";
-import { readAiStatus } from "#ai-match/background/read-ai-status";
-import { type BatchJudge, classifyVideos, videoBatchSchema } from "#ai-match/classify/classifier";
-import { createBuiltInJudge } from "#ai-match/classify/judges/built-in-judge";
-import { createLiteRtJudge } from "#ai-match/classify/judges/litert-judge";
-import { buildPrefaceMessages } from "#ai-match/classify/prompt";
-import { inferLocally } from "#ai-match/engine/litert/litert-client";
-import { openBuiltInSession } from "#ai-match/engine/prompt-api";
 
 /** Editor requests kept while the model isn't ready yet - older ones are previews the user has moved on from */
 const MAX_QUEUED_REQUESTS = 8;
@@ -36,7 +36,12 @@ type ClassificationJob = z.infer<typeof classificationJobSchema>;
  * the cached uploads of each channel whose current mode applies an AI filter, newest first. Videos that already have a
  * verdict are left out, and a video is judged once per key even when several requests and channels share it
  */
-export function collectClassificationJobs({ requests, subscriptions, channelVideos, aiVerdicts }: {
+export function collectClassificationJobs({
+  requests,
+  subscriptions,
+  channelVideos,
+  aiVerdicts
+}: {
   requests: ClassifyRequest[];
 } & Pick<StoredState, "subscriptions" | "channelVideos" | "aiVerdicts">) {
   const jobsByKey = new Map<string, ClassificationJob>();
@@ -94,10 +99,7 @@ async function openReadyJudge() {
   return createLiteRtJudge(inferLocally);
 }
 
-function storeVerdicts({ key, verdicts }: {
-  key: string;
-  verdicts: VideoVerdicts;
-}) {
+function storeVerdicts({ key, verdicts }: { key: string; verdicts: VideoVerdicts }) {
   return mutateStorageItem({
     item: aiVerdictsItem,
     mutator: aiVerdicts => ({
@@ -110,19 +112,17 @@ function storeVerdicts({ key, verdicts }: {
   });
 }
 
-async function runJobs({ jobs, judge }: {
-  jobs: ClassificationJob[];
-  judge: BatchJudge;
-}) {
+async function runJobs({ jobs, judge }: { jobs: ClassificationJob[]; judge: BatchJudge }) {
   for (const { key, description, videos } of jobs) {
     await classifyVideos({
       description,
       videos,
       judge,
-      onVerdicts: verdicts => storeVerdicts({
-        key,
-        verdicts
-      }),
+      onVerdicts: verdicts =>
+        storeVerdicts({
+          key,
+          verdicts
+        }),
       // Turning AI match off stops the pass at the next batch
       shouldContinue: () => isAiEnabledItem.getValue()
     });
@@ -132,7 +132,7 @@ async function runJobs({ jobs, judge }: {
 const queuedRequests: ClassifyRequest[] = [];
 
 async function runPass() {
-  if (!await isAiEnabledItem.getValue()) {
+  if (!(await isAiEnabledItem.getValue())) {
     queuedRequests.length = 0;
     return;
   }

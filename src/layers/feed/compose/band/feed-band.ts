@@ -1,9 +1,9 @@
+import { AnchorSide, type FeedItemSlot, type FeedSlot, type PlacementAnchor } from "#feed/compose/feed-slot";
+import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 import { MILLISECONDS_PER_DAY } from "@/lib/utils/time";
 import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { z } from "@/lib/zod";
-import { AnchorSide, type FeedItemSlot, type FeedSlot, type PlacementAnchor } from "#feed/compose/feed-slot";
-import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 
 // The feed's root contents mix section markers (shelves) with root-level video items. The root videos form the
 // "Latest" band, split into runs by the markers. Only the band is touched: videos are added or removed, and the
@@ -45,10 +45,7 @@ export function findInlineRuns(contents: readonly unknown[]) {
   return runs;
 }
 
-function extractBand({ contents, runs }: {
-  contents: readonly unknown[];
-  runs: InlineRun[];
-}) {
+function extractBand({ contents, runs }: { contents: readonly unknown[]; runs: InlineRun[] }) {
   const band: FeedItemSlot[] = [];
   for (const run of runs) {
     for (const item of contents.slice(run.start, run.end)) {
@@ -64,24 +61,20 @@ function extractBand({ contents, runs }: {
   return band;
 }
 
-function readBandTimes({ band, now }: {
-  band: readonly FeedItemSlot[];
-  now: number;
-}) {
-  return band.map(slot => parseFirstRelativeTime({
-    texts: publishedTextsFromGridItem(slot.item),
-    now
-  }));
+function readBandTimes({ band, now }: { band: readonly FeedItemSlot[]; now: number }) {
+  return band.map(slot =>
+    parseFirstRelativeTime({
+      texts: publishedTextsFromGridItem(slot.item),
+      now
+    })
+  );
 }
 
 /**
  * Whether an upload is recent enough for the loaded page: no older than its oldest band item - an older one is left
  * for later pages - or, when no item's time can be read (non-English UI), from the last 24 hours
  */
-function createLoadedSpanCheck({ times, now }: {
-  times: ReturnType<typeof parseFirstRelativeTime>[];
-  now: number;
-}) {
+function createLoadedSpanCheck({ times, now }: { times: ReturnType<typeof parseFirstRelativeTime>[]; now: number }) {
   const knownTimes = times.filter(time => time !== null);
   const isTimeKnown = knownTimes.length > 0;
   const oldestTime = Math.min(...knownTimes.map(time => time.earliestTime));
@@ -100,7 +93,13 @@ function createLoadedSpanCheck({ times, now }: {
  * the item before it, or at the band's start ahead of the item after it, so newer videos arriving above push it along
  * with its neighbours - as long as that item is still there. `placements` reports where each inserted video went
  */
-export function planFeedBand({ contents, videos, now, removedVideoIds, anchors = new Map() }: {
+export function planFeedBand({
+  contents,
+  videos,
+  now,
+  removedVideoIds,
+  anchors = new Map()
+}: {
   contents: readonly unknown[];
   videos: readonly FeedVideo[];
   now: number;
@@ -177,13 +176,15 @@ export function planFeedBand({ contents, videos, now, removedVideoIds, anchors =
   for (const [i, gap] of gaps.entries()) {
     const previous = band[i - 1];
     const next = band[i];
-    const anchor = previous ? {
-      videoId: previous.videoId,
-      side: AnchorSide.after
-    } : next && {
-      videoId: next.videoId,
-      side: AnchorSide.before
-    };
+    const anchor = previous
+      ? {
+          videoId: previous.videoId,
+          side: AnchorSide.after
+        }
+      : next && {
+          videoId: next.videoId,
+          side: AnchorSide.before
+        };
     for (const entry of gap.toSorted((first, second) => second.video.publishedAt - first.video.publishedAt)) {
       slots.push(entry);
 
@@ -209,7 +210,11 @@ export function planFeedBand({ contents, videos, now, removedVideoIds, anchors =
 }
 
 /** Pours the band back into the runs: every run keeps its length, the last one absorbs the difference */
-export function reflowBandIntoRuns({ contents, runs, band }: Parameters<typeof extractBand>[0] & {
+export function reflowBandIntoRuns({
+  contents,
+  runs,
+  band
+}: Parameters<typeof extractBand>[0] & {
   band: readonly unknown[];
 }) {
   const result: unknown[] = [];

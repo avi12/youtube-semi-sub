@@ -1,7 +1,8 @@
-import { parseJson } from "@/lib/utils/json";
+import { vi } from "vitest";
+
 import { promptVideoSchema } from "#ai-match/classify/prompt";
 import type { PromptSession } from "#ai-match/engine/prompt-api";
-import { vi } from "vitest";
+import { parseJson } from "@/lib/utils/json";
 
 const MATCHING_TITLE_PREFIX = "Review";
 

@@ -1,13 +1,14 @@
-import type { LiteRtSupport } from "./engine-resolution";
 import { z } from "@/lib/zod";
+
+import type { LiteRtSupport } from "./engine-resolution";
 
 /**
  * The relaxed-SIMD check LiteRT-LM's own loader runs:
  * (module (func (result v128) i32.const 1 i8x16.splat i32.const 2 i8x16.splat i8x16.relaxed_swizzle))
  */
 const RELAXED_SIMD_PROBE = new Uint8Array([
-  0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1,
-  0, 10, 15, 1, 13, 0, 65, 1, 253, 15, 65, 2, 253, 15, 253, 128, 2, 11
+  0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0, 10, 15, 1, 13, 0, 65, 1, 253, 15, 65, 2, 253, 15,
+  253, 128, 2, 11
 ]);
 const JSPI_GLOBAL = "Suspending";
 

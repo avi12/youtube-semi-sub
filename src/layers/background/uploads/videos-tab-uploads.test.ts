@@ -1,6 +1,8 @@
-import { ChannelGridTab, extractInitialData, parseVideosTab } from "./videos-tab-uploads";
-import channelVideosPageHtml from "#background/fixtures/channel-videos-page.html?raw";
 import { describe, expect, it } from "vitest";
+
+import channelVideosPageHtml from "#background/fixtures/channel-videos-page.html?raw";
+
+import { ChannelGridTab, extractInitialData, parseVideosTab } from "./videos-tab-uploads";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const NOW = Date.parse("2026-10-15T12:00:00Z");
@@ -50,12 +52,12 @@ describe("extractInitialData", () => {
     });
   });
 
-  it.each(["<html><body>Before you continue to YouTube</body></html>", "<script>var ytInitialData = {broken;</script>"])(
-    "returns null for %j",
-    html => {
-      expect(extractInitialData(html)).toBeNull();
-    }
-  );
+  it.each([
+    "<html><body>Before you continue to YouTube</body></html>",
+    "<script>var ytInitialData = {broken;</script>"
+  ])("returns null for %j", html => {
+    expect(extractInitialData(html)).toBeNull();
+  });
 });
 
 describe("parseVideosTab", () => {

@@ -1,7 +1,8 @@
-import { prefersReducedMotion } from "@/lib/utils/motion";
 import type { AnimationConfig } from "svelte/animate";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
+
+import { prefersReducedMotion } from "@/lib/utils/motion";
 
 const TILE_POP_DURATION_MS = 220;
 const TILE_SLIDE_DURATION_MS = 280;
@@ -23,10 +24,16 @@ export function popTile(_node: Element) {
 }
 
 /** Svelte animate: FLIP through the `translate` property, so the remaining tiles glide to their new grid cells */
-export function slideTile(_node: Element, { from, to }: {
-  from: DOMRect;
-  to: DOMRect;
-}) {
+export function slideTile(
+  _node: Element,
+  {
+    from,
+    to
+  }: {
+    from: DOMRect;
+    to: DOMRect;
+  }
+) {
   const deltaX = from.left - to.left;
   const deltaY = from.top - to.top;
   const config: AnimationConfig = {

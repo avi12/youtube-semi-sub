@@ -1,11 +1,13 @@
-import { classifyVideos } from "./classifier";
-import { AI_BATCH_SIZE } from "./prompt";
-import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
-import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { describe, expect, it, vi } from "vitest";
+
 import { answerFromPrompt, createFakeBase, createSessionMock } from "#ai-match/classify/fixtures/fake-prompt-session";
 import { createBuiltInJudge } from "#ai-match/classify/judges/built-in-judge";
 import type { PromptSession } from "#ai-match/engine/prompt-api";
-import { describe, expect, it, vi } from "vitest";
+import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
+
+import { classifyVideos } from "./classifier";
+import { AI_BATCH_SIZE } from "./prompt";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const DESCRIPTION = "only reviews";
@@ -99,14 +101,21 @@ describe("classifyVideos with the built-in judge", () => {
   });
 
   it("leaves videos the model skipped pending", async () => {
-    const { base } = createFakeBase(() => JSON.stringify({
-      verdicts: [{
-        id: 2,
-        match: true
-      }]
-    }));
+    const { base } = createFakeBase(() =>
+      JSON.stringify({
+        verdicts: [
+          {
+            id: 2,
+            match: true
+          }
+        ]
+      })
+    );
     const batches = await collectVerdicts(createBuiltInJudge(async () => base));
-    expect(batches).toEqual([{ [VIDEOS[1]?.videoId ?? ""]: true }, { [VIDEOS[AI_BATCH_SIZE + 1]?.videoId ?? ""]: true }]);
+    expect(batches).toEqual([
+      { [VIDEOS[1]?.videoId ?? ""]: true },
+      { [VIDEOS[AI_BATCH_SIZE + 1]?.videoId ?? ""]: true }
+    ]);
   });
 
   it("reports nothing for a reply that isn't JSON", async () => {

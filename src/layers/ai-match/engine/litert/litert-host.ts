@@ -1,3 +1,9 @@
+import { Engine, getOrLoadGlobalLiteRtLm, unloadLiteRtLm } from "@litert-lm/core";
+
+import type { ChatMessage } from "@/lib/ai/chat-message";
+import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
+import { z } from "@/lib/zod";
+
 import {
   deleteLiteRtModelCache,
   isLiteRtModelCached,
@@ -5,10 +11,6 @@ import {
   openLiteRtModelCache,
   readLiteRtModelBlob
 } from "./litert-model";
-import type { ChatMessage } from "@/lib/ai/chat-message";
-import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
-import { z } from "@/lib/zod";
-import { Engine, getOrLoadGlobalLiteRtLm, unloadLiteRtLm } from "@litert-lm/core";
 
 // Runs LiteRT-LM where there is a DOM and WebGPU: Firefox's background event page, or Chromium's offscreen page (its
 // service worker has no document for the runtime's <script> loader)
@@ -55,7 +57,10 @@ export function getLiteRtDownloadFraction() {
   return activeDownload?.fraction ?? null;
 }
 
-async function streamModelIntoCache({ signal, onProgress }: {
+async function streamModelIntoCache({
+  signal,
+  onProgress
+}: {
   signal: AbortSignal;
   onProgress: (fraction: number) => void;
 }) {
@@ -70,7 +75,7 @@ async function streamModelIntoCache({ signal, onProgress }: {
   const countingStream = new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
       receivedBytes += chunk.byteLength;
-      const percent = totalBytes > 0 ? Math.floor(receivedBytes / totalBytes * PERCENT) : 0;
+      const percent = totalBytes > 0 ? Math.floor((receivedBytes / totalBytes) * PERCENT) : 0;
       if (percent !== reportedPercent) {
         reportedPercent = percent;
         onProgress(Math.min(percent / PERCENT, 1));
@@ -83,7 +88,8 @@ async function streamModelIntoCache({ signal, onProgress }: {
   // is ever committed
   const cache = await openLiteRtModelCache();
   await cache.put(
-    LITERT_MODEL_URL, new Response(response.body.pipeThrough(countingStream), {
+    LITERT_MODEL_URL,
+    new Response(response.body.pipeThrough(countingStream), {
       headers: response.headers
     })
   );
@@ -246,17 +252,19 @@ async function runConversation(messages: ChatMessage[]) {
  * runs one inference at a time, so calls queue behind each other. Null when the model is missing or the run fails
  */
 export function inferWithLiteRt(messages: ChatMessage[]) {
-  const inference = pendingInference.catch(() => {}).then(async () => {
-    clearTimeout(idleReleaseTimer);
-    try {
-      return await runConversation(messages);
-    } catch {
-      await releaseEngine();
-      return null;
-    } finally {
-      scheduleIdleRelease();
-    }
-  });
+  const inference = pendingInference
+    .catch(() => {})
+    .then(async () => {
+      clearTimeout(idleReleaseTimer);
+      try {
+        return await runConversation(messages);
+      } catch {
+        await releaseEngine();
+        return null;
+      } finally {
+        scheduleIdleRelease();
+      }
+    });
   pendingInference = inference;
   return inference;
 }

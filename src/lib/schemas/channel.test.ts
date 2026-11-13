@@ -1,5 +1,6 @@
-import { channelIdSchema, getChannelInitial } from "@/lib/schemas/channel";
 import { describe, expect, it } from "vitest";
+
+import { channelIdSchema, getChannelInitial } from "@/lib/schemas/channel";
 
 describe("getChannelInitial", () => {
   it("takes the first character whole, an emoji included", () => {

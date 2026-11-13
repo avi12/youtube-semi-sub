@@ -1,8 +1,3 @@
-import type { FeedVideo } from "@/lib/schemas/feed-video";
-import { MILLISECONDS_PER_MINUTE } from "@/lib/utils/time";
-import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/page/innertube";
-import { shortsLockupSchema } from "@/lib/youtube/schemas/renderers";
-import { z } from "@/lib/zod";
 import { rendererFromGridItem, shortsLockupFromItem, videoIdFromShelfItem } from "#feed/items/feed-items";
 import {
   browseResponseSchema,
@@ -10,6 +5,11 @@ import {
   type VideoRenderer,
   videoRendererSchema
 } from "#feed/items/feed-schemas";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { MILLISECONDS_PER_MINUTE } from "@/lib/utils/time";
+import { InnerTubeEndpoint, postInnerTube } from "@/lib/youtube/page/innertube";
+import { shortsLockupSchema } from "@/lib/youtube/schemas/renderers";
+import { z } from "@/lib/zod";
 
 // A channel's Videos tab - or Shorts tab, for a Short - fetched with the page's own client so its renderers match what
 // this client renders (lockupViewModel on www, compactVideoRenderer on m, shortsLockupViewModel for Shorts). Cached per
@@ -119,10 +119,12 @@ function loadTab(request: TabRequest) {
     natives: Promise.resolve(null),
     result: cached?.result
   };
-  entry.natives = fetchChannelNatives(request).catch(() => null).then(natives => {
-    entry.result = natives ?? cached?.result ?? null;
-    return entry.result;
-  });
+  entry.natives = fetchChannelNatives(request)
+    .catch(() => null)
+    .then(natives => {
+      entry.result = natives ?? cached?.result ?? null;
+      return entry.result;
+    });
   cacheByTab.set(key, entry);
   return entry.natives;
 }
@@ -161,16 +163,21 @@ export function findNativeShort(video: Pick<FeedVideo, "channelId" | "videoId" |
 }
 
 export function findLoadedAvatarUrl(channelId: string) {
-  const loaded = Object.values(ChannelTab).map(tab => findLoadedNatives({
-    channelId,
-    tab
-  }));
+  const loaded = Object.values(ChannelTab).map(tab =>
+    findLoadedNatives({
+      channelId,
+      tab
+    })
+  );
   return loaded.find(natives => natives?.avatarUrl)?.avatarUrl ?? null;
 }
 
 export function findLoadedIsVerified(channelId: string) {
-  return Object.values(ChannelTab).some(tab => findLoadedNatives({
-    channelId,
-    tab
-  })?.isVerified);
+  return Object.values(ChannelTab).some(
+    tab =>
+      findLoadedNatives({
+        channelId,
+        tab
+      })?.isVerified
+  );
 }

@@ -1,11 +1,13 @@
-import { buildShortsItem } from "./shorts-item-builder";
-import { ShelfRendererKind, type ShortsLockup, shortsLockupSchema } from "@/lib/youtube/schemas/renderers";
-import { z } from "@/lib/zod";
+import { describe, expect, it } from "vitest";
+
 import { isSemiSubscribedItem, SEMI_SUBSCRIBED_TAG } from "#feed/compose/semi-subscribed-tag";
 import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
 import { feedVideo, NOW, shortsLockup, videoId } from "#feed/fixtures/feed-fixtures";
 import { shortsLockupFromItem } from "#feed/items/feed-items";
-import { describe, expect, it } from "vitest";
+import { ShelfRendererKind, type ShortsLockup, shortsLockupSchema } from "@/lib/youtube/schemas/renderers";
+import { z } from "@/lib/zod";
+
+import { buildShortsItem } from "./shorts-item-builder";
 
 const SHORT = feedVideo({
   index: 50,
@@ -40,12 +42,16 @@ function menuTitles(item: unknown) {
     })
   });
   const parsed = menuSchema.parse(shortsLockupFromItem(item));
-  const { listItems } = parsed.menuOnTap.innertubeCommand.showSheetCommand.panelLoadingStrategy.inlineContent
-    .sheetViewModel.content.listViewModel;
+  const { listItems } =
+    parsed.menuOnTap.innertubeCommand.showSheetCommand.panelLoadingStrategy.inlineContent.sheetViewModel.content
+      .listViewModel;
   return listItems.map(listItem => listItem.listItemViewModel.title.content);
 }
 
-function build({ native = null, shelfKind = ShelfRendererKind.rich }: {
+function build({
+  native = null,
+  shelfKind = ShelfRendererKind.rich
+}: {
   native?: ShortsLockup | null;
   shelfKind?: ShelfRendererKind;
 }) {

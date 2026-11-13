@@ -101,7 +101,10 @@ export function getSubscriptionMode({ isSubscribed }: Pick<SemiSubscription, "is
   return isSubscribed ? SubscriptionMode.hide : SubscriptionMode.follow;
 }
 
-export function getModeFilter({ subscription, mode }: {
+export function getModeFilter({
+  subscription,
+  mode
+}: {
   subscription: Pick<SemiSubscription, "followFilter" | "hideFilter">;
   mode: SubscriptionMode;
 }) {
@@ -129,12 +132,17 @@ export function isUploadsWatched(subscription: Pick<SemiSubscription, "followFil
 }
 
 /** A subscribed channel whose Allow list keeps filtering it - the follow filter hides what it doesn't let through */
-export function isAllowListHiding({ isSubscribed, followFilter }: Pick<SemiSubscription, "followFilter" | "isSubscribed">) {
+export function isAllowListHiding({
+  isSubscribed,
+  followFilter
+}: Pick<SemiSubscription, "followFilter" | "isSubscribed">) {
   return isSubscribed && isAllowListRestricting(followFilter);
 }
 
 /** Every filter that judges a channel's videos: the current mode's, and the Allow list while it keeps filtering */
-export function getJudgingFilters(subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">) {
+export function getJudgingFilters(
+  subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">
+) {
   const filters = [getActiveFilter(subscription)];
   if (isAllowListHiding(subscription)) {
     filters.push(subscription.followFilter);
@@ -144,10 +152,9 @@ export function getJudgingFilters(subscription: Pick<SemiSubscription, "followFi
 }
 
 /** Whether a filter judging the channel reads lengths or upload types, so its uploads need them looked up */
-export function isUploadsTabDetailFiltered(subscription: Pick<
-  SemiSubscription,
-  "followFilter" | "hideFilter" | "isSubscribed"
->) {
+export function isUploadsTabDetailFiltered(
+  subscription: Pick<SemiSubscription, "followFilter" | "hideFilter" | "isSubscribed">
+) {
   return getJudgingFilters(subscription).some(isTabDetailFiltered);
 }
 
@@ -160,7 +167,11 @@ export function isVideosTabRead(subscription: Pick<SemiSubscription, "followFilt
 }
 
 /** The subscription with one mode's filter replaced */
-export function withModeFilter({ subscription, mode, filter }: {
+export function withModeFilter({
+  subscription,
+  mode,
+  filter
+}: {
   subscription: SemiSubscription;
   mode: SubscriptionMode;
   filter: VideoFilter;

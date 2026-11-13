@@ -25,7 +25,7 @@ async function matchCachedModel() {
   }
 
   const cache = await openLiteRtModelCache();
-  return await cache.match(LITERT_MODEL_URL) ?? null;
+  return (await cache.match(LITERT_MODEL_URL)) ?? null;
 }
 
 /** The cache is the source of truth for "downloaded" - no separate flag that could drift from the bytes on disk */

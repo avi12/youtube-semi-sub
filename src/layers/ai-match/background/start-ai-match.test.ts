@@ -1,23 +1,17 @@
-import { classifyPendingVideos } from "./classification";
-import { startAiMatch } from "./start-ai-match";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { fakeBrowser } from "wxt/testing/fake-browser";
+
+import { createFakeBase } from "#ai-match/classify/fixtures/fake-prompt-session";
+import { BuiltInAvailability } from "#ai-match/engine/prompt-api";
 import { AiEngine } from "@/lib/ai/ai-status";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { aiVerdictsItem, channelVideosItem, isAiEnabledItem, semiSubscriptionsItem } from "@/lib/storage";
-import { createFakeBase } from "#ai-match/classify/fixtures/fake-prompt-session";
-import { BuiltInAvailability } from "#ai-match/engine/prompt-api";
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
-import { fakeBrowser } from "wxt/testing/fake-browser";
+
+import { classifyPendingVideos } from "./classification";
+import { startAiMatch } from "./start-ai-match";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const PREVIEW_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
@@ -27,8 +21,11 @@ const AI_FILTER: AiFilter = {
 };
 const KEY = getAiFilterKey(AI_FILTER);
 
-function createVideo({ videoId, title, channelId = CHANNEL_ID }: Pick<FeedVideo, "videoId" | "title">
-  & Partial<Pick<FeedVideo, "channelId">>) {
+function createVideo({
+  videoId,
+  title,
+  channelId = CHANNEL_ID
+}: Pick<FeedVideo, "videoId" | "title"> & Partial<Pick<FeedVideo, "channelId">>) {
   const video: FeedVideo = {
     videoId,
     channelId,
@@ -164,14 +161,16 @@ describe("startAiMatch with the built-in model", () => {
     vi.stubGlobal("caches", {
       delete: deleteCache
     });
-    getContexts.mockImplementationOnce(async () => [{
-      contextId: "offscreen",
-      contextType: "OFFSCREEN_DOCUMENT",
-      frameId: -1,
-      incognito: false,
-      tabId: -1,
-      windowId: -1
-    }]);
+    getContexts.mockImplementationOnce(async () => [
+      {
+        contextId: "offscreen",
+        contextType: "OFFSCREEN_DOCUMENT",
+        frameId: -1,
+        incognito: false,
+        tabId: -1,
+        windowId: -1
+      }
+    ]);
     await isAiEnabledItem.setValue(true);
     await isAiEnabledItem.setValue(false);
 

@@ -1,14 +1,9 @@
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+
+import { readIsSignedIn } from "#channel-button/page/page-data-source";
+
 import { applySubscriptionSnapshot } from "./official-subscription";
 import { installSubscriptionEntityWatch, syncSubscriptionEntities } from "./subscription-entities";
-import { readIsSignedIn } from "#channel-button/page/page-data-source";
-import {
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
 
 vi.mock("./official-subscription", () => ({
   applySubscriptionSnapshot: vi.fn()
@@ -50,10 +45,7 @@ const RESPONSE_WITH_ENTITIES = {
   }
 };
 
-function responseAt({ url, body }: {
-  url: string;
-  body: unknown;
-}) {
+function responseAt({ url, body }: { url: string; body: unknown }) {
   const response = new Response(JSON.stringify(body));
   Object.defineProperty(response, "url", { value: url });
   return response;

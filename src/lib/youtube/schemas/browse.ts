@@ -9,15 +9,21 @@ export const browseEndpointSchema = z.looseObject({
 });
 
 const tabSchema = z.looseObject({
-  tabRenderer: z.looseObject({
-    tabIdentifier: z.string().optional(),
-    content: z.looseObject({
-      richGridRenderer: z.looseObject({
-        contents: z.array(z.unknown()),
-        targetId: z.string().optional()
-      }).optional()
-    }).optional()
-  }).optional()
+  tabRenderer: z
+    .looseObject({
+      tabIdentifier: z.string().optional(),
+      content: z
+        .looseObject({
+          richGridRenderer: z
+            .looseObject({
+              contents: z.array(z.unknown()),
+              targetId: z.string().optional()
+            })
+            .optional()
+        })
+        .optional()
+    })
+    .optional()
 });
 export type BrowseTab = z.infer<typeof tabSchema>;
 

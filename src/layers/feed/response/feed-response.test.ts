@@ -1,4 +1,5 @@
-import { readInitialDataHtml, readSubscriptionsFeed } from "./feed-response";
+import { describe, expect, it } from "vitest";
+
 import {
   channelVideosTabResponse,
   continuationItem,
@@ -9,7 +10,8 @@ import {
   mobileFeedResponse,
   richItem
 } from "#feed/fixtures/feed-fixtures";
-import { describe, expect, it } from "vitest";
+
+import { readInitialDataHtml, readSubscriptionsFeed } from "./feed-response";
 
 const DESKTOP_CONTENTS = [
   desktopFeedItem({
@@ -26,10 +28,12 @@ describe("readSubscriptionsFeed", () => {
   });
 
   it("recognizes the m feed by its tab identifier and grid target", () => {
-    const contents = [mobileFeedItem({
-      index: 1,
-      published: "1 hour ago"
-    })];
+    const contents = [
+      mobileFeedItem({
+        index: 1,
+        published: "1 hour ago"
+      })
+    ];
     expect(readSubscriptionsFeed(mobileFeedResponse(contents))?.contents).toEqual(contents);
   });
 
@@ -41,11 +45,13 @@ describe("readSubscriptionsFeed", () => {
   it("ignores continuations and anything that is not a browse response", () => {
     const continuation = {
       responseContext: {},
-      onResponseReceivedActions: [{
-        appendContinuationItemsAction: {
-          continuationItems: []
+      onResponseReceivedActions: [
+        {
+          appendContinuationItemsAction: {
+            continuationItems: []
+          }
         }
-      }]
+      ]
     };
     expect(readSubscriptionsFeed(continuation)).toBeNull();
     expect(readSubscriptionsFeed(null)).toBeNull();
@@ -63,8 +69,9 @@ describe("readSubscriptionsFeed", () => {
       header: response.header,
       responseContext: response.responseContext
     });
-    expect(response.contents.twoColumnBrowseResultsRenderer.tabs[0]?.tabRenderer.content.richGridRenderer.contents)
-      .toBe(DESKTOP_CONTENTS);
+    expect(
+      response.contents.twoColumnBrowseResultsRenderer.tabs[0]?.tabRenderer.content.richGridRenderer.contents
+    ).toBe(DESKTOP_CONTENTS);
     expect(JSON.stringify(patched)).not.toContain("yssHiddenVideoIds");
   });
 
@@ -73,11 +80,12 @@ describe("readSubscriptionsFeed", () => {
       contents: [],
       hiddenVideoIds: ["aaaaaaaaaaa"]
     });
-    expect(patched?.contents.twoColumnBrowseResultsRenderer?.tabs[0]?.tabRenderer?.content?.richGridRenderer)
-      .toMatchObject({
-        contents: [],
-        yssHiddenVideoIds: ["aaaaaaaaaaa"]
-      });
+    expect(
+      patched?.contents.twoColumnBrowseResultsRenderer?.tabs[0]?.tabRenderer?.content?.richGridRenderer
+    ).toMatchObject({
+      contents: [],
+      yssHiddenVideoIds: ["aaaaaaaaaaa"]
+    });
   });
 });
 

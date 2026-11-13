@@ -1,3 +1,7 @@
+import { buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
+import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
+import { labelFromFormatted, rendererFromGridItem } from "#feed/items/feed-items";
+import { VERIFIED_ICON_NAME, type VideoRenderer } from "#feed/items/feed-schemas";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { buildChannelPath, formatHandle } from "@/lib/youtube/channel-link";
@@ -11,10 +15,6 @@ import {
 } from "@/lib/youtube/schemas/renderers";
 import { readText } from "@/lib/youtube/schemas/text";
 import { findLockupDurationBadge } from "@/lib/youtube/video-duration";
-import { buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
-import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
-import { labelFromFormatted, rendererFromGridItem } from "#feed/items/feed-items";
-import { VERIFIED_ICON_NAME, type VideoRenderer } from "#feed/items/feed-schemas";
 
 // Builds a feed tile for a semi-subscribed video in the renderer the feed already uses (a sibling item is the
 // template). The channel's own Videos-tab renderer ("native") supplies duration, views and menu when known; the
@@ -89,34 +89,44 @@ function detailsFromNative(native: VideoRenderer | null) {
 
 type VideoDetails = ReturnType<typeof detailsFromNative>;
 
-function fabricateLockup({ video, details, publishedText }: {
+function fabricateLockup({
+  video,
+  details,
+  publishedText
+}: {
   video: FeedVideo;
   details: VideoDetails;
   publishedText: string;
 }) {
   const durationOverlay = {
     thumbnailBottomOverlayViewModel: {
-      badges: [{
-        thumbnailBadgeViewModel: {
-          text: details.durationText,
-          badgeStyle: DEFAULT_BADGE_STYLE,
-          ...details.durationLabel && {
-            rendererContext: {
-              accessibilityContext: {
-                label: details.durationLabel
+      badges: [
+        {
+          thumbnailBadgeViewModel: {
+            text: details.durationText,
+            badgeStyle: DEFAULT_BADGE_STYLE,
+            ...(details.durationLabel && {
+              rendererContext: {
+                accessibilityContext: {
+                  label: details.durationLabel
+                }
               }
-            }
+            })
           }
         }
-      }]
+      ]
     }
   };
   const metadataParts = [
-    ...details.viewCountText ? [{
-      text: {
-        content: details.viewCountText
-      }
-    }] : [],
+    ...(details.viewCountText
+      ? [
+          {
+            text: {
+              content: details.viewCountText
+            }
+          }
+        ]
+      : []),
     {
       text: {
         content: publishedText
@@ -159,7 +169,11 @@ function fabricateLockup({ video, details, publishedText }: {
   };
 }
 
-function avatarImage({ channel, avatarUrl, avatarImageSize }: {
+function avatarImage({
+  channel,
+  avatarUrl,
+  avatarImageSize
+}: {
   channel: ChannelInfo;
   avatarUrl: string;
   avatarImageSize: string;
@@ -169,11 +183,13 @@ function avatarImage({ channel, avatarUrl, avatarImageSize }: {
       avatar: {
         avatarViewModel: {
           image: {
-            sources: [{
-              url: avatarUrl,
-              width: AVATAR_PIXELS,
-              height: AVATAR_PIXELS
-            }]
+            sources: [
+              {
+                url: avatarUrl,
+                width: AVATAR_PIXELS,
+                height: AVATAR_PIXELS
+              }
+            ]
           },
           avatarImageSize
         }
@@ -191,7 +207,11 @@ function avatarImage({ channel, avatarUrl, avatarImageSize }: {
 }
 
 /** The channel name in the template's layout: a row of its own (www) or leading the first row (m) */
-function withChannelRow({ rows, templateRows, channel }: {
+function withChannelRow({
+  rows,
+  templateRows,
+  channel
+}: {
   rows: MetadataRow[] | undefined;
   templateRows: MetadataRow[] | undefined;
   channel: ChannelInfo;
@@ -201,33 +221,35 @@ function withChannelRow({ rows, templateRows, channel }: {
   const channelPart = {
     text: {
       content: channel.title,
-      commandRuns: [{
-        startIndex: 0,
-        length: channel.title.length,
-        onTap: {
-          innertubeCommand: channelCommand(channel)
+      commandRuns: [
+        {
+          startIndex: 0,
+          length: channel.title.length,
+          onTap: {
+            innertubeCommand: channelCommand(channel)
+          }
         }
-      }]
+      ]
     },
-    ...channel.isVerified && {
+    ...(channel.isVerified && {
       icon: VERIFIED_ICON
-    }
+    })
   };
   if (isChannelOnOwnRow) {
-    return [{ metadataParts: [channelPart] }, ...firstRow ? [firstRow] : [], ...otherRows];
+    return [{ metadataParts: [channelPart] }, ...(firstRow ? [firstRow] : []), ...otherRows];
   }
 
-  return [{
-    ...firstRow,
-    metadataParts: [channelPart, ...firstRow?.metadataParts ?? []]
-  }, ...otherRows];
+  return [
+    {
+      ...firstRow,
+      metadataParts: [channelPart, ...(firstRow?.metadataParts ?? [])]
+    },
+    ...otherRows
+  ];
 }
 
 /** The channel's avatar, only where the template shows one */
-function templateAvatarImage({ template, channel }: {
-  template: Lockup;
-  channel: ChannelInfo;
-}) {
+function templateAvatarImage({ template, channel }: { template: Lockup; channel: ChannelInfo }) {
   const templateAvatar = template.metadata?.lockupMetadataViewModel?.image?.decoratedAvatarViewModel;
   const avatarUrl = templateAvatar ? channel.avatarUrl : undefined;
   if (!avatarUrl) {
@@ -242,11 +264,7 @@ function templateAvatarImage({ template, channel }: {
 }
 
 /** Adds the channel name and avatar in the template's layout */
-function graftChannel({ lockup, template, channel }: {
-  lockup: Lockup;
-  template: Lockup;
-  channel: ChannelInfo;
-}) {
+function graftChannel({ lockup, template, channel }: { lockup: Lockup; template: Lockup; channel: ChannelInfo }) {
   const templateContentMetadata = template.metadata?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel;
   const lockupMetadata = lockup.metadata?.lockupMetadataViewModel;
   const contentMetadata = lockupMetadata?.metadata?.contentMetadataViewModel;
@@ -266,16 +284,16 @@ function graftChannel({ lockup, template, channel }: {
       ...lockup.metadata,
       lockupMetadataViewModel: {
         ...lockupMetadata,
-        ...image && {
+        ...(image && {
           image
-        },
+        }),
         metadata: {
           ...lockupMetadata?.metadata,
           contentMetadataViewModel: {
             ...contentMetadata,
-            ...delimiter !== undefined && {
+            ...(delimiter !== undefined && {
               delimiter
-            },
+            }),
             metadataRows
           }
         }
@@ -284,7 +302,13 @@ function graftChannel({ lockup, template, channel }: {
   };
 }
 
-function buildContextRenderer({ video, channel, native, details, publishedText }: {
+function buildContextRenderer({
+  video,
+  channel,
+  native,
+  details,
+  publishedText
+}: {
   video: FeedVideo;
   channel: ChannelInfo;
   native: VideoRenderer | null;
@@ -302,22 +326,26 @@ function buildContextRenderer({ video, channel, native, details, publishedText }
       thumbnails: details.thumbnailSources ?? [{ url: video.thumbnailUrl }]
     },
     shortBylineText: {
-      runs: [{
-        text: channel.title,
-        navigationEndpoint: channelCommand(channel)
-      }]
+      runs: [
+        {
+          text: channel.title,
+          navigationEndpoint: channelCommand(channel)
+        }
+      ]
     },
-    ...channel.isVerified && {
+    ...(channel.isVerified && {
       ownerBadges: [VERIFIED_OWNER_BADGE]
-    },
+    }),
     publishedTimeText: classic?.publishedTimeText ?? { runs: [{ text: publishedText }] },
-    ...channel.avatarUrl && {
+    ...(channel.avatarUrl && {
       channelThumbnail: {
         channelThumbnailWithLinkRenderer: {
           thumbnail: {
-            thumbnails: [{
-              url: channel.avatarUrl
-            }]
+            thumbnails: [
+              {
+                url: channel.avatarUrl
+              }
+            ]
           },
           navigationEndpoint: channelCommand(channel),
           accessibility: {
@@ -327,11 +355,17 @@ function buildContextRenderer({ video, channel, native, details, publishedText }
           }
         }
       }
-    }
+    })
   };
 }
 
-function renderRenderer({ video, channel, native, template, publishedText }: {
+function renderRenderer({
+  video,
+  channel,
+  native,
+  template,
+  publishedText
+}: {
   video: FeedVideo;
   channel: ChannelInfo;
   native: VideoRenderer | null;
@@ -340,13 +374,14 @@ function renderRenderer({ video, channel, native, template, publishedText }: {
 }) {
   const details = detailsFromNative(native);
   if (template.kind === RendererKind.lockupViewModel) {
-    const lockup = native?.kind === RendererKind.lockupViewModel
-      ? native.renderer
-      : fabricateLockup({
-        video,
-        details,
-        publishedText: details.publishedText ?? publishedText
-      });
+    const lockup =
+      native?.kind === RendererKind.lockupViewModel
+        ? native.renderer
+        : fabricateLockup({
+            video,
+            details,
+            publishedText: details.publishedText ?? publishedText
+          });
     return graftChannel({
       lockup,
       template: template.renderer,
@@ -381,7 +416,14 @@ export function findTemplate(contents: readonly unknown[]) {
   return fallback;
 }
 
-export function buildFeedItem({ video, channel, native, template, now, locale }: {
+export function buildFeedItem({
+  video,
+  channel,
+  native,
+  template,
+  now,
+  locale
+}: {
   video: FeedVideo;
   channel: ChannelInfo;
   native: VideoRenderer | null;

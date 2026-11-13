@@ -1,3 +1,6 @@
+import { settleBefore } from "@/lib/utils/promise";
+import { flushPolymer } from "@/lib/youtube/page/polymer";
+
 import { type FeedGrid, videoIdFromTile } from "./feed-grid";
 import {
   FeedMotionClass,
@@ -9,8 +12,6 @@ import {
   whenMotionFinishes
 } from "./feed-motion";
 import { alignOpenMenuToItsVideo, pinOpenMenuToItsVideo, releaseOpenMenu } from "./open-menu";
-import { settleBefore } from "@/lib/utils/promise";
-import { flushPolymer } from "@/lib/youtube/page/polymer";
 
 // The animated grid write (FLIP): leaving tiles fade out in place, then the model is written, surviving tiles are
 // pinned to their old positions and released to glide into their new slots while new tiles scale and fade in. The
@@ -35,17 +36,11 @@ async function predecodeThumbnails(urls: readonly string[]) {
   });
 }
 
-function findTilesByVideoId({ grid, videoIds }: {
-  grid: FeedGrid;
-  videoIds: ReadonlySet<string>;
-}) {
+function findTilesByVideoId({ grid, videoIds }: { grid: FeedGrid; videoIds: ReadonlySet<string> }) {
   return grid.findTiles().filter(elTile => videoIds.has(videoIdFromTile(elTile) ?? ""));
 }
 
-async function fadeOutLeavingTiles({ grid, removedIds }: {
-  grid: FeedGrid;
-  removedIds: ReadonlySet<string>;
-}) {
+async function fadeOutLeavingTiles({ grid, removedIds }: { grid: FeedGrid; removedIds: ReadonlySet<string> }) {
   const elLeaving = findTilesByVideoId({
     grid,
     videoIds: removedIds
@@ -68,10 +63,7 @@ function recordTileRects(grid: FeedGrid) {
 }
 
 /** Polymer stamps new tiles across microtasks, then frames; each one stays hidden until its entrance */
-async function waitForEnteringTiles({ grid, insertedIds }: {
-  grid: FeedGrid;
-  insertedIds: ReadonlySet<string>;
-}) {
+async function waitForEnteringTiles({ grid, insertedIds }: { grid: FeedGrid; insertedIds: ReadonlySet<string> }) {
   function hideStampedTiles() {
     const elStamped = findTilesByVideoId({
       grid,
@@ -97,7 +89,11 @@ async function waitForEnteringTiles({ grid, insertedIds }: {
   });
 }
 
-function pinSurvivors({ grid, oldRects, insertedIds }: {
+function pinSurvivors({
+  grid,
+  oldRects,
+  insertedIds
+}: {
   grid: FeedGrid;
   oldRects: ReadonlyMap<string, DOMRect>;
   insertedIds: ReadonlySet<string>;
@@ -125,7 +121,11 @@ function pinSurvivors({ grid, oldRects, insertedIds }: {
 }
 
 /** Shelf tiles that only came into view with the write: they stood behind the shelf's "Show more" */
-function hideRevealedShelfTiles({ grid, oldRects, insertedIds }: {
+function hideRevealedShelfTiles({
+  grid,
+  oldRects,
+  insertedIds
+}: {
   grid: FeedGrid;
   oldRects: ReadonlyMap<string, DOMRect>;
   insertedIds: ReadonlySet<string>;

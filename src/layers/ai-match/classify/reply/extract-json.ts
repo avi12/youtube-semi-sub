@@ -8,10 +8,7 @@ const JSON_START_PATTERN = /[[{]/;
  * Cuts the object or array opening at `start` out of surrounding text by walking its brackets, skipping any bracket
  * inside a string. Stopping at the first `}` instead would cut short whenever a string in the value contains one
  */
-function sliceJsonValue({ text, start }: {
-  text: string;
-  start: number;
-}) {
+function sliceJsonValue({ text, start }: { text: string; start: number }) {
   const opening = text[start];
   if (opening === undefined || !JSON_OPENING_BRACKETS.has(opening)) {
     return null;
@@ -29,11 +26,11 @@ function sliceJsonValue({ text, start }: {
 
     if (isInsideString) {
       isEscaped = character === "\\";
-      isInsideString = character !== "\"";
+      isInsideString = character !== '"';
       continue;
     }
 
-    if (character === "\"") {
+    if (character === '"') {
       isInsideString = true;
       continue;
     }

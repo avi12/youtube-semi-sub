@@ -1,5 +1,6 @@
-import { formatRelativeTime, parseFirstRelativeTime, parseRelativeTime } from "./relative-time";
 import { describe, expect, it } from "vitest";
+
+import { formatRelativeTime, parseFirstRelativeTime, parseRelativeTime } from "./relative-time";
 
 const NOW = Date.UTC(2026, 9, 15, 12);
 const SECOND = 1000;

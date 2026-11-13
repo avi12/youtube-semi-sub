@@ -1,5 +1,6 @@
-import { isLightTextColor } from "./page-theme";
 import { describe, expect, it } from "vitest";
+
+import { isLightTextColor } from "./page-theme";
 
 describe("isLightTextColor", () => {
   it.each([

@@ -1,7 +1,5 @@
-import { findShortsShelf, planShortsShelf } from "./shorts-shelf";
-import type { FeedVideo } from "@/lib/schemas/feed-video";
-import { MILLISECONDS_PER_HOUR } from "@/lib/utils/time";
-import { ShelfRendererKind } from "@/lib/youtube/schemas/renderers";
+import { describe, expect, it } from "vitest";
+
 import { buildSemiSubscribedRichItem } from "#feed/compose/semi-subscribed-tag";
 import {
   continuationItem,
@@ -14,7 +12,11 @@ import {
   shortsShelf,
   videoId
 } from "#feed/fixtures/feed-fixtures";
-import { describe, expect, it } from "vitest";
+import type { FeedVideo } from "@/lib/schemas/feed-video";
+import { MILLISECONDS_PER_HOUR } from "@/lib/utils/time";
+import { ShelfRendererKind } from "@/lib/youtube/schemas/renderers";
+
+import { findShortsShelf, planShortsShelf } from "./shorts-shelf";
 
 const NO_REMOVALS = new Set<string>();
 const LOADED_SPAN_HOURS = 48;
@@ -23,10 +25,7 @@ function isWithinTwoDays(video: FeedVideo) {
   return NOW - video.publishedAt <= LOADED_SPAN_HOURS * MILLISECONDS_PER_HOUR;
 }
 
-function short({ index, hours }: {
-  index: number;
-  hours: number;
-}) {
+function short({ index, hours }: { index: number; hours: number }) {
   return feedVideo({
     index,
     hours,
@@ -51,7 +50,11 @@ function feedContents(shelf: unknown = shortsShelf([90, 91])) {
   ];
 }
 
-function plan({ contents = feedContents(), videos, removedVideoIds = NO_REMOVALS }: {
+function plan({
+  contents = feedContents(),
+  videos,
+  removedVideoIds = NO_REMOVALS
+}: {
   contents?: unknown[];
   videos: FeedVideo[];
   removedVideoIds?: ReadonlySet<string>;
@@ -184,10 +187,12 @@ describe("planShortsShelf", () => {
     expect(
       plan({
         contents: feedContents(mostRelevantShelf([5])),
-        videos: [short({
-          index: 50,
-          hours: 2
-        })]
+        videos: [
+          short({
+            index: 50,
+            hours: 2
+          })
+        ]
       })
     ).toBeNull();
   });

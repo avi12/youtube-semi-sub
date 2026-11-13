@@ -1,16 +1,10 @@
-import { FeedTileTag, videoIdFromTile } from "./feed-grid";
-import {
-  FeedMotionClass,
-  glide,
-  isInGlide,
-  isInViewport,
-  nextFrame,
-  pinAtOffset
-} from "./feed-motion";
-import { isYouTubeAutoFeedActive } from "./ytaf";
 import { elementSchema, htmlElementSchema } from "@/lib/schemas/dom";
 import { ironDropdownElementSchema, isIronDropdown } from "@/lib/youtube/page/iron-dropdown";
 import { z } from "@/lib/zod";
+
+import { FeedTileTag, videoIdFromTile } from "./feed-grid";
+import { FeedMotionClass, glide, isInGlide, isInViewport, nextFrame, pinAtOffset } from "./feed-motion";
+import { isYouTubeAutoFeedActive } from "./ytaf";
 
 // A tile's "More actions" menu is a fixed-position dropdown lined up with the tile's menu button when it opens, and its
 // actions act on that tile's video. A grid write rebinds tiles in place, so once the video moves, the button the menu
@@ -73,10 +67,7 @@ function trackedOpenMenu() {
   return elDropdown.opened && elDropdown.positionTarget === elAnchor ? openMenu : null;
 }
 
-function distanceBetweenCenters({ left, right }: {
-  left: DOMRect;
-  right: DOMRect;
-}) {
+function distanceBetweenCenters({ left, right }: { left: DOMRect; right: DOMRect }) {
   return Math.hypot(
     left.left + left.width / 2 - (right.left + right.width / 2),
     left.top + left.height / 2 - (right.top + right.height / 2)
@@ -87,17 +78,15 @@ function distanceBetweenCenters({ left, right }: {
  * The tile the menu was last lined up with, while it still shows the menu's video. A write rebinds tiles to other
  * videos, and a video can sit in more than one band, so otherwise the copy beside the menu is taken
  */
-function findMenuTarget({ menu, menuRect }: {
-  menu: OpenMenu;
-  menuRect: DOMRect;
-}) {
+function findMenuTarget({ menu, menuRect }: { menu: OpenMenu; menuRect: DOMRect }) {
   const { elTile, videoId, buttonLabel } = menu;
   const buttonSelector = `button[aria-label="${CSS.escape(buttonLabel)}"]`;
   const isTileShowingVideo = elTile.isConnected && videoIdFromTile(elTile) === videoId;
   const elCandidates = isTileShowingVideo
     ? [elTile]
-    : [...document.querySelectorAll<HTMLElement>(FeedTileTag.desktop)]
-      .filter(elCandidate => videoIdFromTile(elCandidate) === videoId);
+    : [...document.querySelectorAll<HTMLElement>(FeedTileTag.desktop)].filter(
+        elCandidate => videoIdFromTile(elCandidate) === videoId
+      );
   function distanceFromMenu({ elButton }: MenuTarget) {
     return distanceBetweenCenters({
       left: elButton.getBoundingClientRect(),
@@ -106,20 +95,18 @@ function findMenuTarget({ menu, menuRect }: {
   }
 
   const [nearest] = elCandidates
-    .flatMap(elCandidate => [...elCandidate.querySelectorAll<HTMLElement>(buttonSelector)]
-      .map(elButton => ({
+    .flatMap(elCandidate =>
+      [...elCandidate.querySelectorAll<HTMLElement>(buttonSelector)].map(elButton => ({
         elButton,
         elTile: elCandidate
-      })))
+      }))
+    )
     .sort((left, right) => distanceFromMenu(left) - distanceFromMenu(right));
   return nearest ?? null;
 }
 
 /** A tile pinned for its glide still stands at its old slot; this measures it where it comes to rest */
-function atRest<TMeasured>({ elTile, measure }: {
-  elTile: HTMLElement;
-  measure: () => TMeasured;
-}) {
+function atRest<TMeasured>({ elTile, measure }: { elTile: HTMLElement; measure: () => TMeasured }) {
   const pinnedTranslate = elTile.style.translate;
   elTile.style.translate = "";
   const measured = measure();
@@ -127,10 +114,7 @@ function atRest<TMeasured>({ elTile, measure }: {
   return measured;
 }
 
-function lineUpMenu({ menu, target }: {
-  menu: OpenMenu;
-  target: MenuTarget;
-}) {
+function lineUpMenu({ menu, target }: { menu: OpenMenu; target: MenuTarget }) {
   const { elDropdown } = menu;
   const { elButton, elTile } = target;
   // The refit offsets the menu's own glide, so a glide left in flight would carry it off the button
@@ -158,10 +142,12 @@ function followMenuVideo() {
     menu,
     menuRect
   });
-  const isOnScreen = !!target && atRest({
-    elTile: target.elTile,
-    measure: () => isInViewport(target.elButton)
-  });
+  const isOnScreen =
+    !!target &&
+    atRest({
+      elTile: target.elTile,
+      measure: () => isInViewport(target.elButton)
+    });
   if (!target || !isOnScreen) {
     elDropdown.close();
     return null;
@@ -169,10 +155,11 @@ function followMenuVideo() {
 
   atRest({
     elTile: target.elTile,
-    measure: () => lineUpMenu({
-      menu,
-      target
-    })
+    measure: () =>
+      lineUpMenu({
+        menu,
+        target
+      })
   });
   const realignedRect = elDropdown.getBoundingClientRect();
   return {

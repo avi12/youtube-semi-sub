@@ -1,4 +1,3 @@
-import { fetchText } from "./fetch-text";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { parseJson } from "@/lib/utils/json";
 import { buildChannelPath } from "@/lib/youtube/channel-link";
@@ -18,6 +17,8 @@ import { YOUTUBE_ORIGIN } from "@/lib/youtube/site";
 import { durationFromClassicRenderer, durationFromLockup } from "@/lib/youtube/video-duration";
 import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
 import { z } from "@/lib/zod";
+
+import { fetchText } from "./fetch-text";
 
 // Fallback for when RSS is down: the channel's Videos tab. Its page embeds the InnerTube browse response as
 // `ytInitialData`. A direct InnerTube POST is not an option - the browser stamps the extension's Origin on it and
@@ -108,14 +109,13 @@ function readGridItem(item: unknown) {
 }
 
 // Live and upcoming videos carry no relative time - they count as published now
-function findPublishedAt({ timeTexts, now }: {
-  timeTexts: string[];
-  now: number;
-}) {
-  return parseFirstRelativeTime({
-    texts: timeTexts,
-    now
-  })?.approximateTime ?? now;
+function findPublishedAt({ timeTexts, now }: { timeTexts: string[]; now: number }) {
+  return (
+    parseFirstRelativeTime({
+      texts: timeTexts,
+      now
+    })?.approximateTime ?? now
+  );
 }
 
 function findGridContents(response: ChannelBrowseResponse) {
@@ -138,7 +138,11 @@ export function extractInitialData(html: string) {
  * Reads the uploads of a channel's Videos tab (newest first); publish times are approximated from relative text. The
  * tab never lists Shorts
  */
-export function parseVideosTab({ response, now, tab = ChannelGridTab.videos }: {
+export function parseVideosTab({
+  response,
+  now,
+  tab = ChannelGridTab.videos
+}: {
   response: unknown;
   now: number;
   /** The Streams tab is read the same way; its uploads are marked live streams */
@@ -175,9 +179,9 @@ export function parseVideosTab({ response, now, tab = ChannelGridTab.videos }: {
       isShort: false,
       isMembersOnly: upload.isMembersOnly,
       isLiveStream: tab === ChannelGridTab.streams,
-      ...upload.durationSeconds !== null && {
+      ...(upload.durationSeconds !== null && {
         durationSeconds: upload.durationSeconds
-      }
+      })
     });
     if (video.success) {
       videos.push(video.data);
@@ -187,10 +191,7 @@ export function parseVideosTab({ response, now, tab = ChannelGridTab.videos }: {
 }
 
 /** The uploads a channel's grid tab lists, or null when the page is unavailable or unreadable */
-export async function fetchChannelTabUploads({ channelId, tab }: {
-  channelId: string;
-  tab: ChannelGridTab;
-}) {
+export async function fetchChannelTabUploads({ channelId, tab }: { channelId: string; tab: ChannelGridTab }) {
   const url = new URL(`${buildChannelPath(channelId)}/${tab}`, YOUTUBE_ORIGIN);
   url.searchParams.set(INTERFACE_LANGUAGE_PARAM, ENGLISH_INTERFACE_LANGUAGE);
   // Cookies carry the user's consent choice - without them EU visitors get the consent interstitial instead

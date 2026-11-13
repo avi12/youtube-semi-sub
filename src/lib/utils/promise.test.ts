@@ -1,12 +1,6 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { settleBefore } from "@/lib/utils/promise";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi
-} from "vitest";
 
 const DEADLINE_MS = 1000;
 

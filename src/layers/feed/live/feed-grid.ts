@@ -1,3 +1,4 @@
+import { shortsLockupFromItem, videoIdFromContent } from "#feed/items/feed-items";
 import { isPolymerElement } from "@/lib/youtube/page/polymer";
 import {
   getYouTubeSite,
@@ -7,14 +8,13 @@ import {
   YouTubeSite
 } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
-import { shortsLockupFromItem, videoIdFromContent } from "#feed/items/feed-items";
 
 // The live subscriptions grid. www: a Polymer element whose model is written with `set("data.contents", ...)`.
 // m: the grid is rendered by a signals framework that is not known to expose its model - a `data` property is
 // written when present, though m has not been seen re-rendering its grid or Shorts shelf from one; the response and
 // ytInitialData hooks are what cover m
 
-const DESKTOP_GRID_SELECTOR = "ytd-browse[page-subtype=\"subscriptions\"] ytd-rich-grid-renderer";
+const DESKTOP_GRID_SELECTOR = 'ytd-browse[page-subtype="subscriptions"] ytd-rich-grid-renderer';
 /** The elements a feed tile renders as */
 export enum FeedTileTag {
   desktop = "ytd-rich-item-renderer",
@@ -32,25 +32,21 @@ const gridDataSchema = z.looseObject({ contents: z.array(z.unknown()) });
 const tileDataSchema = z.looseObject({ content: z.unknown() });
 
 /** The element's `data` in the expected shape, or null when it has none or another */
-function readElementData<TSchema extends z.ZodType>({ element, schema }: {
-  element: HTMLElement;
-  schema: TSchema;
-}) {
+function readElementData<TSchema extends z.ZodType>({ element, schema }: { element: HTMLElement; schema: TSchema }) {
   const parsed = "data" in element ? schema.safeParse(element.data) : null;
   return parsed?.success ? parsed.data : null;
 }
 
 function readDataContents(element: HTMLElement) {
-  return readElementData({
-    element,
-    schema: gridDataSchema
-  })?.contents ?? null;
+  return (
+    readElementData({
+      element,
+      schema: gridDataSchema
+    })?.contents ?? null
+  );
 }
 
-function writeDataContents({ element, contents }: {
-  element: HTMLElement;
-  contents: unknown[];
-}) {
+function writeDataContents({ element, contents }: { element: HTMLElement; contents: unknown[] }) {
   if (isPolymerElement(element)) {
     element.set(CONTENTS_PATH, contents);
     return;

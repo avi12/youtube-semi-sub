@@ -18,7 +18,11 @@ const polymerAttributesSchema = z.record(z.string(), z.union([z.boolean(), z.str
 type PolymerAttributes = z.infer<typeof polymerAttributesSchema>;
 
 /** The host's attributes, for any template to spread: the element to create, its `.data` and its own attributes */
-export function polymerHostAttributes({ tag, data, attributes = {} }: {
+export function polymerHostAttributes({
+  tag,
+  data,
+  attributes = {}
+}: {
   tag: string;
   data?: unknown;
   attributes?: PolymerAttributes;
@@ -52,10 +56,7 @@ function readPolymerElement(elHost: Element) {
   return elPolymer;
 }
 
-function syncAttributes({ elPolymer, attributesJson }: {
-  elPolymer: Element;
-  attributesJson: string | null;
-}) {
+function syncAttributes({ elPolymer, attributesJson }: { elPolymer: Element; attributesJson: string | null }) {
   const parsed = polymerAttributesSchema.safeParse(parseJson(attributesJson ?? ""));
   for (const [name, value] of Object.entries(parsed.success ? parsed.data : {})) {
     if (value === false) {

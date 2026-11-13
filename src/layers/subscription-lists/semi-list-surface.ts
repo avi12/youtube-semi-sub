@@ -1,11 +1,13 @@
-import { listsView } from "./lists-view.svelte";
+import { type Component, mount, unmount } from "svelte";
+
 import { onPageState } from "@/lib/page/page-state";
 import { elementSchema } from "@/lib/schemas/dom";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { createFrameScheduler, observeSubtree } from "@/lib/utils/dom";
 import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
 import { z } from "@/lib/zod";
-import { type Component, mount, unmount } from "svelte";
+
+import { listsView } from "./lists-view.svelte";
 
 export enum SemiListSurface {
   mobileChannels = "mobile-channels",
@@ -34,7 +36,11 @@ export function markSurface(surface: SemiListSurface) {
  * Observes one page's DOM only while that page is open: `watch()` (re)attaches the observer for the current page
  * and says whether it is open; `onChange` runs on every mutation under `observedSelector`
  */
-export function createPageWatcher({ pathname, observedSelector, onChange }: {
+export function createPageWatcher({
+  pathname,
+  observedSelector,
+  onChange
+}: {
   pathname: string;
   observedSelector: string;
   onChange: () => void;

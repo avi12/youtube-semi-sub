@@ -46,17 +46,14 @@ function isFeedMotion(animation: Animation) {
  * document: YouTube's Web Animations polyfill replaces `Element.getAnimations`, which then never reports CSS motion
  */
 export async function whenMotionFinishes(element: Element) {
-  const motions = document.getAnimations()
+  const motions = document
+    .getAnimations()
     .filter(animation => targetOf(animation) === element && isFeedMotion(animation));
   await Promise.allSettled(motions.map(animation => animation.finished));
 }
 
 /** Stands an element a write just moved back where it stood before, so it can glide to its new place */
-export function pinAtOffset({ element, deltaX, deltaY }: {
-  element: HTMLElement;
-  deltaX: number;
-  deltaY: number;
-}) {
+export function pinAtOffset({ element, deltaX, deltaY }: { element: HTMLElement; deltaX: number; deltaY: number }) {
   const isMoved = Math.abs(deltaX) >= MIN_GLIDE_PX || Math.abs(deltaY) >= MIN_GLIDE_PX;
   if (isMoved) {
     element.style.translate = `${deltaX}px ${deltaY}px`;

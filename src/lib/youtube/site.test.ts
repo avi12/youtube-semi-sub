@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import {
   buildShortsPath,
   buildWatchPath,
@@ -8,7 +10,6 @@ import {
   LIVE_PATH_PATTERN,
   SHORTS_PATH_PATTERN
 } from "@/lib/youtube/site";
-import { describe, expect, it } from "vitest";
 
 const VIDEO_ID = "R6yNUnRXZ64";
 

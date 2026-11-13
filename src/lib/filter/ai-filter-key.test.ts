@@ -1,9 +1,12 @@
-import { AI_PROMPT_VERSION, getAiFilterKey, normalizeAiDescription } from "./ai-filter-key";
 import { describe, expect, it } from "vitest";
+
+import { AI_PROMPT_VERSION, getAiFilterKey, normalizeAiDescription } from "./ai-filter-key";
 
 describe("normalizeAiDescription", () => {
   it("trims and collapses whitespace, line breaks included", () => {
-    expect(normalizeAiDescription("  only phone\n\treviews,   not unboxings ")).toBe("only phone reviews, not unboxings");
+    expect(normalizeAiDescription("  only phone\n\treviews,   not unboxings ")).toBe(
+      "only phone reviews, not unboxings"
+    );
   });
 
   it("unifies Unicode forms", () => {

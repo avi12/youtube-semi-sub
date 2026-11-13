@@ -1,12 +1,5 @@
-import {
-  getObservedOfficialSubscription,
-  onObservedOfficialSubscriptionChange,
-  setObservedOfficialSubscription
-} from "./official-subscription";
-import { createFrameScheduler, SUBTREE_CHILD_LIST, whenDocumentParsed } from "@/lib/utils/dom";
-import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
-import { getYouTubeSite } from "@/lib/youtube/site";
-import { z } from "@/lib/zod";
+import { mount, unmount } from "svelte";
+
 import { buildNativeButtonClasses } from "#channel-button/button/native-button-classes";
 import SemiSubButton from "#channel-button/button/SemiSubButton.svelte";
 import {
@@ -23,7 +16,16 @@ import {
   SUBSCRIBED_ATTRIBUTE
 } from "#channel-button/page/page-anchor";
 import { readIsSignedIn, readPageData, readUrlVideoId } from "#channel-button/page/page-data-source";
-import { mount, unmount } from "svelte";
+import { createFrameScheduler, SUBTREE_CHILD_LIST, whenDocumentParsed } from "@/lib/utils/dom";
+import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
+import { getYouTubeSite } from "@/lib/youtube/site";
+import { z } from "@/lib/zod";
+
+import {
+  getObservedOfficialSubscription,
+  onObservedOfficialSubscriptionChange,
+  setObservedOfficialSubscription
+} from "./official-subscription";
 
 // MAIN world: keeps one channel button - "Semi-subscribe", in either mode - next to YouTube's own Subscribe
 // button, across SPA navigations
@@ -78,8 +80,8 @@ function resolveTarget(kind: PageKind) {
   }
 
   const urlVideoId = readUrlVideoId();
-  const isStaleWatchData = kind === PageKind.watch && !!urlVideoId && !!pageChannel.videoId
-    && pageChannel.videoId !== urlVideoId;
+  const isStaleWatchData =
+    kind === PageKind.watch && !!urlVideoId && !!pageChannel.videoId && pageChannel.videoId !== urlVideoId;
   if (isStaleWatchData) {
     return Unresolved.pending;
   }
@@ -94,11 +96,13 @@ function resolveTarget(kind: PageKind) {
     kind,
     isSignedIn
   });
-  const isControlForOtherChannel = !!anchor?.elSubscribe && !readSubscribeControl({
-    elSubscribe: anchor.elSubscribe,
-    channelId: pageChannel.channel.channelId,
-    isCollaboration: pageChannel.collaborators.length > 0
-  }).isForChannel;
+  const isControlForOtherChannel =
+    !!anchor?.elSubscribe &&
+    !readSubscribeControl({
+      elSubscribe: anchor.elSubscribe,
+      channelId: pageChannel.channel.channelId,
+      isCollaboration: pageChannel.collaborators.length > 0
+    }).isForChannel;
   if (!anchor || isControlForOtherChannel) {
     return Unresolved.pending;
   }
@@ -113,11 +117,13 @@ function resolveTarget(kind: PageKind) {
 /** Live control state first (it tracks YouTube's entity store), then what this tab saw, then the page data */
 function readIsOfficiallySubscribed({ pageChannel, anchor }: Target) {
   const { channelId } = pageChannel.channel;
-  const control = anchor.elSubscribe && readSubscribeControl({
-    elSubscribe: anchor.elSubscribe,
-    channelId,
-    isCollaboration: pageChannel.collaborators.length > 0
-  });
+  const control =
+    anchor.elSubscribe &&
+    readSubscribeControl({
+      elSubscribe: anchor.elSubscribe,
+      channelId,
+      isCollaboration: pageChannel.collaborators.length > 0
+    });
   const liveSubscription = control?.isLive ? control.isSubscribed : undefined;
   if (liveSubscription !== undefined) {
     return liveSubscription;
@@ -219,8 +225,8 @@ function trackPage(kind: PageKind) {
   // YouTube flips its own button the moment Subscribe is pressed, before the request completes
   function handleSubscriptionChanged(e: Event) {
     const parsed = subscriptionChangedDetailSchema.safeParse(e instanceof CustomEvent ? e.detail : undefined);
-    const isFromThisChannelsControl = !!mounted && e.target instanceof Node
-      && mounted.target.anchor.elContainer.contains(e.target);
+    const isFromThisChannelsControl =
+      !!mounted && e.target instanceof Node && mounted.target.anchor.elContainer.contains(e.target);
     if (!parsed.success || !mounted || !isFromThisChannelsControl) {
       return;
     }
@@ -249,8 +255,10 @@ export function startChannelButton() {
     }
   }
 
-  whenDocumentParsed().then(() => {
-    handlePage();
-    onYouTubeNavigate(handlePage);
-  }).catch(console.error);
+  whenDocumentParsed()
+    .then(() => {
+      handlePage();
+      onYouTubeNavigate(handlePage);
+    })
+    .catch(console.error);
 }

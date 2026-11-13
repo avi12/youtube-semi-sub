@@ -24,7 +24,10 @@ export function collectAiFilterKeys(subscription: Pick<SemiSubscription, "follow
 }
 
 /** Per AI filter key in use, the videos a channel using it still has cached */
-function collectReferencedVideoIds({ subscriptions, channelVideos }: {
+function collectReferencedVideoIds({
+  subscriptions,
+  channelVideos
+}: {
   subscriptions: SemiSubscriptions;
   channelVideos: ChannelVideosCache;
 }) {
@@ -45,7 +48,11 @@ function collectReferencedVideoIds({ subscriptions, channelVideos }: {
  * Keeps only the verdicts a semi-subscription can still use: keys of AI filters in use, and within each key the videos
  * still cached for a channel that uses it. A preview's verdicts for a channel that was never saved go too
  */
-export function pruneAiVerdicts({ aiVerdicts, subscriptions, channelVideos }: {
+export function pruneAiVerdicts({
+  aiVerdicts,
+  subscriptions,
+  channelVideos
+}: {
   aiVerdicts: AiVerdicts;
   subscriptions: SemiSubscriptions;
   channelVideos: ChannelVideosCache;

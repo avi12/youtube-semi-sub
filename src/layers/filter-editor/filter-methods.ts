@@ -55,10 +55,7 @@ export function getConditionMethod(condition: FilterCondition) {
 }
 
 /** Where a newly picked method starts */
-export function createDefaultCondition({ method, mode }: {
-  method: FilterMethod;
-  mode: SubscriptionMode;
-}) {
+export function createDefaultCondition({ method, mode }: { method: FilterMethod; mode: SubscriptionMode }) {
   const conditionByMethod = {
     [FilterMethod.title]: {
       ...DEFAULT_TITLE_FILTER
@@ -76,13 +73,19 @@ export function createDefaultCondition({ method, mode }: {
 }
 
 /** The conditions with one method's replaced, added or (null) removed - kept in `FILTER_METHODS` order */
-export function withMethodCondition({ conditions, method, condition }: {
+export function withMethodCondition({
+  conditions,
+  method,
+  condition
+}: {
   conditions: readonly FilterCondition[];
   method: FilterMethod;
   condition: FilterCondition | null;
 }) {
   const others = conditions.filter(other => getConditionMethod(other) !== method);
   const next = condition ? [...others, condition] : others;
-  return next.toSorted((left, right) =>
-    FILTER_METHODS.indexOf(getConditionMethod(left)) - FILTER_METHODS.indexOf(getConditionMethod(right)));
+  return next.toSorted(
+    (left, right) =>
+      FILTER_METHODS.indexOf(getConditionMethod(left)) - FILTER_METHODS.indexOf(getConditionMethod(right))
+  );
 }

@@ -1,3 +1,6 @@
+import type { StorageItemKey, WxtStorageItemOptions } from "wxt/utils/storage";
+
+import { storage } from "#imports";
 import { channelIdSchema } from "@/lib/schemas/channel";
 import {
   migrateSemiSubscriptionsToV2,
@@ -6,8 +9,6 @@ import {
 } from "@/lib/schemas/semi-subscription";
 import { type StoredState, storedStateSchema } from "@/lib/schemas/stored-state";
 import { z } from "@/lib/zod";
-import { storage } from "#imports";
-import type { StorageItemKey, WxtStorageItemOptions } from "wxt/utils/storage";
 
 const SEMI_SUBSCRIPTIONS_VERSION = 4;
 /**
@@ -31,10 +32,12 @@ const CHANNEL_CACHE_VERSIONING = {
  * A storage item whose type comes from its zod schema: every read (getValue, watch) is validated and falls back on a
  * malformed value, and every write is validated before it lands
  */
-function defineSchemaItem<Schema extends z.ZodType>({ key, schema, fallback, ...versioning }: Pick<
-  WxtStorageItemOptions<z.infer<Schema>>,
-  "version" | "migrations"
-> & {
+function defineSchemaItem<Schema extends z.ZodType>({
+  key,
+  schema,
+  fallback,
+  ...versioning
+}: Pick<WxtStorageItemOptions<z.infer<Schema>>, "version" | "migrations"> & {
   key: StorageItemKey;
   schema: Schema;
   fallback: z.infer<Schema>;
@@ -159,15 +162,14 @@ export function watchStoredState(callback: () => void) {
 const pendingMutationByItem = new WeakMap<object, Promise<unknown>>();
 
 /** Serialises read-modify-write per item so concurrent mutations never drop each other's changes */
-export function mutateStorageItem<T>({ item, mutator }: {
-  item: StorageItem<T>;
-  mutator: (value: T) => T;
-}) {
+export function mutateStorageItem<T>({ item, mutator }: { item: StorageItem<T>; mutator: (value: T) => T }) {
   const previous = pendingMutationByItem.get(item) ?? Promise.resolve();
-  const next = previous.catch(() => {}).then(async () => {
-    const value = await item.getValue();
-    await item.setValue(mutator(value));
-  });
+  const next = previous
+    .catch(() => {})
+    .then(async () => {
+      const value = await item.getValue();
+      await item.setValue(mutator(value));
+    });
   pendingMutationByItem.set(item, next);
   return next;
 }

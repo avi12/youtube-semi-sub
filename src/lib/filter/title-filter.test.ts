@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import type { AiVerdicts } from "@/lib/filter/ai-verdicts";
 import {
@@ -23,7 +25,6 @@ import {
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
-import { describe, expect, it } from "vitest";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 const OTHER_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
@@ -34,7 +35,12 @@ const AI_FILTER: AiFilter = {
   description: "only reviews"
 };
 
-function createVideo({ videoId, channelId, title, publishedAt }: Pick<FeedVideo, "videoId" | "channelId" | "title" | "publishedAt">) {
+function createVideo({
+  videoId,
+  channelId,
+  title,
+  publishedAt
+}: Pick<FeedVideo, "videoId" | "channelId" | "title" | "publishedAt">) {
   const video: FeedVideo = {
     videoId,
     channelId,
@@ -136,36 +142,57 @@ describe("getTitleFilterError", () => {
 describe("isVideoFilterValid", () => {
   it.each([
     [AI_FILTER, true],
-    [{
-      kind: FilterKind.aiMatch,
-      description: "   "
-    }, false],
-    [{
-      kind: FilterKind.aiMatch,
-      description: "x".repeat(301)
-    }, false],
-    [{
-      kind: FilterKind.regex,
-      pattern: "(",
-      flags: ""
-    }, false],
-    [{
-      kind: FilterKind.length,
-      maxSeconds: 600
-    }, true],
-    [{
-      kind: FilterKind.length
-    }, false],
-    [{
-      kind: FilterKind.length,
-      minSeconds: 600,
-      maxSeconds: 60
-    }, false],
-    [{
-      kind: FilterKind.group,
-      match: FilterMatch.any,
-      conditions: []
-    }, false]
+    [
+      {
+        kind: FilterKind.aiMatch,
+        description: "   "
+      },
+      false
+    ],
+    [
+      {
+        kind: FilterKind.aiMatch,
+        description: "x".repeat(301)
+      },
+      false
+    ],
+    [
+      {
+        kind: FilterKind.regex,
+        pattern: "(",
+        flags: ""
+      },
+      false
+    ],
+    [
+      {
+        kind: FilterKind.length,
+        maxSeconds: 600
+      },
+      true
+    ],
+    [
+      {
+        kind: FilterKind.length
+      },
+      false
+    ],
+    [
+      {
+        kind: FilterKind.length,
+        minSeconds: 600,
+        maxSeconds: 60
+      },
+      false
+    ],
+    [
+      {
+        kind: FilterKind.group,
+        match: FilterMatch.any,
+        conditions: []
+      },
+      false
+    ]
   ] satisfies [VideoFilter, boolean][])("judges %j as valid: %s", (filter, isValid) => {
     expect(isVideoFilterValid(filter)).toBe(isValid);
   });
@@ -177,7 +204,10 @@ describe("createVideoJudge by length", () => {
     maxSeconds: 600
   };
 
-  function judgeLength({ filter = UP_TO_TEN_MINUTES, ...video }: Partial<Pick<FeedVideo, "durationSeconds" | "isShort">> & {
+  function judgeLength({
+    filter = UP_TO_TEN_MINUTES,
+    ...video
+  }: Partial<Pick<FeedVideo, "durationSeconds" | "isShort">> & {
     filter?: VideoFilter;
   }) {
     return createVideoJudge({
@@ -276,19 +306,26 @@ describe("createVideoJudge with combined conditions", () => {
     const filter: VideoFilter = {
       kind: FilterKind.group,
       match,
-      conditions: [{
-        kind: FilterKind.regex,
-        pattern: "review",
-        flags: "i"
-      }, {
-        kind: FilterKind.length,
-        maxSeconds: 600
-      }]
+      conditions: [
+        {
+          kind: FilterKind.regex,
+          pattern: "review",
+          flags: "i"
+        },
+        {
+          kind: FilterKind.length,
+          maxSeconds: 600
+        }
+      ]
     };
     return filter;
   }
 
-  function judge({ match, title, durationSeconds }: Pick<FeedVideo, "title"> & {
+  function judge({
+    match,
+    title,
+    durationSeconds
+  }: Pick<FeedVideo, "title"> & {
     match: FilterMatch;
     durationSeconds?: number;
   }) {
@@ -365,10 +402,13 @@ describe("createVideoJudge with combined conditions", () => {
     const filter: VideoFilter = {
       kind: FilterKind.group,
       match: FilterMatch.any,
-      conditions: [DEFAULT_TITLE_FILTER, {
-        kind: FilterKind.length,
-        maxSeconds: 60
-      }]
+      conditions: [
+        DEFAULT_TITLE_FILTER,
+        {
+          kind: FilterKind.length,
+          maxSeconds: 60
+        }
+      ]
     };
     expect(
       isFilterInert({
@@ -393,10 +433,13 @@ describe("createVideoJudge with combined conditions", () => {
     const filter: VideoFilter = {
       kind: FilterKind.group,
       match: FilterMatch.any,
-      conditions: [AI_FILTER, {
-        kind: FilterKind.length,
-        maxSeconds: 600
-      }]
+      conditions: [
+        AI_FILTER,
+        {
+          kind: FilterKind.length,
+          maxSeconds: 600
+        }
+      ]
     };
     const pausedJudge = createVideoJudge({
       filter,
