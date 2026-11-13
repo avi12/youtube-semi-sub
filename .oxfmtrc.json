@@ -9,7 +9,9 @@
   "bracketSpacing": true,
   "arrowParens": "avoid",
   "endOfLine": "lf",
-  "sortImports": { "sortSideEffects": true },
+  "sortImports": {
+    "sortSideEffects": true
+  },
   "ignorePatterns": [
     "**/node_modules/**",
     "**/dist/**",
@@ -24,6 +26,7 @@
     "**/pnpm-lock.yaml",
     "**/package-lock.json",
     "**/yarn.lock",
-    "**/bun.lock"
+    "**/bun.lock",
+    "**/fixtures/**"
   ]
 }
