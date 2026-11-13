@@ -22,11 +22,13 @@ export function findInlineRuns(contents: readonly unknown[]) {
   let iRunStart = -1;
   for (const [i, item] of contents.entries()) {
     const isVideo = !!videoIdFromGridItem(item);
-    if (isVideo && iRunStart === -1) {
+    const isRunStart = isVideo && iRunStart === -1;
+    if (isRunStart) {
       iRunStart = i;
     }
 
-    if (!isVideo && iRunStart !== -1) {
+    const isRunEnd = !isVideo && iRunStart !== -1;
+    if (isRunEnd) {
       runs.push({
         start: iRunStart,
         end: i

@@ -531,7 +531,8 @@ export function selectFeedVideos({
         video,
         isMember: subscription?.isMember
       });
-      if (!isLocked && judge(video) === MatchState.MATCHES) {
+      const isSelectable = !isLocked && judge(video) === MatchState.MATCHES;
+      if (isSelectable) {
         selectedById.set(video.videoId, video);
       }
     }
