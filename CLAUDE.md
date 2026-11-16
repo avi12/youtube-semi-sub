@@ -141,7 +141,7 @@ After each modification - every bug fix included, before reporting it done - run
 
 - `pnpm lint` (`avi12-lint`: oxfmt, stylelint, ESLint for Svelte templates, oxlint; the shared setup is `avi12/lint-config` v0.4.7, so fix the code, never the rules); `pnpm lint:fix` applies the fixers
 - `pnpm svelte:check`
-- `pnpm compile`
+- `pnpm compile` (`tsrs`, the Rust port of the TypeScript 7 compiler; it also switches the shared lint setup to type-aware linting)
 - `pnpm test` (vitest, tests sit next to code as `*.test.ts`)
 - `pnpm fallow` - dead-code audit; remove what a change left unused (never `fallow fix`)
 - Exemptions live in config with a reason, never as a disable comment: `naming/convention` `allowedNames`/`allowedPatterns` in `.oxlintrc.json` (Chrome's `LanguageModel` global, WXT's `$`-suffixed storage version keys), and a `house/positional-parameters` override for `src/layers/filter-editor/preview/tile-motion.ts` because Svelte's `animate` calls `slideTile(node, { from, to })`
