@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
 import { VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
-
-import { parseRssFeed, summarizeDescription } from "./rss-feed";
+import rssFeedXml from "@/lib/youtube/fixtures/rss-feed.xml?raw";
+import { parseRssFeed, summarizeDescription } from "@/lib/youtube/rss-feed";
 
 const CHANNEL_ID = "UCBJycsmduvYEL83R_U4JriQ";
 

@@ -19,7 +19,8 @@ export enum MessageType {
   AI_MODEL_DOWNLOAD_CHANGED = "ai-model-download-changed",
   OFFSCREEN_AI_DOWNLOAD = "offscreen-ai-download",
   OFFSCREEN_AI_DOWNLOAD_FRACTION = "offscreen-ai-download-fraction",
-  OFFSCREEN_AI_INFER = "offscreen-ai-infer"
+  OFFSCREEN_AI_INFER = "offscreen-ai-infer",
+  OFFSCREEN_PARSE_RSS = "offscreen-parse-rss"
 }
 
 const NO_PAYLOAD = z.undefined();
@@ -100,6 +101,11 @@ const MESSAGE_SCHEMAS = {
   [MessageType.OFFSCREEN_AI_INFER]: {
     request: z.object({ messages: z.array(chatMessageSchema).min(1) }),
     reply: z.string().nullable()
+  },
+  /** Chromium background -> offscreen page: parse a channel's upload feed (the service worker has no DOMParser) */
+  [MessageType.OFFSCREEN_PARSE_RSS]: {
+    request: z.object({ xml: z.string() }),
+    reply: z.array(feedVideoSchema).nullable()
   }
 };
 

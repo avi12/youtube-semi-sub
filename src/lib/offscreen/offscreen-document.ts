@@ -1,10 +1,11 @@
 import { browser } from "#imports";
 
-// Chromium only: the MV3 service worker has no DOM for LiteRT-LM's loader, and a 1.9 GB download would outlive its
-// short lifetime, so both run in one offscreen page the worker talks to
+// Chromium only: the MV3 service worker has no DOM - for LiteRT-LM's loader and for parsing RSS - and a 1.9 GB download
+// would outlive its short lifetime, so they run in one offscreen page the worker talks to
 
 const OFFSCREEN_DOCUMENT_PATH = "/offscreen-ai.html";
-const OFFSCREEN_JUSTIFICATION = "Downloads and runs the on-device AI model (LiteRT-LM on WebGPU) the user opted in to";
+const OFFSCREEN_JUSTIFICATION =
+  "Parses channel upload feeds, and downloads and runs the on-device AI model (LiteRT-LM on WebGPU) the user opted in to";
 const SEND_ATTEMPTS = 3;
 const SEND_RETRY_DELAY_MS = 250;
 
@@ -23,7 +24,7 @@ async function createOffscreenDocument() {
   await browser.offscreen
     .createDocument({
       url: OFFSCREEN_DOCUMENT_PATH,
-      reasons: ["BLOBS"],
+      reasons: ["BLOBS", "DOM_PARSER"],
       justification: OFFSCREEN_JUSTIFICATION
     })
     .catch(() => {

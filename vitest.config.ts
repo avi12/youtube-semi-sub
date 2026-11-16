@@ -5,6 +5,7 @@ import { WxtVitest } from "wxt/testing/vitest-plugin";
 export default defineConfig({
   plugins: [svelte(), WxtVitest()],
   test: {
-    include: ["src/**/*.test.ts"]
+    include: ["src/**/*.test.ts"],
+    setupFiles: ["./vitest.setup.ts"]
   }
 });

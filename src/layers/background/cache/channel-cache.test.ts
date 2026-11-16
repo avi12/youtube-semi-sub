@@ -2,11 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
 
 import channelVideosPageHtml from "#background/fixtures/channel-videos-page.html?raw";
-import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { aiVerdictsItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
+import rssFeedXml from "@/lib/youtube/fixtures/rss-feed.xml?raw";
 
 import { pruneChannelCaches, refreshChannel, refreshChannels } from "./channel-cache";
 

@@ -1,12 +1,12 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
 
-import rssFeedXml from "#background/fixtures/rss-feed.xml?raw";
 import { browser } from "#imports";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
 import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { aiVerdictsItem, channelCheckedAtItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
+import rssFeedXml from "@/lib/youtube/fixtures/rss-feed.xml?raw";
 
 import { startBackground } from "./index";
 
