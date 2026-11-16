@@ -57,10 +57,10 @@
 
 <style>
   .text-field {
-    --paper-input-container-focus-color: var(--yt-spec-call-to-action, #065fd4);
-    --paper-input-container-invalid-color: var(--yt-spec-error-indicator, #cc0000);
-    --paper-input-container-color: var(--yt-spec-text-secondary, #606060);
-    --paper-input-container-input-color: var(--yt-spec-text-primary, #0f0f0f);
+    --paper-input-container-focus-color: var(--accent);
+    --paper-input-container-invalid-color: var(--error);
+    --paper-input-container-color: var(--text-secondary);
+    --paper-input-container-input-color: var(--text);
 
     display: flex;
     gap: 4px;
@@ -79,6 +79,11 @@
     & > :global(tp-yt-paper-input) {
       flex: 1;
       min-inline-size: 0;
+    }
+
+    & :global(input) {
+      color: var(--text);
+      caret-color: var(--text);
     }
   }
 
