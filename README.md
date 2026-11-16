@@ -54,10 +54,12 @@ pnpm zip              # or zip:firefox (also packs the sources)
 
 Before committing, run the gates listed in [CLAUDE.md](CLAUDE.md#linting): `pnpm lint`, `pnpm stylelint`, `pnpm svelte:check`, `pnpm compile`, `pnpm test` and `pnpm fallow`.
 
-Built with [WXT](https://wxt.dev), [wxt-module-layers](https://github.com/davestewart/wxt-module-layers), Svelte 5, [m3-svelte](https://github.com/KTibow/m3-svelte), zod and [@webext-core/messaging](https://webext-core.aklinker1.io/messaging/installation).
+Built with [WXT](https://wxt.dev), [wxt-module-layers](https://github.com/davestewart/wxt-module-layers), Svelte 5, zod and [@webext-core/messaging](https://webext-core.aklinker1.io/messaging/installation).
 
 ## License
 
-Copyright 2026 [Avi](https://avi12.com). Licensed under the [Apache License 2.0](LICENSE).
+Copyright 2026 [Avi](https://avi12.com). Licensed under the [GNU General Public License v3.0](LICENSE). Third-party notices are in [NOTICE](NOTICE).
 
-If you distribute this extension or a work based on it, keep the attribution in [NOTICE](NOTICE): credit Avi (https://avi12.com) in your documentation and in any about or credits screen.
+## Support
+
+If the extension is useful to you, you can [sponsor its development](https://github.com/sponsors/avi12) or [donate through PayPal](https://paypal.me/avi12). Bugs and ideas go in the [issues](https://github.com/avi12/youtube-semi-sub/issues); see [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.

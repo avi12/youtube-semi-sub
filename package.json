@@ -4,12 +4,23 @@
   "private": false,
   "description": "Filter YouTube channels in your subscriptions feed: follow one without subscribing and add only the videos your filter (a RegExp or an AI match) lets through, or subscribe and hide the ones it matches",
   "homepage": "https://github.com/avi12/youtube-semi-sub",
-  "license": "Apache-2.0",
+  "bugs": "https://github.com/avi12/youtube-semi-sub/issues",
+  "license": "GPL-3.0-only",
   "author": "Avi (https://avi12.com)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/avi12/youtube-semi-sub.git"
   },
+  "funding": [
+    {
+      "type": "github",
+      "url": "https://github.com/sponsors/avi12"
+    },
+    {
+      "type": "paypal",
+      "url": "https://paypal.me/avi12"
+    }
+  ],
   "type": "module",
   "sideEffects": [
     "**/*.css",
