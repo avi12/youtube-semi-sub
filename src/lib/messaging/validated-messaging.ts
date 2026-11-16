@@ -37,6 +37,7 @@ export function defineValidatedMessaging<TSchemas extends MessageSchemas<TSchema
 }) {
   return {
     async sendMessage<TType extends Extract<keyof TSchemas, string>>(
+      this: void,
       type: TType,
       ...[data]: RequestArgs<z.input<TSchemas[TType]["request"]>>
     ) {
@@ -47,6 +48,7 @@ export function defineValidatedMessaging<TSchemas extends MessageSchemas<TSchema
       });
     },
     onMessage<TType extends Extract<keyof TSchemas, string>>(
+      this: void,
       type: TType,
       onReceived: (data: z.output<TSchemas[TType]["request"]>) => MaybePromise<z.input<TSchemas[TType]["reply"]>>
     ) {

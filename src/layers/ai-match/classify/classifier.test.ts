@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { answerFromPrompt, createFakeBase, createSessionMock } from "#ai-match/classify/fixtures/fake-prompt-session";
 import { createBuiltInJudge } from "#ai-match/classify/judges/built-in-judge";
-import type { PromptSession } from "#ai-match/engine/prompt-api";
 import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 
@@ -85,9 +84,9 @@ describe("classifyVideos with the built-in judge", () => {
   });
 
   it("opens a fresh session per batch when clone() is missing", async () => {
-    const sessions: PromptSession[] = [];
+    const sessions: ReturnType<typeof createSessionMock>[] = [];
     const openSession = vi.fn(async () => {
-      const session: PromptSession = createSessionMock(answerFromPrompt);
+      const session = createSessionMock(answerFromPrompt);
       sessions.push(session);
       return session;
     });

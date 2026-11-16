@@ -2,6 +2,7 @@ import { applySubscriptionSnapshot } from "#channel-button";
 import { listFollowedSubscriptions, listSemiSubscriptions } from "#subscription-lists/semi-channels";
 import { getPageState } from "@/lib/page/page-state";
 import { parseJson } from "@/lib/utils/json";
+import { captureResponseReaders } from "@/lib/youtube/page/response-readers";
 import { InnerTubePath, isYouTubeUrlAt } from "@/lib/youtube/site";
 
 import { buildSemiGuideEntry, patchGuideResponse, readGuideSubscriptions } from "./guide-data";
@@ -49,8 +50,7 @@ function syncOfficialSubscriptions(body: unknown) {
 
 /** Chains onto whatever override is installed already (the feed hook goes first), so both keep working */
 export function installGuideResponseHook() {
-  const previousJson = Response.prototype.json;
-  const previousText = Response.prototype.text;
+  const { json: previousJson, text: previousText } = captureResponseReaders();
 
   async function json(this: Response) {
     const body: unknown = await previousJson.call(this);

@@ -28,11 +28,10 @@ function createProbes({
   builtInAvailability: BuiltInAvailability | null;
   liteRtSupport: LiteRtSupport;
 }) {
-  const probes: AiEngineProbes = {
-    readBuiltInAvailability: vi.fn(async () => builtInAvailability),
-    probeLiteRtSupport: vi.fn(async () => liteRtSupport)
+  return {
+    readBuiltInAvailability: vi.fn<AiEngineProbes["readBuiltInAvailability"]>(async () => builtInAvailability),
+    probeLiteRtSupport: vi.fn<AiEngineProbes["probeLiteRtSupport"]>(async () => liteRtSupport)
   };
-  return probes;
 }
 
 describe("resolveAiEngine", () => {

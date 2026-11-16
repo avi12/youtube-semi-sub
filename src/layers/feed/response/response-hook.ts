@@ -10,6 +10,7 @@ import { isHiddenVideoListHonored } from "#feed/live/ytaf";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
+import { captureResponseReaders } from "@/lib/youtube/page/response-readers";
 import { FeedPathname, getYouTubeSite, InnerTubePath, isYouTubeUrlAt, YouTubeSite } from "@/lib/youtube/site";
 
 import { readInitialDataHtml, readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
@@ -43,7 +44,7 @@ function readFeedPage(data: unknown) {
     return {
       contents: firstPage.contents,
       isLaterPage: false,
-      withContents: firstPage.withContents
+      withContents: (copy: FirstPageCopy) => firstPage.withContents(copy)
     };
   }
 
@@ -180,8 +181,7 @@ async function patchFeedHtml(html: string) {
 
 function installResponsePatch() {
   // Whatever is current, so other extensions' overrides installed earlier stay in the chain
-  const originalJson = Response.prototype.json;
-  const originalText = Response.prototype.text;
+  const { json: originalJson, text: originalText } = captureResponseReaders();
 
   async function readPatchedJson(response: Response) {
     const data: unknown = JSON.parse(await originalText.call(response));

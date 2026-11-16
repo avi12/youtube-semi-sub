@@ -2,6 +2,7 @@ import { readSubscriptionEntities } from "#channel-button/page/channel-page-data
 import { readIsSignedIn } from "#channel-button/page/page-data-source";
 import { parseJson } from "@/lib/utils/json";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
+import { captureResponseReaders } from "@/lib/youtube/page/response-readers";
 import { InnerTubePath, isYouTubeUrlAt } from "@/lib/youtube/site";
 
 import { applySubscriptionSnapshot } from "./official-subscription";
@@ -41,8 +42,7 @@ export function installSubscriptionEntityWatch() {
     return data;
   });
 
-  const previousJson = Response.prototype.json;
-  const previousText = Response.prototype.text;
+  const { json: previousJson, text: previousText } = captureResponseReaders();
 
   async function json(this: Response) {
     const body: unknown = await previousJson.call(this);
