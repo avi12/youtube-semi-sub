@@ -1,7 +1,7 @@
 <script lang="ts">
   import { aiMatchSetup, toDownloadPercent, turnOffAiMatch, turnOnAiMatch } from "./ai-match-setup.svelte";
   import { isAiEngineAvailable } from "@/lib/ai/ai-status";
-  import { Button } from "m3-svelte";
+  import Button from "#popup/ui/Button.svelte";
 
   interface Props {
     isAiEnabled: boolean;

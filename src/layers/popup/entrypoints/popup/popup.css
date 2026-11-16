@@ -1,13 +1,40 @@
-@import url("m3-svelte/etc/styles.css");
-@import url("m3-svelte/etc/recommended-styles.css");
-@import url("m3-svelte/etc/livetheme/expressive2025.css");
-
-@function --m3-density(--size) {
-  result: var(--size);
-}
-
 :root {
-  --m3v-source: #6d3cf0;
+  color-scheme: light dark;
+
+  /* Material 3 Expressive roles, static tonal palette from the seed #6d3cf0: light-dark(light, dark) */
+  --m3c-primary: light-dark(#6740dc, #cdbdff);
+  --m3c-on-primary: light-dark(#fff, #381e8e);
+  --m3c-primary-container: light-dark(#e8deff, #4c2ec1);
+  --m3c-on-primary-container: light-dark(#20005f, #e8deff);
+  --m3c-secondary: light-dark(#605a7c, #cbc2dc);
+  --m3c-secondary-container: light-dark(#e6defa, #4a4458);
+  --m3c-on-secondary-container: light-dark(#1d192b, #e8def8);
+  --m3c-error: light-dark(#ba1a1a, #ffb4ab);
+  --m3c-error-container: light-dark(#ffdad6, #93000a);
+  --m3c-on-error-container: light-dark(#410002, #ffdad6);
+  --m3c-surface: light-dark(#fdf8ff, #141218);
+  --m3c-surface-container-lowest: light-dark(#fff, #0f0d13);
+  --m3c-surface-container: light-dark(#f1ecf4, #211f26);
+  --m3c-surface-container-high: light-dark(#ebe6ee, #2b2930);
+  --m3c-surface-container-highest: light-dark(#e5e0e9, #36343b);
+  --m3c-on-surface: light-dark(#1c1b20, #e6e0e9);
+  --m3c-on-surface-variant: light-dark(#48454e, #cac4d0);
+  --m3c-outline: light-dark(#7a757f, #948f99);
+  --m3c-outline-variant: light-dark(#cac4d0, #49454f);
+  --m3c-inverse-surface: light-dark(#313034, #e6e0e9);
+  --m3c-inverse-on-surface: light-dark(#f4eff7, #322f35);
+  --m3c-inverse-primary: light-dark(#cdbdff, #6740dc);
+
+  --m3-font: Roboto, system-ui, sans-serif;
+  --m3-shape-extra-small: 4px;
+  --m3-shape-small: 8px;
+  --m3-shape-large: 16px;
+  --m3-shape-large-increased: 20px;
+  --m3-shape-full: 9999px;
+  --m3-easing: 200ms cubic-bezier(0.31, 0.94, 0.34, 1);
+  --m3-easing-spatial: 500ms cubic-bezier(0.38, 1.21, 0.22, 1);
+  --m3-timing-function-emphasized-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+
   --font-mono: ui-monospace, "Cascadia Mono", "Roboto Mono", "SF Mono", consolas, monospace;
   --filter-editor-fg: var(--m3c-on-surface);
   --filter-editor-muted: var(--m3c-on-surface-variant);
@@ -16,19 +43,6 @@
   --filter-editor-surface: var(--m3c-surface-container-highest);
   --filter-editor-border: var(--m3c-outline-variant);
   --filter-editor-font: var(--m3-font);
-
-  color-scheme: light dark;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --m3-duration-fast-spatial: 0ms;
-    --m3-duration-spatial: 0ms;
-    --m3-duration-slow-spatial: 0ms;
-    --m3-duration-fast: 0ms;
-    --m3-duration: 0ms;
-    --m3-duration-slow: 0ms;
-  }
 }
 
 * {
@@ -41,8 +55,4 @@ body {
   background: var(--m3c-surface);
   color: var(--m3c-on-surface);
   font: 400 14px / 1.43 var(--m3-font);
-}
-
-.m3-layer:has(> input:focus-visible) {
-  box-shadow: 0 0 0 3px var(--m3c-secondary);
 }

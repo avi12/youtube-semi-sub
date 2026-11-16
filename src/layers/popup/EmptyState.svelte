@@ -1,37 +1,36 @@
-<script lang="ts">
-  import { Card } from "m3-svelte";
-</script>
+<script lang="ts"></script>
 
-<Card variant="filled">
-  <section class="empty" aria-labelledby="empty-heading">
-    <div class="mock" aria-hidden="true">
-      <span class="mock__avatar"></span>
-      <span class="mock__lines">
-        <span class="mock__line"></span>
-        <span class="mock__line mock__line--short"></span>
-      </span>
-      <span class="mock__buttons">
-        <span class="mock__button">Subscribe</span>
-        <span class="mock__button mock__button--semi">Semi-subscribe</span>
-      </span>
-    </div>
-    <h2 id="empty-heading" class="empty__heading">No semi-subscriptions yet</h2>
-    <p class="empty__text">
-      Open a channel or video and press the button next to Subscribe - <strong>Semi-subscribe</strong> on a channel
-      you're not subscribed to, <strong>Filter</strong> on one you are
-    </p>
-    <p class="empty__text">
-      Then write a filter - a RegExp, or a plain description an AI judges. Not subscribed, only the videos it lets
-      through are added to your subscriptions feed; subscribed, the ones it matches are hidden from it
-    </p>
-  </section>
-</Card>
+<section class="empty" aria-labelledby="empty-heading">
+  <div class="mock" aria-hidden="true">
+    <span class="mock__avatar"></span>
+    <span class="mock__lines">
+      <span class="mock__line"></span>
+      <span class="mock__line mock__line--short"></span>
+    </span>
+    <span class="mock__buttons">
+      <span class="mock__button">Subscribe</span>
+      <span class="mock__button mock__button--semi">Semi-subscribe</span>
+    </span>
+  </div>
+  <h2 id="empty-heading" class="empty__heading">No semi-subscriptions yet</h2>
+  <p class="empty__text">
+    Open a channel or video and press the button next to Subscribe - <strong>Semi-subscribe</strong> on a channel
+    you're not subscribed to, <strong>Filter</strong> on one you are
+  </p>
+  <p class="empty__text">
+    Then write a filter - a RegExp, or a plain description an AI judges. Not subscribed, only the videos it lets
+    through are added to your subscriptions feed; subscribed, the ones it matches are hidden from it
+  </p>
+</section>
 
 <style>
   .empty {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    padding: 16px;
+    border-radius: var(--m3-shape-large);
+    background: var(--m3c-surface-container-highest);
   }
 
   .mock {

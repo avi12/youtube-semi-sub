@@ -15,7 +15,9 @@
   import { SUBSCRIPTION_MODE_NAME, SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatHandle, getChannelUrl } from "@/lib/youtube/channel-link";
-  import { Button, Icon } from "m3-svelte";
+  import Button from "#popup/ui/Button.svelte";
+  import Icon from "#popup/ui/Icon.svelte";
+  import ListCard from "#popup/ui/ListCard.svelte";
   import { tick } from "svelte";
 
   interface Props extends AiJudgeContext {
@@ -123,43 +125,44 @@
   }
 </script>
 
-<li class="channel">
-  <div class="channel__header">
-    {#if subscription.avatarUrl}
-      <img
-        class="channel__avatar"
-        alt=""
-        decoding="async"
-        loading="lazy"
-        referrerpolicy="no-referrer"
-        src={subscription.avatarUrl} />
-    {:else}
-      <span class="channel__avatar channel__avatar--initial" aria-hidden="true">{initial}</span>
-    {/if}
+<ListCard>
+  <div class="channel">
+    <div class="channel__header">
+      {#if subscription.avatarUrl}
+        <img
+          class="channel__avatar"
+          alt=""
+          decoding="async"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          src={subscription.avatarUrl} />
+      {:else}
+        <span class="channel__avatar channel__avatar--initial" aria-hidden="true">{initial}</span>
+      {/if}
 
-    <div class="channel__identity">
-      <h3 class="channel__title"><bdi>{subscription.title}</bdi></h3>
-      <p class="channel__mode">{SUBSCRIPTION_MODE_NAME[mode]}</p>
-      <a
-        class="channel__link"
-        href={getChannelUrl(subscription)}
-        rel="noreferrer"
-        target="_blank">
-        {#if subscription.handle}
-          {formatHandle(subscription.handle)}
-        {:else}
-          Open channel
-        {/if}
-        <Icon icon={OPEN_IN_NEW_ICON} />
-      </a>
-    </div>
+      <div class="channel__identity">
+        <h3 class="channel__title"><bdi>{subscription.title}</bdi></h3>
+        <p class="channel__mode">{SUBSCRIPTION_MODE_NAME[mode]}</p>
+        <a
+          class="channel__link"
+          href={getChannelUrl(subscription)}
+          rel="noreferrer"
+          target="_blank">
+          {#if subscription.handle}
+            {formatHandle(subscription.handle)}
+          {:else}
+            Open channel
+          {/if}
+          <Icon path={OPEN_IN_NEW_ICON} />
+        </a>
+      </div>
 
-    <Button iconType="left" label size="xs" variant="tonal">
-      <input
-        bind:this={elEditToggle}
-        aria-controls={EDITOR_ID}
-        type="checkbox"
-        bind:checked={() => isEditing, isChecked => {
+      <Button isLabel size="xs" variant="tonal">
+        <input
+          bind:this={elEditToggle}
+          aria-controls={EDITOR_ID}
+          type="checkbox"
+          bind:checked={() => isEditing, isChecked => {
           if (isChecked) {
             onEditingChange(true);
             return;
@@ -167,60 +170,61 @@
 
           void closeEditor();
         }} />
-      <Icon icon={EDIT_ICON} />
-      Edit
-    </Button>
-  </div>
-
-  {#if isEditing}
-    <ChannelEditor
-      id={EDITOR_ID}
-      isCached={channelVideos !== undefined}
-      {mode}
-      onClose={closeEditor}
-      {onRemove}
-      {subscription}
-      {videos} />
-  {:else}
-    <div class="channel__summary">
-      <ul class="literal">
-        {#each literal.parts as part, i (i)}
-          <li class="literal__part">
-            {#if i > 0}
-              <span class="literal__connector">{literal.connector}</span>
-            {/if}
-            {#if part.kind === FilterLiteralKind.AI_MATCH}
-              <p class={["ai-literal", part.isPaused && "ai-literal--paused"]}>
-                <span class="ai-literal__badge">{AI_LITERAL_PREFIX}</span>
-                <bdi class="ai-literal__description">{part.text}</bdi>
-              </p>
-            {:else if part.kind === FilterLiteralKind.REGEX}
-              <code class="filter-literal" dir="ltr">
-                <span class="filter-literal__pattern">{part.text}</span><span class="filter-literal__flags"
-                >{part.flags}</span>
-              </code>
-            {:else}
-              <code class="filter-literal"><span class="filter-literal__any">{part.text}</span></code>
-            {/if}
-          </li>
-        {/each}
-      </ul>
-      <p class="matches">
-        {#if videosOldestFirst.length > 0}
-          <span class="matches__strip" aria-hidden="true">
-            {#each videosOldestFirst as video (video.videoId)}
-              <span
-                class="matches__tick"
-                data-match-state={matchStateById.get(video.videoId)}
-                title={video.title}></span>
-            {/each}
-          </span>
-        {/if}
-        <span class="matches__summary">{matchSummary}</span>
-      </p>
+        <Icon path={EDIT_ICON} />
+        Edit
+      </Button>
     </div>
-  {/if}
-</li>
+
+    {#if isEditing}
+      <ChannelEditor
+        id={EDITOR_ID}
+        isCached={channelVideos !== undefined}
+        {mode}
+        onClose={closeEditor}
+        {onRemove}
+        {subscription}
+        {videos} />
+    {:else}
+      <div class="channel__summary">
+        <ul class="literal">
+          {#each literal.parts as part, i (i)}
+            <li class="literal__part">
+              {#if i > 0}
+                <span class="literal__connector">{literal.connector}</span>
+              {/if}
+              {#if part.kind === FilterLiteralKind.AI_MATCH}
+                <p class={["ai-literal", part.isPaused && "ai-literal--paused"]}>
+                  <span class="ai-literal__badge">{AI_LITERAL_PREFIX}</span>
+                  <bdi class="ai-literal__description">{part.text}</bdi>
+                </p>
+              {:else if part.kind === FilterLiteralKind.REGEX}
+                <code class="filter-literal" dir="ltr">
+                  <span class="filter-literal__pattern">{part.text}</span><span class="filter-literal__flags"
+                  >{part.flags}</span>
+                </code>
+              {:else}
+                <code class="filter-literal"><span class="filter-literal__any">{part.text}</span></code>
+              {/if}
+            </li>
+          {/each}
+        </ul>
+        <p class="matches">
+          {#if videosOldestFirst.length > 0}
+            <span class="matches__strip" aria-hidden="true">
+              {#each videosOldestFirst as video (video.videoId)}
+                <span
+                  class="matches__tick"
+                  data-match-state={matchStateById.get(video.videoId)}
+                  title={video.title}></span>
+              {/each}
+            </span>
+          {/if}
+          <span class="matches__summary">{matchSummary}</span>
+        </p>
+      </div>
+    {/if}
+  </div>
+</ListCard>
 
 <style>
   .channel {
@@ -229,18 +233,6 @@
     gap: 10px;
     padding-block: 14px;
     padding-inline: 16px;
-    border-radius: var(--m3-shape-extra-small);
-    background: var(--m3c-surface-container);
-
-    &:first-child {
-      border-start-end-radius: var(--m3-shape-large-increased);
-      border-start-start-radius: var(--m3-shape-large-increased);
-    }
-
-    &:last-child {
-      border-end-start-radius: var(--m3-shape-large-increased);
-      border-end-end-radius: var(--m3-shape-large-increased);
-    }
   }
 
   .channel__header {

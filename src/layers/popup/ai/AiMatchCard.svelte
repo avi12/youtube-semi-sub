@@ -5,14 +5,12 @@
   import { LITERT_MODEL_SIZE_LABEL } from "#ai-match";
   import { LOADING_INDICATOR_SIZE } from "#popup/icons";
   import { AI_MATCH_ICON } from "#popup/icons";
-  import {
-    Button,
-    Icon,
-    LinearProgress,
-    ListItem,
-    LoadingIndicator,
-    Switch
-  } from "m3-svelte";
+  import Button from "#popup/ui/Button.svelte";
+  import Icon from "#popup/ui/Icon.svelte";
+  import LinearProgress from "#popup/ui/LinearProgress.svelte";
+  import ListItem from "#popup/ui/ListItem.svelte";
+  import LoadingIndicator from "#popup/ui/LoadingIndicator.svelte";
+  import Switch from "#popup/ui/Switch.svelte";
 
   interface Props {
     isAiEnabled: boolean;
@@ -73,9 +71,9 @@
 <section class="ai" aria-labelledby="ai-heading">
   <h2 id="ai-heading" class="ai__heading">AI match</h2>
   <ul class="ai__card">
-    <ListItem headline="Match by description" label supporting={supportingText}>
+    <ListItem headline="Match by description" isLabel supporting={supportingText}>
       {#snippet leading()}
-        <Icon icon={AI_MATCH_ICON} />
+        <Icon path={AI_MATCH_ICON} />
       {/snippet}
       {#snippet trailing()}
         <Switch
@@ -99,7 +97,7 @@
           <div class="download">
             <p class="download__label">
               {#if download.fraction === null}
-                <LoadingIndicator aria-label="Downloading" center={false} size={LOADING_INDICATOR_SIZE} />
+                <LoadingIndicator label="Downloading" size={LOADING_INDICATOR_SIZE} />
                 Your browser is downloading the model
               {:else}
                 Downloading the model
@@ -107,7 +105,7 @@
               {/if}
             </p>
             {#if download.fraction !== null}
-              <LinearProgress aria-label="Model download" percent={downloadPercent} />
+              <LinearProgress label="Model download" percent={downloadPercent} />
             {/if}
             <Button onclick={() => turnOffAiMatch()} size="s" variant="text">Cancel</Button>
           </div>
@@ -152,20 +150,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-
-    & :global(li > .m3-container) {
-      block-size: auto;
-      min-block-size: 72px;
-      padding-inline-end: 16px;
-      border-radius: var(--m3-shape-extra-small);
-      border-start-end-radius: var(--m3-shape-large-increased);
-      border-start-start-radius: var(--m3-shape-large-increased);
-      background: var(--m3c-surface-container);
-    }
-
-    & :global(li > .m3-container .leading) {
-      color: var(--m3c-primary);
-    }
   }
 
   .ai__details {
@@ -213,10 +197,6 @@
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px 12px;
     align-items: center;
-
-    & :global(.m3-container[role="progressbar"]) {
-      grid-column: 1;
-    }
   }
 
   .download__label {

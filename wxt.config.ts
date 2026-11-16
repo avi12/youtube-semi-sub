@@ -2,7 +2,6 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, statSync } from "node
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
 
-import { functionsMixins } from "vite-plugin-functions-mixins";
 import { defineConfig } from "wxt";
 
 import { YOUTUBE_MATCHES } from "./src/lib/youtube/site";
@@ -55,10 +54,6 @@ export default defineConfig({
     content_security_policy: {
       extension_pages: EXTENSION_PAGES_CSP
     },
-    // Floor set by the popup's m3-svelte live theme (relative colour syntax, CSS sign()/abs())
-    ...(browser === "chrome" && {
-      minimum_chrome_version: "138"
-    }),
     ...(browser === "firefox" && {
       developer: {
         name: AUTHOR_NAME,
@@ -115,8 +110,6 @@ export default defineConfig({
     }
   },
   vite: () => ({
-    // m3-svelte's styles use CSS @function/@mixin, which this plugin compiles away
-    plugins: [functionsMixins({ deps: ["m3-svelte"] })],
     build: {
       sourcemap: false
     }

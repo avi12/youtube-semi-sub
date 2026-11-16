@@ -19,15 +19,13 @@
   import ChannelRow from "#popup/ChannelRow.svelte";
   import EmptyState from "#popup/EmptyState.svelte";
   import { LOADING_INDICATOR_SIZE, REFRESH_ICON } from "#popup/icons";
-  import {
-    Button,
-    Icon,
-    ListItem,
-    LoadingIndicator,
-    Snackbar,
-    snackbar,
-    Switch
-  } from "m3-svelte";
+  import Button from "#popup/ui/Button.svelte";
+  import Icon from "#popup/ui/Icon.svelte";
+  import ListItem from "#popup/ui/ListItem.svelte";
+  import LoadingIndicator from "#popup/ui/LoadingIndicator.svelte";
+  import Snackbar from "#popup/ui/Snackbar.svelte";
+  import { showSnackbar } from "#popup/ui/snackbar-state.svelte";
+  import Switch from "#popup/ui/Switch.svelte";
   import { untrack } from "svelte";
 
   interface Props {
@@ -121,12 +119,15 @@
     editingChannelId = null;
     await removeSemiSubscription(channelId);
     announcement = `Removed ${title}`;
-    snackbar(announcement, {
-      Undo() {
+    showSnackbar({
+      message: announcement,
+      actionLabel: "Undo",
+      onAction() {
         announcement = `Restored ${title}`;
         void restoreSemiSubscription(subscription);
-      }
-    }, true, UNDO_SNACKBAR_TIMEOUT_MS);
+      },
+      timeoutMs: UNDO_SNACKBAR_TIMEOUT_MS
+    });
   }
 </script>
 
@@ -140,7 +141,6 @@
       {#if watchedList.length > 0}
         <Button
           disabled={isRefreshing}
-          iconType="left"
           onclick={async () => {
             if (isRefreshing) {
               return;
@@ -156,9 +156,9 @@
           size="s"
           variant="tonal">
           {#if isRefreshing && IS_MOTION_ALLOWED}
-            <LoadingIndicator aria-label="Refreshing" center={false} size={LOADING_INDICATOR_SIZE} />
+            <LoadingIndicator label="Refreshing" size={LOADING_INDICATOR_SIZE} />
           {:else}
-            <Icon icon={REFRESH_ICON} />
+            <Icon path={REFRESH_ICON} />
           {/if}
           Refresh now
         </Button>
@@ -200,8 +200,8 @@
 
   <section class="group" aria-labelledby="settings-heading">
     <h2 id="settings-heading" class="group__heading">Settings</h2>
-    <ul class="group__list group__list--settings">
-      <ListItem headline="Enabled" label supporting="Add or hide matching videos in your subscriptions feed">
+    <ul class="group__list">
+      <ListItem headline="Enabled" isLabel supporting="Add or hide matching videos in your subscriptions feed">
         {#snippet trailing()}
           <Switch
             bind:checked={() => isExtensionEnabled, isEnabled => {
@@ -215,7 +215,7 @@
       </ListItem>
       <ListItem
         headline="Animations"
-        label
+        isLabel
         supporting="Slide videos into and out of the feed - also off when your system asks for reduced motion">
         {#snippet trailing()}
           <Switch
@@ -327,26 +327,6 @@
     margin: 0;
     padding: 0;
     list-style: none;
-  }
-
-  .group__list--settings {
-    & :global(li > .m3-container) {
-      block-size: auto;
-      min-block-size: 72px;
-      padding-inline-end: 16px;
-      border-radius: var(--m3-shape-extra-small);
-      background: var(--m3c-surface-container);
-    }
-
-    & :global(li:first-child > .m3-container) {
-      border-start-end-radius: var(--m3-shape-large-increased);
-      border-start-start-radius: var(--m3-shape-large-increased);
-    }
-
-    & :global(li:last-child > .m3-container) {
-      border-end-start-radius: var(--m3-shape-large-increased);
-      border-end-end-radius: var(--m3-shape-large-increased);
-    }
   }
 
   .visually-hidden {

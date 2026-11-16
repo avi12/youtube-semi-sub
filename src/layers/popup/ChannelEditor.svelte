@@ -8,7 +8,9 @@
   import { setSemiSubscriptionFilter } from "@/lib/semi-subscription-storage";
   import { FilterEditor, FOCUSED_ON_OPEN_SELECTOR } from "#filter-editor";
   import AiSetupAction from "#popup/ai/AiSetupAction.svelte";
-  import { Button, ConnectedButtons, Icon } from "m3-svelte";
+  import Button from "#popup/ui/Button.svelte";
+  import ConnectedButtons from "#popup/ui/ConnectedButtons.svelte";
+  import Icon from "#popup/ui/Icon.svelte";
   import { onMount, untrack } from "svelte";
 
   interface Props {
@@ -82,13 +84,13 @@
     {/snippet}
   </FilterEditor>
   <footer class="editor__actions">
-    <Button iconType="left" onclick={onRemove} size="s" variant="text">
-      <Icon icon={DELETE_ICON} />
+    <Button onclick={onRemove} size="s" variant="text">
+      <Icon path={DELETE_ICON} />
       Remove
     </Button>
     <ConnectedButtons>
-      <Button onclick={onClose} size="s" square variant="tonal">Cancel</Button>
-      <Button disabled={!isDraftValid} size="s" square type="submit" variant="filled">Save</Button>
+      <Button onclick={onClose} size="s" variant="tonal">Cancel</Button>
+      <Button disabled={!isDraftValid} size="s" type="submit" variant="filled">Save</Button>
     </ConnectedButtons>
   </footer>
 </form>
