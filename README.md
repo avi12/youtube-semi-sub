@@ -7,6 +7,23 @@ Follow a YouTube channel without getting all of it, or subscribe and leave out t
 
 Works on `www.youtube.com` and `m.youtube.com`, in Chromium browsers (Chrome, Edge, Opera) and Firefox.
 
+## Installation
+
+Open the [Releases page](https://github.com/avi12/youtube-semi-sub/releases/latest) and download the latest file for your browser.
+
+**Chrome / Edge / Opera / Brave / Vivaldi**
+
+1. Download `youtube-semi-sub-*-chrome.zip` (or `youtube-semi-sub-*-chrome.crx`)
+2. Open `chrome://extensions` (or `edge://extensions`, `opera://extensions`, `brave://extensions`)
+3. Turn on **Developer mode** with the toggle in the top-right corner
+4. Drag the zip or CRX file onto the extensions page and confirm the installation
+
+Chrome rejects CRX files that don't come from the Chrome Web Store (`CRX_REQUIRED_PROOF_MISSING`) - if that happens, drag the zip instead.
+
+**Updates.** Each release ships an update manifest (`updates.xml`) that the extension points at, so a browser that allows self-hosted CRX installs (for example Chrome on Linux, or one set up through an enterprise policy) updates it by itself. Where it doesn't, the extension checks for a new release once a day, puts a badge on its icon and shows a banner in the popup - download the new file and drag it in the same way.
+
+Firefox isn't published yet: Firefox only installs signed extensions, so for now run it from source with `pnpm dev:firefox`.
+
 ## Features
 
 - **A button on every channel** - always "Semi-subscribe": on one you aren't subscribed to it adds videos, on one you are it hides them. Subscribing or unsubscribing with YouTube's own button switches the mode; both filters are kept

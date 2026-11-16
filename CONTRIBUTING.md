@@ -26,6 +26,13 @@ pnpm fallow
 
 Keep each commit one self-contained change with a message saying what and why. Verify a feed change in all three setups it supports: without YouTube Auto Feed, with it running, and with it installed but switched off. Prefer Firefox when checking cross-browser behaviour, it is the strictest.
 
+## Releasing
+
+1. Set the version in `package.json` and commit it
+2. Tag the commit `v<version>` and push the tag
+
+The [Release workflow](.github/workflows/release.yml) builds the extension, packs the zip and a CRX signed with the key in the `CHROME_CRX_PRIVATE_KEY` secret, and attaches both, plus `updates.xml`, to a new GitHub release. `pnpm release:package` does the packing step locally after `pnpm build` and `pnpm zip`, with `CHROME_CRX_PRIVATE_KEY_PATH` pointing at the key. The public half of that key is in `src/lib/release.ts`: it fixes the extension's ID, so never replace the key.
+
 ## License
 
 By contributing you agree that your contribution is licensed under the [GNU General Public License v3.0](LICENSE), the same as the project.
