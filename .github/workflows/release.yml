@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      - run: pnpm zip
+
+      - name: Pack the CRX and the update manifest
+        env:
+          CHROME_CRX_PRIVATE_KEY: ${{ secrets.CHROME_CRX_PRIVATE_KEY }}
+        run: |
+          key_path="$RUNNER_TEMP/chrome.pem"
+          printf '%s\n' "$CHROME_CRX_PRIVATE_KEY" > "$key_path"
+          CHROME_CRX_PRIVATE_KEY_PATH="$key_path" pnpm release:package
+          rm "$key_path"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            ".output/youtube-semi-sub-${GITHUB_REF_NAME#v}-chrome.zip" \
+            ".output/youtube-semi-sub-${GITHUB_REF_NAME#v}-chrome.crx" \
+            ".output/updates.xml" \
+            --title "$GITHUB_REF_NAME" --generate-notes

@@ -4,9 +4,9 @@ import { dirname, join, resolve } from "node:path";
 
 import { defineConfig } from "wxt";
 
+import { CHROME_EXTENSION_PUBLIC_KEY, CHROME_UPDATE_MANIFEST_URL, REPOSITORY_URL } from "./src/lib/release";
 import { YOUTUBE_MATCHES } from "./src/lib/youtube/site";
 
-const REPOSITORY_URL = "https://github.com/avi12/youtube-semi-sub";
 const AUTHOR_NAME = "Avi";
 const AUTHOR_URL = "https://avi12.com";
 // GPL-3.0 section 4: every distribution carries the license, and the NOTICE carries the bundled third-party notices
@@ -54,6 +54,11 @@ export default defineConfig({
     content_security_policy: {
       extension_pages: EXTENSION_PAGES_CSP
     },
+    // Pins the ID of every install (zip, CRX), and where a browser that allows self-hosted CRX looks for the next one
+    ...(browser === "chrome" && {
+      key: CHROME_EXTENSION_PUBLIC_KEY,
+      update_url: CHROME_UPDATE_MANIFEST_URL
+    }),
     ...(browser === "firefox" && {
       developer: {
         name: AUTHOR_NAME,
