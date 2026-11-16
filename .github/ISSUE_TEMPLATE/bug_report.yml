@@ -1,0 +1,69 @@
+name: Bug report
+description: File a bug report
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what the bug is
+      placeholder: E.g. "the Semi-subscribe button won't appear on a channel page"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      placeholder: E.g. open a channel page, and the Semi-subscribe button doesn't show next to Subscribe
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Which mode was the channel in?
+      options:
+        - Follow without subscribing
+        - Subscribe with a filter
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browser(s) can you reproduce the issue on?
+      multiple: true
+      options:
+        - Chrome
+        - Chromium Edge
+        - Opera
+        - Firefox
+    validations:
+      required: true
+  - type: dropdown
+    id: site
+    attributes:
+      label: Which site?
+      options:
+        - www.youtube.com
+        - m.youtube.com
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: What's the version you're running?
+      description: Go to the extensions page and copy the version number
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Screenshots, console errors, whether YouTube Auto Feed is installed
