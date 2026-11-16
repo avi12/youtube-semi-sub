@@ -9,7 +9,7 @@ import { YOUTUBE_MATCHES } from "./src/lib/youtube/site";
 const REPOSITORY_URL = "https://github.com/avi12/youtube-semi-sub";
 const AUTHOR_NAME = "Avi";
 const AUTHOR_URL = "https://avi12.com";
-// Apache-2.0 section 4: every distribution carries the license and the attribution NOTICE
+// GPL-3.0 section 4: every distribution carries the license, and the NOTICE carries the bundled third-party notices
 const LEGAL_FILES = ["LICENSE", "NOTICE"];
 const LAYERS_DIR = "src/layers";
 // The opt-in local AI model (LiteRT-LM) compiles its wasm in extension pages, and lives in CacheStorage (1.9 GB)

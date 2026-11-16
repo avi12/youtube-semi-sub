@@ -2,13 +2,17 @@ YouTube Semi-Subscribe
 Copyright (c) 2026 Avi (https://avi12.com)
 https://github.com/avi12/youtube-semi-sub
 
-This product includes software developed by Avi (https://avi12.com).
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, version 3 of the License. See the LICENSE file.
 
-Licensed under the Apache License, Version 2.0. Any distribution of this
-software or of a derivative work must carry the attribution notice above -
-in the accompanying documentation, and in any user-facing "about", "credits"
-or third-party-notices display the distribution provides.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+
+Third-party software
 
 This product bundles the LiteRT-LM WebAssembly runtime (litertlm-wasm/), copied
 unmodified from the @litert-lm/core package: Copyright Google LLC, licensed under
-the Apache License, Version 2.0 (https://github.com/google-ai-edge/LiteRT-LM).
+the Apache License, Version 2.0 (https://github.com/google-ai-edge/LiteRT-LM),
+which is compatible with the GNU GPL version 3.
