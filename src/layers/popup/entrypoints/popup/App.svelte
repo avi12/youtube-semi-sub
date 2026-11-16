@@ -10,7 +10,14 @@
   } from "@/lib/schemas/semi-subscription";
   import type { StoredState } from "@/lib/schemas/stored-state";
   import { removeSemiSubscription, restoreSemiSubscription } from "@/lib/semi-subscription-storage";
-  import { isAnimationsEnabledItem, isExtensionEnabledItem, readStoredState, watchStoredState } from "@/lib/storage";
+  import { LATEST_RELEASE_URL } from "@/lib/release";
+  import {
+    isAnimationsEnabledItem,
+    isExtensionEnabledItem,
+    readStoredState,
+    updateAvailableVersionItem,
+    watchStoredState
+  } from "@/lib/storage";
   import { prefersReducedMotion } from "@/lib/utils/motion";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatRelativeTime } from "@/lib/youtube/relative-time";
@@ -18,7 +25,7 @@
   import AiMatchCard from "#popup/ai/AiMatchCard.svelte";
   import ChannelRow from "#popup/ChannelRow.svelte";
   import EmptyState from "#popup/EmptyState.svelte";
-  import { LOADING_INDICATOR_SIZE, REFRESH_ICON } from "#popup/icons";
+  import { LOADING_INDICATOR_SIZE, OPEN_IN_NEW_ICON, REFRESH_ICON } from "#popup/icons";
   import Button from "#popup/ui/Button.svelte";
   import Icon from "#popup/ui/Icon.svelte";
   import ListItem from "#popup/ui/ListItem.svelte";
@@ -26,13 +33,15 @@
   import Snackbar from "#popup/ui/Snackbar.svelte";
   import { showSnackbar } from "#popup/ui/snackbar-state.svelte";
   import Switch from "#popup/ui/Switch.svelte";
+  import { browser } from "#imports";
   import { untrack } from "svelte";
 
   interface Props {
     initialState: StoredState;
+    initialUpdateVersion: string | null;
   }
 
-  const { initialState }: Props = $props();
+  const { initialState, initialUpdateVersion }: Props = $props();
 
   const UNDO_SNACKBAR_TIMEOUT_MS = 10_000;
   const IS_MOTION_ALLOWED = !prefersReducedMotion();
@@ -41,6 +50,7 @@
   const { subscriptions, channelVideos, aiVerdicts, isAiEnabled, isExtensionEnabled, isAnimationsEnabled } = $derived(
     storedState
   );
+  let updateVersion = $state.raw(untrack(() => initialUpdateVersion));
   let editingChannelId = $state<string | null>(null);
   let announcement = $state("");
   let isRefreshing = $state(false);
@@ -49,6 +59,11 @@
   $effect(() =>
     watchStoredState(async () => {
       storedState = await readStoredState();
+    }));
+
+  $effect(() =>
+    updateAvailableVersionItem.watch(version => {
+      updateVersion = version;
     }));
 
   $effect(() => {
@@ -132,6 +147,20 @@
 </script>
 
 <main style:--motion-scale={isAnimationsEnabled ? 1 : 0} class="app">
+  {#if updateVersion}
+    <aside class="update">
+      <p class="update__text">Version {updateVersion} is available</p>
+      <Button
+        onclick={() => {
+          void browser.tabs.create({ url: LATEST_RELEASE_URL });
+        }}
+        size="s"
+        variant="filled">
+        <Icon path={OPEN_IN_NEW_ICON} />
+        Get it
+      </Button>
+    </aside>
+  {/if}
   <header class="top-bar">
     <div class="top-bar__row">
       <h1 class="top-bar__title">
@@ -294,6 +323,23 @@
     color: var(--m3c-on-surface);
     font-weight: 500;
     font-size: 14px;
+  }
+
+  .update {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    align-items: center;
+    padding-block: 8px;
+    padding-inline: 16px;
+    border-radius: var(--m3-shape-large);
+    background: var(--m3c-primary-container);
+    color: var(--m3c-on-primary-container);
+  }
+
+  .update__text {
+    margin: 0;
+    font-weight: 500;
   }
 
   .paused {
