@@ -145,6 +145,7 @@ After each modification - every bug fix included, before reporting it done - run
 - `pnpm test` (vitest, tests sit next to code as `*.test.ts`)
 - `pnpm fallow` - dead-code audit; remove what a change left unused (never `fallow fix`)
 - Exemptions live in config with a reason, never as a disable comment: `naming/convention` `allowedNames`/`allowedPatterns` in `.oxlintrc.json` (Chrome's `LanguageModel` global, WXT's `$`-suffixed storage version keys), and a `house/positional-parameters` override for `src/layers/filter-editor/preview/tile-motion.ts` because Svelte's `animate` calls `slideTile(node, { from, to })`
+- `.fallowrc.json` turns `unused-enum-members` off for `src/lib/youtube/page/yt-icon.ts`: `YtIconName` lists every icon YouTube's `icons:` set holds, used or not
 - `.oxfmtrc.json` ignores `**/fixtures/**`: the recorded pages and responses must stay byte-exact
 
 # Dev

@@ -18,5 +18,6 @@
     "postcss-html"
   ],
   "health": { "maxCognitive": 30, "maxCrap": 10000 },
-  "rules": { "unused-enum-members": "warn" }
+  "rules": { "unused-enum-members": "warn" },
+  "overrides": [{ "files": ["src/lib/youtube/page/yt-icon.ts"], "rules": { "unused-enum-members": "off" } }]
 }
