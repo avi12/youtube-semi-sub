@@ -232,7 +232,9 @@ describe("patchGuideItems - a subscribed channel with a working filter", () => {
       key: SUBSCRIPTIONS_KEY
     }).slice(1);
     expect(title).toBe("*NSYNC");
-    expect(JSON.stringify(patched).split(PINNED_CHANNEL_ID)).toHaveLength(2);
+    expect(JSON.stringify(patched).split(PINNED_CHANNEL_ID)).toHaveLength(
+      JSON.stringify(signedInGuide).split(PINNED_CHANNEL_ID).length
+    );
   });
 
   it("returns null once it is in place", () => {
