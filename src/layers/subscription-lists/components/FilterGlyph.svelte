@@ -1,8 +1,17 @@
 <script lang="ts">
-  // Material Symbols "filter_alt" (outlined): the semi-subscription mark across every in-page list
-  const FILTER_PATH = "M440-160q-17 0-28.5-11.5T400-200v-240L168-736q-15-20-4.5-42t36.5-22h560q26 0 36.5 22t-4.5 42L560-440v240q0 17-11.5 28.5T520-160h-80Zm40-308 198-252H282l198 252Zm0 0Z";
+  import { attachIcon, FILTER_ICON_PATH, YtIconName } from "@/lib/youtube/page/yt-icon";
+  import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
+
+  // The semi-subscription mark across every in-page list, in YouTube's own filter icon: www's Polymer `yt-icon`,
+  // and on m.youtube.com, which has no Polymer, the same glyph as inline markup
+
+  const IS_DESKTOP = getYouTubeSite() === YouTubeSite.DESKTOP;
 </script>
 
-<svg class="yss-glyph" aria-hidden="true" focusable="false" viewBox="0 -960 960 960">
-  <path d={FILTER_PATH} />
-</svg>
+{#if IS_DESKTOP}
+  <yt-icon class="yss-glyph" {@attach attachIcon(YtIconName.FILTER_LIST)}></yt-icon>
+{:else}
+  <svg class="yss-glyph" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+    <path d={FILTER_ICON_PATH} />
+  </svg>
+{/if}

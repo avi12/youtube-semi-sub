@@ -11,6 +11,7 @@ declare global {
 
   interface HTMLElementTagNameMap {
     "yt-button-view-model": HTMLElement & { data: ButtonViewModelData };
+    "yt-icon": HTMLElement;
   }
 }
 

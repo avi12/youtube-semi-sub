@@ -13,6 +13,7 @@
     ButtonViewModelStyle,
     ButtonViewModelType
   } from "@/lib/youtube/page/button-view-model";
+  import { FILTER_ICON_PATH } from "@/lib/youtube/page/yt-icon";
   import { YouTubeSite } from "@/lib/youtube/site";
   import { getObservedOfficialSubscription } from "#channel-button/official-subscription";
   import { BUTTON_ROOT_ATTRIBUTE, type ButtonPlacement } from "#channel-button/page/page-anchor";
@@ -43,8 +44,6 @@
     isOfficiallySubscribed
   }: Props = $props();
 
-  // YouTube's own FILTER icon, so both sites show the same glyph
-  const FILTER_ICON_PATH = "M21 5H3a1 1 0 000 2h18a1 1 0 100-2Zm-3 6H6a1 1 0 000 2h12a1 1 0 000-2Zm-3 6H9a1 1 0 000 2h6a1 1 0 000-2Z";
   const ROOT_ATTRIBUTES = { [BUTTON_ROOT_ATTRIBUTE]: "" };
 
   let pageState = $state(getPageState());
