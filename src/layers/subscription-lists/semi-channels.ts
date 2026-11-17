@@ -1,6 +1,6 @@
 import type { PageState } from "@/lib/messaging/page-messaging";
 import type { ChannelInfo } from "@/lib/schemas/channel";
-import { listByTitle, type SemiSubscription } from "@/lib/schemas/semi-subscription";
+import { isUploadsWatched, listByTitle, type SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { getChannelUrl } from "@/lib/youtube/channel-link";
 import { buildChannelEndpoint } from "@/lib/youtube/endpoints";
 
@@ -22,6 +22,18 @@ export function listSemiSubscriptions(state: PageState | null) {
  */
 export function listFollowedSubscriptions(subscriptions: readonly SemiSubscription[]) {
   return subscriptions.filter(subscription => !subscription.isSubscribed);
+}
+
+/**
+ * The subscribed channels whose filter works (a Block list hiding something, or an Allow list restricting): YouTube's
+ * own sidebar entry for each is brought up beside ours, so every filtered channel sits in the same place
+ */
+export function listFilteredSubscribedChannelIds(subscriptions: readonly SemiSubscription[]) {
+  return new Set(
+    subscriptions
+      .filter(subscription => subscription.isSubscribed && isUploadsWatched(subscription))
+      .map(subscription => subscription.channelId)
+  );
 }
 
 export function getChannelPath(channel: Pick<ChannelInfo, "channelId" | "handle">) {

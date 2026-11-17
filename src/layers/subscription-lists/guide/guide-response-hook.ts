@@ -1,5 +1,9 @@
 import { applySubscriptionSnapshot } from "#channel-button";
-import { listFollowedSubscriptions, listSemiSubscriptions } from "#subscription-lists/semi-channels";
+import {
+  listFilteredSubscribedChannelIds,
+  listFollowedSubscriptions,
+  listSemiSubscriptions
+} from "#subscription-lists/semi-channels";
 import { getPageState } from "@/lib/page/page-state";
 import { parseJson } from "@/lib/utils/json";
 import { captureResponseReaders } from "@/lib/youtube/page/response-readers";
@@ -18,8 +22,12 @@ function isGuideResponse(response: Response) {
   });
 }
 
-function readSemiGuideEntries() {
-  return listFollowedSubscriptions(listSemiSubscriptions(getPageState())).map(buildSemiGuideEntry);
+function readGuidePlacements() {
+  const subscriptions = listSemiSubscriptions(getPageState());
+  return {
+    entries: listFollowedSubscriptions(subscriptions).map(buildSemiGuideEntry),
+    pinnedChannelIds: listFilteredSubscribedChannelIds(subscriptions)
+  };
 }
 
 /** A body that fails to patch is handed on exactly as YouTube sent it */
@@ -35,7 +43,7 @@ function patchGuideBody(body: unknown) {
   return patchSafely(() =>
     patchGuideResponse({
       response: body,
-      entries: readSemiGuideEntries()
+      ...readGuidePlacements()
     })
   );
 }

@@ -216,6 +216,43 @@ describe("patchGuideItems - signed in", () => {
   });
 });
 
+describe("patchGuideItems - a subscribed channel with a working filter", () => {
+  const PINNED_CHANNEL_ID = "UCjkyfFH-MWZhasolgds05EA";
+
+  it('brings YouTube\'s own entry up from "Show more" to sit right after the header', () => {
+    const patched = patchGuideItems({
+      items: cloneItems(signedInGuide),
+      entries: [],
+      pinnedChannelIds: new Set([PINNED_CHANNEL_ID])
+    });
+
+    const [title] = readSectionTitles({
+      items: patched,
+      index: 1,
+      key: SUBSCRIPTIONS_KEY
+    }).slice(1);
+    expect(title).toBe("*NSYNC");
+    expect(JSON.stringify(patched).split(PINNED_CHANNEL_ID)).toHaveLength(2);
+  });
+
+  it("returns null once it is in place", () => {
+    const pinnedChannelIds = new Set([PINNED_CHANNEL_ID]);
+    const patched = patchGuideItems({
+      items: cloneItems(signedInGuide),
+      entries: [],
+      pinnedChannelIds
+    });
+
+    expect(
+      patchGuideItems({
+        items: z.array(z.unknown()).parse(patched),
+        entries: [],
+        pinnedChannelIds
+      })
+    ).toBeNull();
+  });
+});
+
 describe("patchGuideItems - signed out (real guide response)", () => {
   it("adds a Semi-subscriptions section after the main section and the sign-in promo", () => {
     const patched = patchGuideItems({

@@ -1,7 +1,7 @@
 import { mount, unmount } from "svelte";
 
 import { listsView } from "#subscription-lists/lists-view.svelte";
-import { listFollowedSubscriptions } from "#subscription-lists/semi-channels";
+import { listFilteredSubscribedChannelIds, listFollowedSubscriptions } from "#subscription-lists/semi-channels";
 import { onPageState } from "@/lib/page/page-state";
 import { createFrameScheduler, observeSubtree, waitForElement, whenDocumentParsed } from "@/lib/utils/dom";
 import { isPolymerElement, type PolymerElement } from "@/lib/youtube/page/polymer";
@@ -28,6 +28,11 @@ const GUIDE_ENTRY_SELECTOR = `${GUIDE_SELECTOR} ytd-guide-entry-renderer`;
 const SEMI_ENTRY_ATTRIBUTE = "data-yss-semi";
 const GUIDE_ITEMS_PATH = "data.items";
 
+interface GuidePlacements {
+  entries: unknown[];
+  pinnedChannelIds: ReadonlySet<string>;
+}
+
 const mountedActionByEntry = new Map<
   Element,
   {
@@ -49,7 +54,7 @@ function readGuideData(element: PolymerElement) {
 }
 
 /** A path write on YouTube's own model: untouched sections keep their objects, so only the changed one re-renders */
-function syncGuideData(entries: unknown[]) {
+function syncGuideData({ entries, pinnedChannelIds }: GuidePlacements) {
   for (const elGuide of document.querySelectorAll(GUIDE_SELECTOR)) {
     if (!isPolymerElement(elGuide)) {
       continue;
@@ -60,7 +65,8 @@ function syncGuideData(entries: unknown[]) {
       data &&
       patchGuideItems({
         items: data.items,
-        entries
+        entries,
+        pinnedChannelIds
       });
     if (items) {
       elGuide.set(GUIDE_ITEMS_PATH, items);
@@ -72,8 +78,8 @@ function syncGuideData(entries: unknown[]) {
  * The mini guide builds its Subscriptions flyout (hovering its Subscriptions entry) when `data` itself is assigned,
  * so it gets a fresh object - minus the flyout it cached - whenever the entries change
  */
-function syncMiniGuideData(entries: unknown[]) {
-  const signature = JSON.stringify(entries);
+function syncMiniGuideData({ entries, pinnedChannelIds }: GuidePlacements) {
+  const signature = JSON.stringify([entries, [...pinnedChannelIds]]);
   for (const elMiniGuide of document.querySelectorAll(MINI_GUIDE_SELECTOR)) {
     if (!isPolymerElement(elMiniGuide)) {
       continue;
@@ -88,7 +94,8 @@ function syncMiniGuideData(entries: unknown[]) {
 
     const items = patchGuideItems({
       items: data.items,
-      entries
+      entries,
+      pinnedChannelIds
     });
     const isEntriesChanged = applied !== undefined && applied.signature !== signature;
     const isRebuildNeeded = items !== null || isEntriesChanged;
@@ -162,9 +169,12 @@ function syncEntryActions() {
 }
 
 function syncGuide() {
-  const entries = listFollowedSubscriptions(listsView.subscriptions).map(buildSemiGuideEntry);
-  syncGuideData(entries);
-  syncMiniGuideData(entries);
+  const placements = {
+    entries: listFollowedSubscriptions(listsView.subscriptions).map(buildSemiGuideEntry),
+    pinnedChannelIds: listFilteredSubscribedChannelIds(listsView.subscriptions)
+  };
+  syncGuideData(placements);
+  syncMiniGuideData(placements);
   syncEntryActions();
 }
 
