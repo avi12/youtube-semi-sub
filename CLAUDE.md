@@ -139,8 +139,8 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 
 After each modification - every bug fix included, before reporting it done - run the whole list below, not only the checks that look relevant:
 
-- `pnpm lint` (`avi12-lint`: oxfmt, stylelint, ESLint for Svelte templates, oxlint; the shared setup is `avi12/lint-config` v0.4.7, so fix the code, never the rules); `pnpm lint:fix` applies the fixers
-- `pnpm svelte:check` (`svelte-check --tsgo`, patched in `patches/svelte-check.patch` to run `tsrs` as its TypeScript 7 compiler; TypeScript 6 stays installed for svelte-check's own Svelte-to-TS emit)
+- `pnpm lint` (`avi12-lint`: oxfmt, stylelint, ESLint for Svelte templates, oxlint; the shared setup is `avi12/lint-config` v0.11.0, so fix the code, never the rules); `pnpm lint:fix` applies the fixers
+- `pnpm svelte:check` (`avi12-svelte-check`, from `avi12-lint`: svelte-check's `--tsgo` mode run on `tsrs`; TypeScript 6 stays installed for svelte-check's own Svelte-to-TS emit)
 - `pnpm compile` (`tsrs`, the Rust port of the TypeScript 7 compiler; it also switches the shared lint setup to type-aware linting)
 - `pnpm test` (vitest, tests sit next to code as `*.test.ts`)
 - `pnpm fallow` - dead-code audit; remove what a change left unused (never `fallow fix`)

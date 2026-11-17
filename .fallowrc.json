@@ -15,7 +15,8 @@
     "oxlint-plugin-naming",
     "oxfmt-config-avi12",
     "stylelint-config-avi12",
-    "postcss-html"
+    "postcss-html",
+    "svelte-check"
   ],
   "health": { "maxCognitive": 30, "maxCrap": 10000 },
   "rules": { "unused-enum-members": "warn" },
