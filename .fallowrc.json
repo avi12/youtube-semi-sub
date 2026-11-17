@@ -19,5 +19,10 @@
   ],
   "health": { "maxCognitive": 30, "maxCrap": 10000 },
   "rules": { "unused-enum-members": "warn" },
-  "overrides": [{ "files": ["src/lib/youtube/page/yt-icon.ts"], "rules": { "unused-enum-members": "off" } }]
+  "overrides": [
+    {
+      "files": ["src/lib/youtube/page/yt-icon.ts", "src/lib/youtube/page/button-view-model.ts"],
+      "rules": { "unused-enum-members": "off" }
+    }
+  ]
 }
