@@ -3,11 +3,10 @@ import { mount, unmount } from "svelte";
 import { buildNativeButtonClasses } from "#channel-button/button/native-button-classes";
 import SemiSubButton from "#channel-button/button/SemiSubButton.svelte";
 import {
-  getPageKind,
   type PageChannel,
   pageChannelSchema,
   PageKind,
-  readPageChannel
+  readPageChannelByContent
 } from "#channel-button/page/channel-page-data";
 import {
   findPageAnchor,
@@ -56,29 +55,24 @@ type Target = z.infer<typeof targetSchema>;
 let cachedPageData: unknown = null;
 let cachedPageChannel: PageChannel | null = null;
 
-function readPageChannelOnce({ pageData, kind }: Parameters<typeof readPageChannel>[0]) {
-  const isCached = pageData === cachedPageData && cachedPageChannel?.kind === kind;
+function readPageChannelOnce(pageData: unknown) {
+  const isCached = pageData === cachedPageData;
   if (isCached) {
     return cachedPageChannel;
   }
 
   cachedPageData = pageData;
-  cachedPageChannel = readPageChannel({
-    pageData,
-    kind
-  });
+  cachedPageChannel = readPageChannelByContent(pageData);
   return cachedPageChannel;
 }
 
-function resolveTarget(kind: PageKind) {
-  const pageChannel = readPageChannelOnce({
-    pageData: readPageData(),
-    kind
-  });
+function resolveTarget() {
+  const pageChannel = readPageChannelOnce(readPageData());
   if (!pageChannel) {
     return Unresolved.PENDING;
   }
 
+  const { kind } = pageChannel;
   const urlVideoId = readUrlVideoId();
   const isStaleWatchData =
     kind === PageKind.WATCH && !!urlVideoId && !!pageChannel.videoId && pageChannel.videoId !== urlVideoId;
@@ -183,7 +177,7 @@ function mountButton(target: Target) {
 type MountedButton = NonNullable<ReturnType<typeof mountButton>>;
 
 /** Mounts the button once the page's anchor renders, and re-mounts it if YouTube re-renders the row it sits in */
-function trackPage(kind: PageKind) {
+function trackPage() {
   let mounted: MountedButton | null = null;
   let mountCount = 0;
   let isStopped = false;
@@ -208,7 +202,7 @@ function trackPage(kind: PageKind) {
 
     mounted?.destroy();
     mounted = null;
-    const resolution = resolveTarget(kind);
+    const resolution = resolveTarget();
     const isOutOfMounts = mountCount >= MAX_MOUNTS_PER_PAGE;
     const isSettledWithoutButton = resolution === Unresolved.NO_BUTTON || isOutOfMounts;
     if (isSettledWithoutButton) {
@@ -249,10 +243,7 @@ export function startChannelButton() {
   function handlePage() {
     stopCurrentPage?.();
     stopCurrentPage = null;
-    const kind = getPageKind(location.pathname);
-    if (kind) {
-      stopCurrentPage = trackPage(kind);
-    }
+    stopCurrentPage = trackPage();
   }
 
   whenDocumentParsed()

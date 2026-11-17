@@ -6,7 +6,13 @@ import desktopChannelSignedInJson from "#channel-button/page/fixtures/www-channe
 import desktopChannelJson from "#channel-button/page/fixtures/www-channel.json?raw";
 import desktopWatchJson from "#channel-button/page/fixtures/www-watch.json?raw";
 
-import { getPageKind, PageKind, readPageChannel, readSubscriptionEntities, toChannelHandle } from "./channel-page-data";
+import {
+  PageKind,
+  readPageChannel,
+  readPageChannelByContent,
+  readSubscriptionEntities,
+  toChannelHandle
+} from "./channel-page-data";
 
 // Fixtures are trimmed copies of real signed-out pages (ytInitialData + ytInitialPlayerResponse) from www and
 // m.youtube.com. The signed-in channel header is modelled on the fields YouTube's own subscribe view model reads
@@ -20,25 +26,26 @@ function parseFixture(json: string) {
   return parsed;
 }
 
-describe("getPageKind", () => {
+describe("readPageChannelByContent", () => {
   it.each([
-    ["/watch", PageKind.WATCH],
-    ["/live/dQw4w9WgXcQ", PageKind.WATCH],
-    ["/@mkbhd", PageKind.CHANNEL],
-    ["/@mkbhd/videos", PageKind.CHANNEL],
-    [`/channel/${MKBHD_ID}`, PageKind.CHANNEL],
-    ["/c/mkbhd", PageKind.CHANNEL],
-    ["/user/marquesbrownlee/featured", PageKind.CHANNEL]
-  ])("reads %s as a %s page", (pathname, kind) => {
-    expect(getPageKind(pathname)).toBe(kind);
+    ["a www channel page", desktopChannelJson, PageKind.CHANNEL],
+    ["an m channel page", mobileChannelJson, PageKind.CHANNEL],
+    ["a www watch page", desktopWatchJson, PageKind.WATCH],
+    ["an m watch page", mobileWatchJson, PageKind.WATCH]
+  ])("tells %s by its data, not by its URL", (_name, json, kind) => {
+    expect(readPageChannelByContent(parseFixture(json))?.kind).toBe(kind);
   });
 
-  it.each(["/", "/feed/subscriptions", "/results", "/shorts/dQw4w9WgXcQ", "/playlist", "/watchlater"])(
-    "gives %s no channel button",
-    pathname => {
-      expect(getPageKind(pathname)).toBeNull();
+  it.each([
+    undefined,
+    null,
+    {},
+    {
+      response: {}
     }
-  );
+  ])("finds no channel in %j", pageData => {
+    expect(readPageChannelByContent(pageData)).toBeNull();
+  });
 });
 
 describe("toChannelHandle", () => {
