@@ -4,8 +4,8 @@ import { defineLayer } from "wxt-module-layers";
 // (content-scripts/bridge.content.js), while a `<name>.content` key here builds content-scripts/<name>.js
 export default defineLayer({
   entrypoints: {
-    "bridge.content": "entrypoints/bridge.content/index.ts",
+    "bridge.content": "entrypoints/bridge.content.ts",
     "main-world.content": "entrypoints/main-world.content.ts",
-    "page-styles.content": "entrypoints/page-styles.content/index.ts"
+    "page-styles.content": "entrypoints/page-styles.content.ts"
   }
 });
