@@ -1,0 +1,26 @@
+diff --git a/dist/src/index.js b/dist/src/index.js
+index fb0ec67f08f61f8dec08b7ad14f103d68b49236f..51ba482887649566b52e05bc05af5ccdb478c3db 100644
+--- a/dist/src/index.js
++++ b/dist/src/index.js
+@@ -141973,6 +141973,11 @@ async function findFiles(workspacePath, filePathsToIgnore, filter) {
+ }
+ 
+ function tryParseTsGoVersion(tsconfigPath) {
++    // tsrs, the Rust port of the TypeScript 7 compiler, stands in for tsgo: it takes the same command line
++    const tsrs = tryParsePkg(tsconfigPath, 'tsrs');
++    if (tsrs && tsrs.pkgJsonName === 'tsrs') {
++        return tsrs;
++    }
+     const pkg = tryParsePkg(tsconfigPath, '@typescript/native') ??
+         tryParsePkg(tsconfigPath, '@typescript/native-preview');
+     if (pkg &&
+@@ -142435,7 +142440,8 @@ function getTsGoBinPath(tsconfigPath) {
+     if (!pkg) {
+         throw new Error(formatTsGoNotFoundError('--tsgo'));
+     }
+-    const binPathRelative = pkg.bin[pkg.pkgJsonName === '@typescript/native-preview' ? 'tsgo' : 'tsc'];
++    const binNames = { 'tsrs': 'tsrs', '@typescript/native-preview': 'tsgo' };
++    const binPathRelative = pkg.bin[binNames[pkg.pkgJsonName] ?? 'tsc'];
+     return binPathRelative ? path__namespace.join(path__namespace.dirname(pkg.path), binPathRelative) : undefined;
+ }
+ /**

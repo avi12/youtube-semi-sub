@@ -6,6 +6,7 @@ settings:
 
 patchedDependencies:
   '@davestewart/wxt-utils@0.6.0': 0ef8576660b1d40a79c7b1d2516ff5869de7d67c22ba6d28c902dddca44978be
+  svelte-check: 2228b46b37ce7bc5b193c186d089145337b1897c54a0dd8040f81cdb5c97f7d1
   zod: 53c559785728d494960d50593a7b88311fe1e9aa319ef0182d7af523081259e9
 
 importers:
@@ -84,7 +85,7 @@ importers:
         version: 5.57.3(@typescript-eslint/types@8.73.0)
       svelte-check:
         specifier: ^4.7.8
-        version: 4.7.8(picomatch@4.0.7)(svelte@5.57.3(@typescript-eslint/types@8.73.0))(typescript@6.0.3)
+        version: 4.7.8(patch_hash=2228b46b37ce7bc5b193c186d089145337b1897c54a0dd8040f81cdb5c97f7d1)(picomatch@4.0.7)(svelte@5.57.3(@typescript-eslint/types@8.73.0))(typescript@6.0.3)
       svelte-eslint-parser:
         specifier: 1.10.1
         version: 1.10.1(svelte@5.57.3(@typescript-eslint/types@8.73.0))
@@ -5271,7 +5272,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svelte-check@4.7.8(picomatch@4.0.7)(svelte@5.57.3(@typescript-eslint/types@8.73.0))(typescript@6.0.3):
+  svelte-check@4.7.8(patch_hash=2228b46b37ce7bc5b193c186d089145337b1897c54a0dd8040f81cdb5c97f7d1)(picomatch@4.0.7)(svelte@5.57.3(@typescript-eslint/types@8.73.0))(typescript@6.0.3):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       '@sveltejs/load-config': 0.2.3
