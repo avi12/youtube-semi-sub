@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/fallow/schema.json",
-  "extends": ["./node_modules/fallow-config-avi12/fallow.json"],
+  "extends": ["./node_modules/lint-config/packages/fallow-config/fallow.json"],
   "entry": [
     "src/layers/*/entrypoints/*.content.ts",
     "src/layers/*/entrypoints/*/index.{ts,html}",
@@ -8,15 +8,12 @@
   ],
   "ignoreUnresolvedImports": ["#imports"],
   "ignoreDependencies": [
-    "avi12-lint",
-    "eslint-config-avi12",
-    "fallow-config-avi12",
-    "oxlint-config-avi12",
-    "oxlint-plugin-naming",
-    "oxfmt-config-avi12",
-    "stylelint-config-avi12",
     "postcss-html",
-    "svelte-check"
+    "svelte-check",
+    "lint-config",
+    "stylelint-config-ccb",
+    "typescript-eslint",
+    "globals"
   ],
   "health": { "maxCognitive": 30, "maxCrap": 10000 },
   "rules": { "unused-enum-members": "warn" },
