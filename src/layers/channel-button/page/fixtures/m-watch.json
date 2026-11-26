@@ -107,12 +107,8 @@
             "payload": {
               "teasersOrderEntity": {
                 "collectionKey": "video_metadata_carousel_collection",
-                "teasersInOrder": [
-                  "VIDEO_METADATA_CAROUSEL_PAGINATION_TYPE_UNKNOWN"
-                ],
-                "orderedTeasers": [
-                  "WATCH_UI_TEASER_TYPE_COMMENT"
-                ]
+                "teasersInOrder": ["VIDEO_METADATA_CAROUSEL_PAGINATION_TYPE_UNKNOWN"],
+                "orderedTeasers": ["WATCH_UI_TEASER_TYPE_COMMENT"]
               }
             }
           },

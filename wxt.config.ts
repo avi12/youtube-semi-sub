@@ -89,16 +89,7 @@ export default defineConfig({
   srcDir: "src",
   publicDir: "src/public",
   zip: {
-    includeSources: [
-      "package.json",
-      "pnpm-lock.yaml",
-      "pnpm-workspace.yaml",
-      "patches/**",
-      "README.md",
-      ...LEGAL_FILES,
-      "wxt.config.ts",
-      "src/**"
-    ],
+    includeSources: ["package.json", "bun.lock", "patches/**", "README.md", ...LEGAL_FILES, "wxt.config.ts", "src/**"],
     sourcesTemplate: "{{name}}-{{version}}-{{browser}}-source.zip"
   },
   hooks: {

@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 import { CHROME_EXTENSION_PUBLIC_KEY, CHROME_UPDATE_MANIFEST_FILE, REPOSITORY_URL } from "#release";
 
-// Packs what `pnpm build` and `pnpm zip` produced into the release: the CRX, signed with the release key, and the
+// Packs what `bun run build` and `bun run zip` produced into the release: the CRX, signed with the release key, and the
 // update manifest Chrome reads to find the next CRX. Run it after both, with CHROME_CRX_PRIVATE_KEY_PATH set
 
 const REPO_ROOT = resolve(import.meta.dirname, "..");
@@ -103,7 +103,7 @@ if (IS_TAG_MISMATCHED) {
 
 const IS_BUILT = existsSync(BUILD_DIR) && existsSync(zipPath);
 if (!IS_BUILT) {
-  fail("Run `pnpm build` and `pnpm zip` first");
+  fail("Run `bun run build` and `bun run zip` first");
 }
 
 packCrx(privateKeyPath);
