@@ -57,7 +57,7 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 
 # Stack
 
-- pnpm
+- Bun
 - WXT extension framework, with `wxt-module-layers` for the layers (WXT 0.21 needs the `@davestewart/wxt-utils` patch in `patches/`)
 - Svelte 5 for every UI surface; popup with our own Material 3 Expressive components
 - TypeScript (100% type safety, let TypeScript infer return types - never write them explicitly; type predicates are the exception)
@@ -139,16 +139,16 @@ Features are `wxt-module-layers` layers in `src/layers/<name>/`: each owns its `
 
 After each modification - every bug fix included, before reporting it done - run the whole list below, not only the checks that look relevant:
 
-- `pnpm lint` (`avi12-lint`: oxfmt, stylelint, ESLint for Svelte templates, oxlint; the shared setup is `avi12/lint-config` v0.11.0, so fix the code, never the rules); `pnpm lint:fix` applies the fixers
-- `pnpm svelte:check` (`avi12-svelte-check`, from `avi12-lint`: svelte-check's `--tsgo` mode run on `tsrs`; TypeScript 6 stays installed for svelte-check's own Svelte-to-TS emit)
-- `pnpm compile` (`tsrs`, the Rust port of the TypeScript 7 compiler; it also switches the shared lint setup to type-aware linting)
-- `pnpm test` (vitest, tests sit next to code as `*.test.ts`)
-- `pnpm fallow` - dead-code audit; remove what a change left unused (never `fallow fix`)
+- `bun run lint` (`avi12-lint`: oxfmt, stylelint, ESLint for Svelte templates, oxlint; the shared setup is `avi12/lint-config` v0.11.0, so fix the code, never the rules); `bun run lint:fix` applies the fixers
+- `bun run svelte:check` (`avi12-svelte-check`, from `avi12-lint`: svelte-check's `--tsgo` mode run on `tsrs`; TypeScript 6 stays installed for svelte-check's own Svelte-to-TS emit)
+- `bun run compile` (`tsrs`, the Rust port of the TypeScript 7 compiler; it also switches the shared lint setup to type-aware linting)
+- `bun run test` (vitest, tests sit next to code as `*.test.ts`)
+- `bun run fallow` - dead-code audit; remove what a change left unused (never `fallow fix`)
 - Exemptions live in config with a reason, never as a disable comment: `naming/convention` `allowedNames`/`allowedPatterns` in `.oxlintrc.json` (Chrome's `LanguageModel` global, WXT's `$`-suffixed storage version keys), and a `house/positional-parameters` override for `src/layers/filter-editor/preview/tile-motion.ts` because Svelte's `animate` calls `slideTile(node, { from, to })`
 - `.fallowrc.json` turns `unused-enum-members` off for `src/lib/youtube/page/yt-icon.ts` and `button-view-model.ts`: they list every icon of YouTube's `icons:` set and every button style, type, size and state its bundle names, used or not
 - `.oxfmtrc.json` ignores `**/fixtures/**`: the recorded pages and responses must stay byte-exact
 
 # Dev
 
-- `pnpm dev` (Chromium) / `pnpm dev:firefox`
+- `bun run dev` (Chromium) / `bun run dev:firefox`
 - Firefox first when verifying cross-browser behaviour - it is the strictest environment

@@ -22,7 +22,7 @@ Chrome rejects CRX files that don't come from the Chrome Web Store (`CRX_REQUIRE
 
 **Updates.** Each release ships an update manifest (`updates.xml`) that the extension points at, so a browser that allows self-hosted CRX installs (for example Chrome on Linux, or one set up through an enterprise policy) updates it by itself. Where it doesn't, the extension checks for a new release once a day, puts a badge on its icon and shows a banner in the popup - download the new file and drag it in the same way.
 
-Firefox isn't published yet: Firefox only installs signed extensions, so for now run it from source with `pnpm dev:firefox`.
+Firefox isn't published yet: Firefox only installs signed extensions, so for now run it from source with `bun run dev:firefox`.
 
 ## Features
 
@@ -59,17 +59,17 @@ If you also use [YouTube Auto Feed](https://github.com/avi12/youtube-auto-feed),
 
 ## Development
 
-Requires [pnpm](https://pnpm.io).
+Requires [Bun](https://bun.com) 1.4.5.
 
 ```sh
-pnpm install
-pnpm dev              # Chromium, with hot reload
-pnpm dev:firefox
-pnpm build            # or build:firefox
-pnpm zip              # or zip:firefox (also packs the sources)
+bun install
+bun run dev              # Chromium, with hot reload
+bun run dev:firefox
+bun run build            # or build:firefox
+bun run zip              # or zip:firefox (also packs the sources)
 ```
 
-Before committing, run the gates listed in [CLAUDE.md](CLAUDE.md#linting): `pnpm lint`, `pnpm stylelint`, `pnpm svelte:check`, `pnpm compile`, `pnpm test` and `pnpm fallow`.
+Before committing, run the gates listed in [CLAUDE.md](CLAUDE.md#linting): `bun run lint`, `bun run stylelint`, `bun run svelte:check`, `bun run compile`, `bun run test` and `bun run fallow`.
 
 Built with [WXT](https://wxt.dev), [wxt-module-layers](https://github.com/davestewart/wxt-module-layers), Svelte 5, zod and [@webext-core/messaging](https://webext-core.aklinker1.io/messaging/installation).
 
