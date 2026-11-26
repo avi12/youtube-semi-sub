@@ -13,18 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.5
 
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - run: bun install --frozen-lockfile
 
-      - run: pnpm build
+      - run: bun run build
 
-      - run: pnpm zip
+      - run: bun run zip
 
       - name: Pack the CRX and the update manifest
         env:
@@ -32,7 +33,7 @@ jobs:
         run: |
           key_path="$RUNNER_TEMP/chrome.pem"
           printf '%s\n' "$CHROME_CRX_PRIVATE_KEY" > "$key_path"
-          CHROME_CRX_PRIVATE_KEY_PATH="$key_path" pnpm release:package
+          CHROME_CRX_PRIVATE_KEY_PATH="$key_path" bun run release:package
           rm "$key_path"
 
       - name: Publish the release
