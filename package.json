@@ -1,6 +1,6 @@
 {
   "name": "youtube-semi-sub",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": false,
   "description": "Filter YouTube channels in your subscriptions feed: follow one without subscribing and add only the videos your filter (a RegExp or an AI match) lets through, or subscribe and hide the ones it matches",
   "homepage": "https://github.com/avi12/youtube-semi-sub",
