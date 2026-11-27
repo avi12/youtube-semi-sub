@@ -7,12 +7,12 @@
   import { markSurface, SemiListSurface } from "#subscription-lists/semi-list-surface";
 </script>
 
-<!-- m.youtube.com/feed/subscriptions: leads the horizontal channel strip above the feed -->
+<!-- m.youtube.com/feed/subscriptions: leads the horizontal channel strip above the feed, laid out by the classes of
+     YouTube's own strip avatars -->
 {#each listFollowedSubscriptions(listsView.subscriptions) as subscription (subscription.channelId)}
-  <div class="yss-m-strip-item" {@attach markSurface(SemiListSurface.MOBILE_STRIP)}>
-    <a class="yss-m-strip-item__link" href={getChannelPath(subscription)}>
+  <div class="yss-m-strip-item YtmChannelListSubMenuAvatarRendererHost" {@attach markSurface(SemiListSurface.MOBILE_STRIP)}>
+    <a class="yss-m-strip-item__link" aria-label={subscription.title} href={getChannelPath(subscription)}>
       <ChannelAvatar {subscription} />
-      <span class="yss-m-strip-item__title" dir="auto">{subscription.title}</span>
     </a>
     <button
       class="yss-m-strip-item__manage"
