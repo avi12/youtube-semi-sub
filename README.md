@@ -7,6 +7,8 @@ Follow a YouTube channel without getting all of it, or subscribe and leave out t
 
 Works on `www.youtube.com` and `m.youtube.com`, in Chromium browsers (Chrome, Edge, Opera) and Firefox.
 
+![The "Subscribe with a filter" dialog over a YouTube video, set to a title block list](assets/screenshot-filter-dialog.png)
+
 ## Installation
 
 Open the [Releases page](https://github.com/avi12/youtube-semi-sub/releases/latest) and download the latest file for your browser.
