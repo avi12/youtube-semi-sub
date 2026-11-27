@@ -1,6 +1,6 @@
 import { mount } from "svelte";
 
-import { readStoredState, updateAvailableVersionItem } from "@/lib/storage";
+import { readStoredState } from "@/lib/storage";
 
 import App from "./App.svelte";
 
@@ -10,7 +10,6 @@ import "./popup.css";
 mount(App, {
   target: document.getElementById("app") ?? document.body,
   props: {
-    initialState: await readStoredState(),
-    initialUpdateVersion: await updateAvailableVersionItem.getValue()
+    initialState: await readStoredState()
   }
 });

@@ -4,7 +4,7 @@ import { dirname, join, resolve } from "node:path";
 
 import { defineConfig } from "wxt";
 
-import { CHROME_EXTENSION_PUBLIC_KEY, CHROME_UPDATE_MANIFEST_URL, REPOSITORY_URL } from "./src/lib/release";
+import { REPOSITORY_URL } from "./src/lib/repository";
 import { YOUTUBE_MATCHES } from "./src/lib/youtube/site";
 
 const AUTHOR_NAME = "Avi";
@@ -54,11 +54,6 @@ export default defineConfig({
     content_security_policy: {
       extension_pages: EXTENSION_PAGES_CSP
     },
-    // Pins the ID of every install (zip, CRX), and where a browser that allows self-hosted CRX looks for the next one
-    ...(browser === "chrome" && {
-      key: CHROME_EXTENSION_PUBLIC_KEY,
-      update_url: CHROME_UPDATE_MANIFEST_URL
-    }),
     ...(browser === "firefox" && {
       developer: {
         name: AUTHOR_NAME,

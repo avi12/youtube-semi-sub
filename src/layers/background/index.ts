@@ -6,7 +6,6 @@ import {
   refreshChannels,
   UPLOADS_UNAVAILABLE_ERROR
 } from "#background/cache/channel-cache";
-import { startUpdateCheck } from "#background/updates/update-check";
 import { browser } from "#imports";
 import { collectAiFilterKeys } from "@/lib/filter/ai-verdicts";
 import { MessageType, onMessage } from "@/lib/messaging/extension-messaging";
@@ -137,7 +136,6 @@ export function startBackground() {
   });
 
   startAiMatch();
-  startUpdateCheck();
 
   // Alarms can be lost (the extension was disabled, or the browser dropped them on restart) - restore on every wake
   ensureRefreshAlarm().catch(console.error);

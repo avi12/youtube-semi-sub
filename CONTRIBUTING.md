@@ -33,7 +33,7 @@ Keep each commit one self-contained change with a message saying what and why. V
 1. Set the version in `package.json` and commit it
 2. Tag the commit `v<version>` and push the tag
 
-The [Release workflow](.github/workflows/release.yml) builds the extension, packs the zip and a CRX signed with the key in the `CHROME_CRX_PRIVATE_KEY` secret, and attaches both, plus `updates.xml`, to a new GitHub release. `bun run release:package` does the packing step locally after `bun run build` and `bun run zip`, with `CHROME_CRX_PRIVATE_KEY_PATH` pointing at the key. The public half of that key is in `src/lib/release.ts`: it fixes the extension's ID, so never replace the key.
+The [Release workflow](.github/workflows/release.yml) runs on a `v*` tag: it builds the zips of every store (with the source zips) and attaches them to a new GitHub release.
 
 ## License
 

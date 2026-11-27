@@ -126,13 +126,6 @@ export const aiVerdictsItem = defineSchemaItem({
   fallback: {}
 });
 
-/** The newer release the background found on GitHub, or null - a cache the popup banner and the action badge read */
-export const updateAvailableVersionItem = defineSchemaItem({
-  key: "local:updateAvailableVersion",
-  schema: z.string().nullable(),
-  fallback: null
-});
-
 /** A storage item read and written whole - what `mutateStorageItem` and the item tables take */
 export interface StorageItem<T> {
   getValue(): Promise<T>;

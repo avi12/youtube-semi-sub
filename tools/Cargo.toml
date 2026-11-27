@@ -12,6 +12,8 @@ name = "devtool"
 path = "src/main.rs"
 
 [dependencies]
+# The HMR build decodes the assets its worker sends as base64
+base64 = "0.22"
 # The CDP and RDP clients and wire types are shared with the hot sidecar instead of being rewritten
 youtube-semi-sub-dev-hot = { path = "../dev-server" }
 clap = { version = "4", features = ["derive", "env"] }
@@ -29,8 +31,6 @@ tokio = { version = "1", features = [
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
-# The built manifest's extension key is base64
-base64 = "0.22"
 # The WebSocket client of one DevTools session (the sidecar keeps its own copy private)
 tokio-tungstenite = "0.30"
 # Send and receive halves of those WebSocket sessions
