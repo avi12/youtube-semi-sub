@@ -1,7 +1,7 @@
 import { elementSchema, htmlElementSchema, isButtonElement } from "@/lib/dom-guards";
 import { z } from "@/lib/zod";
 
-import { PageKind } from "./channel-page-data";
+import { PageKind } from "./page-channel-schema";
 
 // MAIN world: where YouTube's own Subscribe button sits on the current page, on www and m.youtube.com alike
 

@@ -1,5 +1,5 @@
-import { readSubscriptionEntities } from "#channel-button/page/channel-page-data";
 import { readIsSignedIn } from "#channel-button/page/page-data-source";
+import { readSubscriptionEntities } from "#channel-button/page/readers/subscription-state";
 import { parseJson } from "@/lib/utils/json";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
 import { captureResponseReaders } from "@/lib/youtube/page/response-readers";

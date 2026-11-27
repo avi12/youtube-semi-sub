@@ -3,17 +3,13 @@ import { mount, unmount } from "svelte";
 import { buildNativeButtonClasses } from "#channel-button/button/native-button-classes";
 import SemiSubButton from "#channel-button/button/SemiSubButton.svelte";
 import {
-  type PageChannel,
-  pageChannelSchema,
-  PageKind,
-  readPageChannelByContent
-} from "#channel-button/page/channel-page-data";
-import {
   findPageAnchor,
   pageAnchorSchema,
   readSubscribeControl,
   SUBSCRIBED_ATTRIBUTE
 } from "#channel-button/page/page-anchor";
+import { readPageChannelByContent } from "#channel-button/page/page-channel";
+import { type PageChannel, pageChannelSchema, PageKind } from "#channel-button/page/page-channel-schema";
 import { readIsSignedIn, readPageData, readUrlVideoId } from "#channel-button/page/page-data-source";
 import { isCustomEvent, isNode } from "@/lib/dom-guards";
 import { createFrameScheduler, SUBTREE_CHILD_LIST, whenDocumentParsed } from "@/lib/utils/dom";

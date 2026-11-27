@@ -1,25 +1,17 @@
 import { describe, expect, it } from "vitest";
 
+import { MKBHD_ID, OTHER_CHANNEL_ID, RICK_ASTLEY_ID } from "#channel-button/page/fixtures/channel-ids";
 import mobileChannelJson from "#channel-button/page/fixtures/m-channel.json?raw";
 import mobileWatchJson from "#channel-button/page/fixtures/m-watch.json?raw";
 import desktopChannelSignedInJson from "#channel-button/page/fixtures/www-channel-signed-in.json?raw";
 import desktopChannelJson from "#channel-button/page/fixtures/www-channel.json?raw";
 import desktopWatchJson from "#channel-button/page/fixtures/www-watch.json?raw";
+import { PageKind } from "#channel-button/page/page-channel-schema";
 
-import {
-  PageKind,
-  readPageChannel,
-  readPageChannelByContent,
-  readSubscriptionEntities,
-  toChannelHandle
-} from "./channel-page-data";
+import { readPageChannel, readPageChannelByContent } from "./page-channel";
 
 // Fixtures are trimmed copies of real signed-out pages (ytInitialData + ytInitialPlayerResponse) from www and
 // m.youtube.com. The signed-in channel header is modelled on the fields YouTube's own subscribe view model reads
-
-const RICK_ASTLEY_ID = "UCuAXFkgsw1L7xaCfnd5JJOw";
-const MKBHD_ID = "UCBJycsmduvYEL83R_U4JriQ";
-const OTHER_CHANNEL_ID = "UCXuqSBlHAE6Xw-yeJA0Tunw";
 
 function parseFixture(json: string) {
   const parsed: unknown = JSON.parse(json);
@@ -45,73 +37,6 @@ describe("readPageChannelByContent", () => {
     }
   ])("finds no channel in %j", pageData => {
     expect(readPageChannelByContent(pageData)).toBeNull();
-  });
-});
-
-describe("toChannelHandle", () => {
-  it.each([
-    ["/@RickAstleyYT", "@RickAstleyYT"],
-    ["http://www.youtube.com/@mkbhd", "@mkbhd"],
-    ["https://m.youtube.com/@mkbhd/videos", "@mkbhd"],
-    ["/@%D7%A2%D7%91%D7%A8%D7%99%D7%AA", "@עברית"]
-  ])("reads %s as %s", (url, handle) => {
-    expect(toChannelHandle(url)).toBe(handle);
-  });
-
-  it.each([`/channel/${MKBHD_ID}`, undefined])("finds no handle in %s", url => {
-    expect(toChannelHandle(url)).toBeUndefined();
-  });
-});
-
-describe("readSubscriptionEntities", () => {
-  it("maps each subscription entity to the channel id its key encodes", () => {
-    const entities = readSubscriptionEntities({
-      frameworkUpdates: {
-        entityBatchUpdate: {
-          mutations: [
-            {
-              payload: {
-                subscriptionStateEntity: {
-                  key: "EhhVQ3VBWEZrZ3N3MUw3eGFDZm5kNUpKT3cgMygB",
-                  subscribed: false
-                }
-              }
-            },
-            {
-              payload: {
-                subscriptionStateEntity: {
-                  key: "EhhVQ0JKeWNzbWR1dllFTDgzUl9VNEpyaVEgMygB",
-                  subscribed: true
-                }
-              }
-            },
-            {
-              payload: {
-                likeStatusEntity: {
-                  key: "x"
-                }
-              }
-            },
-            {
-              payload: {
-                subscriptionStateEntity: {
-                  key: "not base64!",
-                  subscribed: true
-                }
-              }
-            }
-          ]
-        }
-      }
-    });
-    expect([...entities]).toEqual([
-      [RICK_ASTLEY_ID, false],
-      [MKBHD_ID, true]
-    ]);
-  });
-
-  it("returns nothing for a response without framework updates", () => {
-    expect(readSubscriptionEntities({}).size).toBe(0);
   });
 });
 
