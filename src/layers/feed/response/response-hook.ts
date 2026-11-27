@@ -8,10 +8,12 @@ import {
 } from "#feed/feed-session";
 import { isHiddenVideoListHonored } from "#feed/live/ytaf";
 import type { PageState } from "@/lib/messaging/page-messaging";
-import { getPageState } from "@/lib/page/page-state";
+import { getPageState, whenPageStateKnown } from "@/lib/page/page-state";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
 import { captureResponseReaders } from "@/lib/youtube/page/response-readers";
 import { FeedPathname, getYouTubeSite, InnerTubePath, isYouTubeUrlAt, YouTubeSite } from "@/lib/youtube/site";
+import { z } from "@/lib/zod";
+import { createGuard } from "@/lib/zod-guard";
 
 import { readInitialDataHtml, readSubscriptionsContinuation, readSubscriptionsFeed } from "./feed-response";
 
@@ -30,6 +32,8 @@ import { readInitialDataHtml, readSubscriptionsContinuation, readSubscriptionsFe
 // The longest a feed response is held back for native renderers; slower ones are inserted live afterwards
 const RESPONSE_PATCH_BUDGET_MS = 1500;
 const NO_REMOVALS: ReadonlySet<string> = new Set();
+
+const isInitialDataObject = createGuard(z.looseObject({}));
 
 /** The Shorts the current feed load put in a shelf already */
 const shelvedShortIds = new Set<string>();
@@ -241,15 +245,23 @@ function installResponsePatch() {
 export function installResponseHooks() {
   installResponsePatch();
 
-  // A hard load renders from `ytInitialData`, patched as it is assigned (m's first assignment, a JSON string, passes
+  // A hard load renders from `ytInitialData`, patched in place: at once when the page state is known, else as soon as it
+  // arrives, which m.youtube.com's app leaves time for before it renders (its first assignment, a JSON string, passes
   // through). www only takes the hidden videos out there - a running YouTube Auto Feed would otherwise show them until
   // its first poll - and inserts live, animated, with full native renderers
   const isInsertingOnHardLoad = getYouTubeSite() === YouTubeSite.MOBILE;
-  interceptInitialData(
-    value =>
-      patchFeedDataNow({
+  interceptInitialData(value => {
+    if (!isInitialDataObject(value)) {
+      return value;
+    }
+
+    whenPageStateKnown(() => {
+      const patched = patchFeedDataNow({
         data: value,
         isInserting: isInsertingOnHardLoad
-      }) ?? value
-  );
+      });
+      Object.assign(value, patched);
+    });
+    return value;
+  });
 }

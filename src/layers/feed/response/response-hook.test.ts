@@ -43,10 +43,12 @@ const FEED_PAGE_URL = "https://www.youtube.com/feed/subscriptions";
 
 const pageState: { current: PageState | null } = { current: null };
 const site = { current: "desktop" };
+const stateWaiters: (() => void)[] = [];
 
 vi.mock("@/lib/page/page-state", () => ({
   getPageState: () => pageState.current,
-  onPageState: () => () => {}
+  onPageState: () => () => {},
+  whenPageStateKnown: (listener: () => void) => (pageState.current ? listener() : stateWaiters.push(listener))
 }));
 
 const SHORTS_TAB_PARAMS = "EgZzaG9ydHPyBgUKA5oBAA==";
@@ -508,6 +510,23 @@ describe("the feed response hook, for a subscribed channel with a hide filter", 
     hideWith({ hideFilter: titleHideFilter });
     globalThis.ytInitialData = feedResponseBody();
     expect(feedIds(globalThis.ytInitialData)).toEqual([videoId(1), null]);
+  });
+
+  it("patches a hard load assigned before the page state arrived, in the object the page holds", () => {
+    hideWith({ hideFilter: titleHideFilter });
+    const arrivingState = pageState.current;
+    pageState.current = null;
+    const data = feedResponseBody();
+    globalThis.ytInitialData = data;
+    expect(feedIds(data)).toEqual([videoId(1), videoId(2), null]);
+
+    pageState.current = arrivingState;
+    for (const listener of stateWaiters.splice(0)) {
+      listener();
+    }
+
+    expect(globalThis.ytInitialData).toBe(data);
+    expect(feedIds(data)).toEqual([videoId(1), null]);
   });
 
   it("takes hidden videos out of www's later pages too, adding nothing there", async () => {
