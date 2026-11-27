@@ -63,12 +63,17 @@
 </script>
 
 {#snippet videoCard(row: PreviewRow)}
-  <img
-    class="video__thumbnail"
-    alt=""
-    decoding="async"
-    loading="lazy"
-    src={row.video.thumbnailUrl} />
+  <span class="video__frame">
+    <img
+      class="video__thumbnail"
+      alt=""
+      decoding="async"
+      loading="lazy"
+      src={row.video.thumbnailUrl} />
+    {#if row.video.durationSeconds !== undefined}
+      <span class="video__duration">{formatDuration(row.video.durationSeconds)}</span>
+    {/if}
+  </span>
   <span class="video__text">
     <span class="video__title">
       <bdi>
@@ -90,9 +95,6 @@
       {/if}
       {#if row.video.isMembersOnly}
         <span class="video__short">Members only</span>
-      {/if}
-      {#if row.video.durationSeconds !== undefined}
-        <span class="video__duration">{formatDuration(row.video.durationSeconds)}</span>
       {/if}
       <time class="video__time" datetime={new Date(row.video.publishedAt).toISOString()}>
         {formatRelativeTime({
@@ -230,6 +232,11 @@
     }
   }
 
+  .video__frame {
+    position: relative;
+    display: block;
+  }
+
   .video__thumbnail {
     display: block;
     object-fit: cover;
@@ -271,13 +278,23 @@
     line-height: 18px;
   }
 
-  .video__time,
-  .video__duration {
+  .video__time {
     color: var(--editor-muted);
     font-size: 12px;
   }
 
+  /* YouTube's own thumbnail badge: dark behind white in both themes, since it sits on the picture */
   .video__duration {
+    position: absolute;
+    inset-block-end: 4px;
+    inset-inline-end: 4px;
+    padding-inline: 4px;
+    border-radius: 4px;
+    background: rgb(0 0 0 / 0.6);
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 18px;
     font-variant-numeric: tabular-nums;
   }
 
@@ -336,6 +353,13 @@
     & .video__thumbnail {
       border-radius: 6px;
       filter: grayscale(1);
+    }
+
+    & .video__duration {
+      inset-block-end: 2px;
+      inset-inline-end: 2px;
+      font-size: 10px;
+      line-height: 14px;
     }
 
     & .video__title {
