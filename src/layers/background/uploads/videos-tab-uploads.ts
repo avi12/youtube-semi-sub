@@ -33,6 +33,12 @@ export enum ChannelGridTab {
 const INTERFACE_LANGUAGE_PARAM = "hl";
 // Relative publish times ("3 hours ago") are only parsed in English
 const ENGLISH_INTERFACE_LANGUAGE = "en";
+// A phone's browser is otherwise redirected to m.youtube.com, whose page is laid out differently. Not persisted, so
+// the user's own choice of site stays as it is
+const DESKTOP_SITE_PARAMS = {
+  app: "desktop",
+  persist_app: "0"
+};
 
 const channelBrowseResponseSchema = z.looseObject({
   contents: z.looseObject({
@@ -194,6 +200,9 @@ export function parseVideosTab({
 export async function fetchChannelTabUploads({ channelId, tab }: { channelId: string; tab: ChannelGridTab }) {
   const url = new URL(`${buildChannelPath(channelId)}/${tab}`, YOUTUBE_ORIGIN);
   url.searchParams.set(INTERFACE_LANGUAGE_PARAM, ENGLISH_INTERFACE_LANGUAGE);
+  for (const [name, value] of Object.entries(DESKTOP_SITE_PARAMS)) {
+    url.searchParams.set(name, value);
+  }
   // Cookies carry the user's consent choice - without them EU visitors get the consent interstitial instead
   const html = await fetchText({
     url,
