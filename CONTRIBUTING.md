@@ -2,13 +2,15 @@
 
 ## Quick start
 
-Prerequisites: [Node](https://nodejs.org) and [Bun](https://bun.com) 1.4.5.
+Prerequisites: [Node](https://nodejs.org), [Bun](https://bun.com) 1.4.5 and a [Rust](https://rustup.rs) toolchain (the dev server).
 
 ```sh
 bun install
 bun run dev            # Chromium
 bun run dev:firefox    # Firefox
 ```
+
+`bun run dev` runs the Rust dev server: it builds the extension, opens one browser with it loaded and applies each save as the smallest update. The first run compiles the server, and on Chromium downloads Chrome for Testing into `.chrome-for-testing/`.
 
 [CLAUDE.md](CLAUDE.md) is the project's guide: what the extension does, how the layers fit together, the constraints the code keeps, and the code style. Read its Architecture and Constraints sections before a change that touches the feed, the channel button or the filters.
 

@@ -148,8 +148,18 @@ After each modification - every bug fix included, before reporting it done - run
 - Exemptions live in config with a reason, never as a disable comment: `naming/convention` `allowedNames`/`allowedPatterns` in `.oxlintrc.json` (Chrome's `LanguageModel` global, WXT's `$`-suffixed storage version keys), and a `house/positional-parameters` override for `src/layers/filter-editor/preview/tile-motion.ts` because Svelte's `animate` calls `slideTile(node, { from, to })`
 - `.fallowrc.json` turns `unused-enum-members` off for `src/lib/youtube/page/yt-icon.ts` and `button-view-model.ts`: they list every icon of YouTube's `icons:` set and every button style, type, size and state its bundle names, used or not
 - `.oxfmtrc.json` ignores `**/fixtures/**`: the recorded pages and responses must stay byte-exact
+- `dev-server/bindings/` and `tools/bindings/` are ignored by the linters and the formatter: ts-rs generates them (`cargo test` rewrites them and fails on drift)
+- `tools/assets/browsers/` and `tools/assets/payload/` are ignored too: snippets evaluated inside the browser (expression statements, no module scope)
+- `.fallowrc.json` ignores `tools/assets/**`: the dev server reads those files as text, so nothing imports them
 
 # Dev
 
-- `bun run dev` (Chromium) / `bun run dev:firefox`
+- `bun run dev` (Chromium) / `bun run dev:firefox`: the Rust dev server, ported from youtube-downloader. `tools/` is the `devtool` binary (launcher, browser targets, HMR build, build diffing), `dev-server/` its library (watcher, rebuild loop, CDP and RDP drivers). It rebuilds on a change under `src/` and applies the smallest update, keeping YouTube tabs open:
+  - A popup or dialog component hot-swaps in place
+  - Other `bridge` content script code restarts that script, with no extension or tab reload; the dev server drops its message handlers first, so tie any other registration to the content script context
+  - A `main-world` change reloads the extension; no tab is reloaded, so open tabs keep the old page script
+- `src` carries no dev-only code or permission; `scripting` is added to dev builds only
+- WXT builds Firefox as MV2 unless told otherwise: `tools/assets/dev/wxt-build-worker.mjs` pins MV3
+- Dev ports: CDP 9280 (Linux 9281), Firefox 9282, Marionette 2838. Profiles live in `user-profiles/`, seeded once from your own (Chromium: bookmarks; Firefox: session files); `--profile-dir` and `--mute-audio` are for test runs
+- Gates for the Rust side: `bun run tools:test`, `bun run dev-server:test` (`bun run lint` runs fmt, clippy and deny), and `bun run assets:check` for the injected scripts
 - Firefox first when verifying cross-browser behaviour - it is the strictest environment

@@ -27,6 +27,11 @@
     "**/package-lock.json",
     "**/yarn.lock",
     "**/bun.lock",
-    "**/fixtures/**"
+    "**/fixtures/**",
+    ".chrome-for-testing/**",
+    "dev-server/bindings/**",
+    "tools/bindings/**",
+    "tools/assets/browsers/**",
+    "tools/assets/payload/**"
   ]
 }

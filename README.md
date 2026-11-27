@@ -59,7 +59,7 @@ If you also use [YouTube Auto Feed](https://github.com/avi12/youtube-auto-feed),
 
 ## Development
 
-Requires [Bun](https://bun.com) 1.4.5.
+Requires [Bun](https://bun.com) 1.4.5, [Node](https://nodejs.org) and, for the dev server, [Rust](https://rustup.rs).
 
 ```sh
 bun install

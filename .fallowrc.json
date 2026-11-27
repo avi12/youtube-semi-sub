@@ -7,6 +7,7 @@
     "src/layers/*/layer.config.ts"
   ],
   "ignoreUnresolvedImports": ["#imports"],
+  "ignorePatterns": ["dev-server/bindings/**", "tools/bindings/**", "tools/assets/**"],
   "ignoreDependencies": [
     "postcss-html",
     "svelte-check",

@@ -30,8 +30,12 @@
     "#release": "./src/lib/release.ts"
   },
   "scripts": {
-    "dev": "wxt",
-    "dev:firefox": "wxt -b firefox --mv3",
+    "dev": "bun run devtool dev run",
+    "dev:firefox": "bun run devtool dev run --firefox",
+    "devtool": "cargo run --release --quiet --manifest-path tools/Cargo.toml --",
+    "dev-server:test": "cargo test --manifest-path dev-server/Cargo.toml",
+    "tools:test": "cargo test --manifest-path tools/Cargo.toml",
+    "assets:check": "tsrs --noEmit -p tools/assets/tsconfig.json",
     "build": "wxt build",
     "build:firefox": "bun run build -b firefox --mv3",
     "zip": "wxt zip",

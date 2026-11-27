@@ -24,7 +24,18 @@
       }
     ]
   },
-  "ignorePatterns": ["node_modules/**", ".output/**", ".wxt/**", "user-profiles/**", "patches/**"],
+  "ignorePatterns": [
+    "node_modules/**",
+    ".output/**",
+    ".wxt/**",
+    "user-profiles/**",
+    ".chrome-for-testing/**",
+    "patches/**",
+    "dev-server/bindings/**",
+    "tools/bindings/**",
+    "tools/assets/browsers/**",
+    "tools/assets/payload/**"
+  ],
   "overrides": [
     {
       "files": ["src/layers/filter-editor/preview/tile-motion.ts"],
