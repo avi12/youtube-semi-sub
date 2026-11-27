@@ -68,7 +68,7 @@ bun install
 bun run dev              # Chromium, with hot reload
 bun run dev:firefox
 bun run build            # or build:firefox
-bun run zip:all          # every store at once, in parallel (or zip, zip:edge, zip:opera, zip:firefox)
+bun run zip:all          # every store at once, in parallel (or zip, zip:opera, zip:firefox)
 ```
 
 Before committing, run the gates listed in [CLAUDE.md](CLAUDE.md#linting): `bun run lint`, `bun run stylelint`, `bun run svelte:check`, `bun run compile`, `bun run test` and `bun run fallow`.
