@@ -1,7 +1,7 @@
 import { type PageChannel, PageKind } from "#channel-button/page/page-channel-schema";
 import { pickAvatarUrl, toChannelHandle, toChannelInfo } from "#channel-button/page/readers/channel-info";
 import { findValueByKey, isRecord } from "#channel-button/page/readers/renderer-search";
-import { readOfficialSubscription } from "#channel-button/page/readers/subscription-state";
+import { readPageOfficialSubscription } from "#channel-button/page/readers/subscription-state";
 import { channelMetadataRendererSchema } from "@/lib/youtube/schemas/browse";
 import { thumbnailSchema } from "@/lib/youtube/schemas/thumbnail";
 import { z } from "@/lib/zod";
@@ -73,7 +73,7 @@ export function readChannelPageChannel(response: unknown) {
     videoId: undefined,
     isOwnedByViewer: false,
     hasSubscribeControl: subscribeControl !== undefined,
-    officialSubscription: readOfficialSubscription({
+    officialSubscription: readPageOfficialSubscription({
       response,
       searchRoot: header,
       channelId: channel.channelId

@@ -55,7 +55,7 @@ export function readSubscriptionEntities(response: unknown) {
   return subscribedByChannel;
 }
 
-export function readOfficialSubscription({
+export function readPageOfficialSubscription({
   response,
   searchRoot,
   channelId

@@ -1,7 +1,10 @@
 import { type PageChannel, type PageData, PageKind } from "#channel-button/page/page-channel-schema";
 import { pickAvatarUrl, toChannelHandle, toChannelInfo } from "#channel-button/page/readers/channel-info";
 import { findValueByKey, isRecord } from "#channel-button/page/readers/renderer-search";
-import { readOfficialSubscription, readSubscriptionEntities } from "#channel-button/page/readers/subscription-state";
+import {
+  readPageOfficialSubscription,
+  readSubscriptionEntities
+} from "#channel-button/page/readers/subscription-state";
 import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
 import { textRunSchema } from "@/lib/youtube/schemas/text";
 import { thumbnailListSchema, thumbnailSchema } from "@/lib/youtube/schemas/thumbnail";
@@ -143,7 +146,7 @@ export function readWatchChannel({ response, playerResponse }: PageData) {
     videoId: videoDetails?.videoId,
     isOwnedByViewer: videoDetails?.isOwnerViewing ?? false,
     hasSubscribeControl: true,
-    officialSubscription: readOfficialSubscription({
+    officialSubscription: readPageOfficialSubscription({
       response,
       searchRoot: contents,
       channelId
