@@ -5,6 +5,7 @@ use thiserror::Error;
 use crate::dev::{BrowserError, HmrError, LauncherError};
 use crate::firefox::FirefoxError;
 use crate::output::OutputError;
+use crate::release::ReleaseError;
 
 /// Everything that can go wrong in a tool command.
 #[derive(Debug, Error)]
@@ -16,6 +17,9 @@ pub(crate) enum Error {
     /// A `firefox` command failed.
     #[error(transparent)]
     Firefox(#[from] FirefoxError),
+    /// A `release` command failed.
+    #[error(transparent)]
+    Release(#[from] ReleaseError),
     /// An `output` command failed.
     #[error(transparent)]
     Output(#[from] OutputError),

@@ -3,7 +3,7 @@ export const REPOSITORY_URL = `https://github.com/${REPOSITORY_SLUG}`;
 export const LATEST_RELEASE_URL = `${REPOSITORY_URL}/releases/latest`;
 export const LATEST_RELEASE_API_URL = `https://api.github.com/repos/${REPOSITORY_SLUG}/releases/latest`;
 
-export const CHROME_UPDATE_MANIFEST_FILE = "updates.xml";
+const CHROME_UPDATE_MANIFEST_FILE = "updates.xml";
 /** GitHub redirects `latest/download` to the newest release's asset, so the manifest needs no hosting of its own */
 export const CHROME_UPDATE_MANIFEST_URL = `${LATEST_RELEASE_URL}/download/${CHROME_UPDATE_MANIFEST_FILE}`;
 /** The public half of the release signing key: pins the extension's ID, so a zip, a CRX and every update share one */
