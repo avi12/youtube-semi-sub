@@ -1,0 +1,252 @@
+//! The built manifest as the dev tooling reads it: content scripts per world, background files and
+//! match patterns. Background files come from the sidecar's `read_script_outputs`.
+
+use std::fs;
+use std::path::Path;
+
+pub(crate) use dev_hot::changes::classifier::ContentScriptWorld;
+use dev_hot::changes::classifier::{read_script_outputs, ManifestContentScript};
+pub(crate) use dev_hot::changes::MANIFEST_FILE_NAME as MANIFEST_FILE;
+use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
+
+use super::error::{OutputError, Result};
+
+const JS_EXTENSION: &str = ".js";
+const ALL_URLS_PATTERN: &str = "<all_urls>";
+const ANY_HOST: &str = "*";
+const ANY_SUBDOMAIN_PREFIX: &str = "*.";
+const SCHEME_SEPARATOR: &str = "://";
+const PATTERN_SCHEMES: [&str; 7] = ["*", "http", "https", "ws", "wss", "file", "ftp"];
+const ANY_WEB_SCHEMES: [&str; 2] = ["http", "https"];
+
+/// The manifest lists the dev server reads or appends to.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ManifestList {
+    ContentScripts,
+    WebAccessibleResources,
+    Permissions,
+}
+
+impl ManifestList {
+    pub(crate) const fn key(self) -> &'static str {
+        match self {
+            Self::ContentScripts => "content_scripts",
+            Self::WebAccessibleResources => "web_accessible_resources",
+            Self::Permissions => "permissions",
+        }
+    }
+}
+
+/// The part of the manifest that names Firefox's add-on id.
+#[derive(Debug, Default, Deserialize)]
+struct GeckoManifest {
+    browser_specific_settings: Option<BrowserSettings>,
+}
+
+#[derive(Debug, Deserialize)]
+struct BrowserSettings {
+    gecko: Option<GeckoSettings>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GeckoSettings {
+    id: Option<String>,
+}
+
+/// One manifest content script with the WXT entrypoint name of each js file.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(test, derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ContentScriptEntry {
+    pub(crate) names: Vec<String>,
+    pub(crate) world: ContentScriptWorld,
+    pub(crate) matches: Vec<String>,
+    #[serde(rename = "js")]
+    pub(crate) scripts: Vec<String>,
+    pub(crate) css: Vec<String>,
+    pub(crate) is_all_frames: bool,
+}
+
+impl ContentScriptEntry {
+    pub(crate) fn is_main_world(&self) -> bool {
+        self.world == ContentScriptWorld::Main
+    }
+
+    /// This entry with only the scripts `is_kept` accepts, and their names.
+    pub(crate) fn with_scripts(&self, is_kept: impl Fn(&str) -> bool) -> Self {
+        let (names, scripts) = self
+            .names
+            .iter()
+            .zip(&self.scripts)
+            .filter(|(_, file)| is_kept(file))
+            .map(|(name, file)| (name.clone(), file.clone()))
+            .unzip();
+        Self {
+            names,
+            scripts,
+            ..self.clone()
+        }
+    }
+}
+
+impl From<ManifestContentScript> for ContentScriptEntry {
+    fn from(raw: ManifestContentScript) -> Self {
+        let names = raw
+            .scripts
+            .iter()
+            .map(|file| {
+                let name = file.rsplit('/').next().unwrap_or(file);
+                name.strip_suffix(JS_EXTENSION).unwrap_or(name).to_owned()
+            })
+            .collect();
+        Self {
+            names,
+            world: raw.world,
+            matches: raw.matches,
+            scripts: raw.scripts,
+            css: raw.css,
+            is_all_frames: raw.all_frames,
+        }
+    }
+}
+
+/// The parsed `manifest.json`, kept as JSON so unknown keys survive.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(transparent)]
+pub(crate) struct ExtensionManifest(pub(crate) Value);
+
+impl Default for ExtensionManifest {
+    fn default() -> Self {
+        Self(Value::Object(Map::new()))
+    }
+}
+
+impl ExtensionManifest {
+    /// The extension's name, as the browser lists it.
+    pub(crate) fn name(&self) -> Option<&str> {
+        self.0.get("name").and_then(Value::as_str)
+    }
+
+    pub(crate) fn read(output_dir: &Path) -> Result<Self> {
+        let path = output_dir.join(MANIFEST_FILE);
+        let text = fs::read_to_string(&path).map_err(OutputError::with_path(&path))?;
+        Ok(Self(serde_json::from_str(&text)?))
+    }
+
+    /// Firefox's runtime id and RDP's add-on id; empty when the manifest has none.
+    pub(crate) fn gecko_id(&self) -> String {
+        let manifest = GeckoManifest::deserialize(&self.0).unwrap_or_default();
+        let gecko = manifest
+            .browser_specific_settings
+            .and_then(|settings| settings.gecko);
+        gecko.and_then(|settings| settings.id).unwrap_or_default()
+    }
+
+    /// The named list, created empty when missing; none when the key holds something else.
+    pub(crate) fn list_mut(&mut self, list: ManifestList) -> Result<Option<&mut Vec<Value>>> {
+        let object = self
+            .0
+            .as_object_mut()
+            .ok_or_else(|| OutputError::Invalid("manifest.json is not an object".to_owned()))?;
+        let value = object
+            .entry(list.key())
+            .or_insert_with(|| Value::Array(Vec::new()));
+        Ok(value.as_array_mut())
+    }
+
+    pub(crate) fn content_scripts_value(&self) -> Option<&Value> {
+        self.0.get(ManifestList::ContentScripts.key())
+    }
+
+    pub(crate) fn list_content_scripts(&self) -> Result<Vec<ContentScriptEntry>> {
+        let Some(value) = self.content_scripts_value() else {
+            return Ok(Vec::new());
+        };
+        let raw = Vec::<ManifestContentScript>::deserialize(value)?;
+        Ok(raw.into_iter().map(ContentScriptEntry::from).collect())
+    }
+
+    pub(crate) fn list_isolated_content_scripts(&self) -> Result<Vec<ContentScriptEntry>> {
+        let mut entries = self.list_content_scripts()?;
+        entries.retain(|entry| !entry.is_main_world());
+        Ok(entries)
+    }
+
+    pub(crate) fn background_files(&self) -> Result<Vec<String>> {
+        let outputs = read_script_outputs(&self.0.to_string())?;
+        let files = outputs.background_files;
+        Ok(files.iter().map(|file| file.as_str().to_owned()).collect())
+    }
+}
+
+/// The distinct entrypoint names of some content scripts, in first-seen order.
+pub(crate) fn describe_content_scripts(entries: &[ContentScriptEntry]) -> String {
+    let mut names: Vec<&str> = Vec::new();
+    for name in entries.iter().flat_map(|entry| &entry.names) {
+        if !names.contains(&name.as_str()) {
+            names.push(name);
+        }
+    }
+    names.join(", ")
+}
+
+/// Whether `glob` (where `*` is any run of characters) matches the whole `text`.
+fn glob_matches(glob: &str, text: &str) -> bool {
+    let Some(rest) = glob.strip_prefix('*') else {
+        let Some(first) = glob.chars().next() else {
+            return text.is_empty();
+        };
+        let Some(text_rest) = text.strip_prefix(first) else {
+            return false;
+        };
+        return glob_matches(glob.get(first.len_utf8()..).unwrap_or_default(), text_rest);
+    };
+    let starts = text.char_indices().map(|(offset, _)| offset);
+    starts
+        .chain(Some(text.len()))
+        .any(|offset| glob_matches(rest, text.get(offset..).unwrap_or_default()))
+}
+
+fn is_host_matching(pattern_host: &str, host: &str) -> bool {
+    if pattern_host == ANY_HOST {
+        return !host.is_empty();
+    }
+    let Some(base) = pattern_host.strip_prefix(ANY_SUBDOMAIN_PREFIX) else {
+        return pattern_host == host;
+    };
+    host == base || host.ends_with(&format!(".{base}"))
+}
+
+fn is_scheme_matching(pattern_scheme: &str, scheme: &str) -> bool {
+    if pattern_scheme == ANY_HOST {
+        return ANY_WEB_SCHEMES.contains(&scheme);
+    }
+    pattern_scheme == scheme
+}
+
+/// Splits `scheme://host/path` into its three parts; the path keeps its leading slash.
+fn split_url(text: &str) -> Option<(&str, &str, &str)> {
+    let (scheme, rest) = text.split_once(SCHEME_SEPARATOR)?;
+    let path_start = rest.find('/')?;
+    let (host, path) = rest.split_at(path_start);
+    Some((scheme, host, path))
+}
+
+/// A manifest match pattern as a test on a URL, for picking CDP page targets.
+pub(crate) fn matches_url_pattern(url: &str, pattern: &str) -> bool {
+    let parsed = split_url(pattern).filter(|(scheme, _, _)| PATTERN_SCHEMES.contains(scheme));
+    let Some((pattern_scheme, pattern_host, pattern_path)) = parsed else {
+        return pattern == ALL_URLS_PATTERN;
+    };
+    let Some((scheme, host, path)) = split_url(url) else {
+        return false;
+    };
+    is_scheme_matching(pattern_scheme, scheme)
+        && is_host_matching(pattern_host, host)
+        && glob_matches(pattern_path, path)
+}
+
+#[cfg(test)]
+mod tests;

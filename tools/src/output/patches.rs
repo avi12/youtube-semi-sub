@@ -1,0 +1,233 @@
+//! What the dev server adds to its builds (never to `wxt build` or a release) so a hot-swap can
+//! keep the `YouTube` page alive. Port of `scripts/dev/output/patches.ts`.
+
+pub(crate) mod hmr_names;
+mod sources;
+
+use std::fs;
+use std::path::Path;
+
+use dev_hot::types::ContentHash;
+use serde::Serialize;
+
+use self::hmr_names::{
+    BRIDGE_ENTRY_NAME, HMR_MANIFEST_FILE, HMR_OUT_SUBDIR, HMR_POPUP_LOADER_FILE, HMR_RUNTIME_FILE,
+};
+use super::error::{OutputError, Result};
+use super::manifest::{ExtensionManifest, ManifestList, MANIFEST_FILE};
+
+const YOUTUBE_WAR_MATCH: &str = "*://*.youtube.com/*";
+const MODULE_SCRIPT_TYPE: &str = "type=\"module\"";
+const SCRIPT_OPEN: &str = "<script";
+const SCRIPT_CLOSE: &str = "</script>";
+const BODY_CLOSE: &str = "</body>";
+
+/// The built file each hot-swappable entrypoint's loader replaces.
+enum HmrEntry {
+    /// An HTML page whose module script is swapped for the popup loader.
+    Page { built_file: &'static str },
+    /// A content script whose bundle is replaced by a loader of the named HMR entry.
+    ContentScript {
+        name: &'static str,
+        built_file: &'static str,
+    },
+}
+
+const HMR_ENTRIES: [HmrEntry; 2] = [
+    HmrEntry::Page {
+        built_file: "popup.html",
+    },
+    HmrEntry::ContentScript {
+        name: BRIDGE_ENTRY_NAME,
+        built_file: "content-scripts/bridge.js",
+    },
+];
+
+fn source_hash(source: &str) -> String {
+    ContentHash::from_bytes(source.as_bytes())
+        .as_str()
+        .to_owned()
+}
+
+fn read_text(path: &Path) -> Result<String> {
+    fs::read_to_string(path).map_err(OutputError::with_path(path))
+}
+
+fn write_text(path: &Path, text: &str) -> Result<()> {
+    fs::write(path, text).map_err(OutputError::with_path(path))
+}
+
+#[derive(Debug, Serialize)]
+struct WebAccessibleResource {
+    resources: [String; 1],
+    matches: [&'static str; 1],
+}
+
+fn push_entry(
+    manifest: &mut ExtensionManifest,
+    list: ManifestList,
+    entry: &impl Serialize,
+) -> Result<()> {
+    let entry = serde_json::to_value(entry)?;
+    let items = manifest.list_mut(list)?.ok_or_else(|| {
+        OutputError::Invalid(format!("manifest key {} is not an array", list.key()))
+    })?;
+    items.push(entry);
+    Ok(())
+}
+
+/// Adds the recorder content script and makes the HMR modules web-accessible to `YouTube`.
+pub(crate) fn patch_manifest(output_dir: &Path) -> Result<()> {
+    let mut manifest = ExtensionManifest::read(output_dir)?;
+    let resources = WebAccessibleResource {
+        resources: [format!("{HMR_OUT_SUBDIR}/*")],
+        matches: [YOUTUBE_WAR_MATCH],
+    };
+    push_entry(
+        &mut manifest,
+        ManifestList::WebAccessibleResources,
+        &resources,
+    )?;
+    write_text(
+        &output_dir.join(MANIFEST_FILE),
+        &serde_json::to_string_pretty(&manifest.0)?,
+    )
+}
+
+/// Removes every `<script ... type="module" ...></script>` tag.
+fn strip_module_scripts(html: &str) -> String {
+    let mut kept = String::with_capacity(html.len());
+    let mut rest = html;
+    while let Some(start) = rest.find(SCRIPT_OPEN) {
+        let (before, from_tag) = rest.split_at(start);
+        kept.push_str(before);
+        let after_name = from_tag.get(SCRIPT_OPEN.len()..).unwrap_or_default();
+        let is_boundary = !after_name
+            .starts_with(|character: char| character.is_alphanumeric() || character == '_');
+        let tag_end = after_name.find('>').filter(|_| is_boundary);
+        let Some(end) = tag_end else {
+            kept.push_str(SCRIPT_OPEN);
+            rest = after_name;
+            continue;
+        };
+        let (attributes, tail) = after_name.split_at(end + 1);
+        let is_module = attributes.contains(MODULE_SCRIPT_TYPE) && tail.starts_with(SCRIPT_CLOSE);
+        if is_module {
+            rest = tail.get(SCRIPT_CLOSE.len()..).unwrap_or_default();
+            continue;
+        }
+        kept.push_str(SCRIPT_OPEN);
+        kept.push_str(attributes);
+        rest = tail;
+    }
+    kept.push_str(rest);
+    kept
+}
+
+fn patch_popup_html(output_dir: &Path, built_file: &str) -> Result<()> {
+    let html_path = output_dir.join(built_file);
+    if !html_path.exists() {
+        return Ok(());
+    }
+    let original = read_text(&html_path)?;
+    let loader_tag = format!(
+        "<script type=\"module\" src=\"/{HMR_OUT_SUBDIR}/{HMR_POPUP_LOADER_FILE}\"></script>"
+    );
+    let patched = strip_module_scripts(&original).replacen(
+        BODY_CLOSE,
+        &format!("{loader_tag}{BODY_CLOSE}"),
+        1,
+    );
+    write_text(
+        &html_path,
+        &format!("{patched}<!-- {} -->\n", source_hash(&original)),
+    )
+}
+
+/// The prelude goes first in the first background script, so it sees every registration the
+/// background makes and a swap can undo them.
+fn patch_background(output_dir: &Path, prelude: &str) -> Result<()> {
+    let manifest = ExtensionManifest::read(output_dir)?;
+    let Some(first_file) = manifest.background_files()?.into_iter().next() else {
+        return Ok(());
+    };
+    let path = output_dir.join(first_file);
+    write_text(&path, &format!("{prelude}{}", read_text(&path)?))
+}
+
+fn patch_content_script(output_dir: &Path, file: &str) -> Result<()> {
+    let path = output_dir.join(file);
+    let original = read_text(&path)?;
+    let loader_entry = HMR_ENTRIES.iter().find_map(|entry| match entry {
+        HmrEntry::ContentScript { name, built_file } if *built_file == file => Some(*name),
+        HmrEntry::ContentScript { .. } | HmrEntry::Page { .. } => None,
+    });
+    let source = match loader_entry {
+        Some(name) => sources::content_script_loader(
+            name,
+            &format!("{HMR_OUT_SUBDIR}/{HMR_RUNTIME_FILE}"),
+            &format!("{HMR_OUT_SUBDIR}/{HMR_MANIFEST_FILE}"),
+            &original,
+            &source_hash(&original),
+        ),
+        None => original,
+    };
+    let patched = sources::guard_run_once(file, &source);
+    write_text(&path, &patched)
+}
+
+/// Runs once WXT has written the build: adds the background prelude, points the
+/// hot-swappable entrypoints at the HMR modules, and guards
+/// every other content script.
+pub(crate) fn patch_built_output(output_dir: &Path, background_prelude: &str) -> Result<()> {
+    patch_background(output_dir, background_prelude)?;
+    for entry in &HMR_ENTRIES {
+        if let HmrEntry::Page { built_file } = entry {
+            patch_popup_html(output_dir, built_file)?;
+        }
+    }
+    let manifest = ExtensionManifest::read(output_dir)?;
+    let files = manifest
+        .list_content_scripts()?
+        .into_iter()
+        .flat_map(|entry| entry.scripts);
+    for file in files {
+        patch_content_script(output_dir, &file)?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::*;
+
+    #[test]
+    fn only_module_scripts_are_stripped() {
+        let html = r#"<head><script type="module" crossorigin src="a.js"></script><script src="b.js"></script><script type="module">x</script></head><body></body>"#;
+        let stripped = strip_module_scripts(html);
+        assert_eq!(
+            stripped,
+            r#"<head><script src="b.js"></script><script type="module">x</script></head><body></body>"#
+        );
+    }
+
+    #[test]
+    fn patch_manifest_appends_the_dev_entries() -> Result<()> {
+        let directory =
+            std::env::temp_dir().join(format!("devtool-patch-manifest-{}", std::process::id()));
+        fs::create_dir_all(&directory).map_err(OutputError::with_path(&directory))?;
+        let manifest = json!({"content_scripts": [{"js": ["a.js"], "matches": ["*://x/*"]}]});
+        write_text(&directory.join(MANIFEST_FILE), &manifest.to_string())?;
+        patch_manifest(&directory)?;
+        let patched = ExtensionManifest::read(&directory)?;
+        fs::remove_dir_all(&directory).map_err(OutputError::with_path(&directory))?;
+        assert_eq!(patched.list_content_scripts()?.len(), 1);
+        assert_eq!(
+            patched.0.pointer("/web_accessible_resources/0/resources/0"),
+            Some(&json!("hmr/*"))
+        );
+        Ok(())
+    }
+}
