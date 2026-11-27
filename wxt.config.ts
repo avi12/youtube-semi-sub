@@ -86,6 +86,14 @@ export default defineConfig({
       .filter(entry => entry.isDirectory())
       .map(entry => `${LAYERS_DIR}/${entry.name}`)
   },
+  // Templates are built node by node instead of through innerHTML, which store reviews flag
+  svelte: {
+    vite: {
+      compilerOptions: {
+        fragments: "tree"
+      }
+    }
+  },
   srcDir: "src",
   publicDir: "src/public",
   zip: {
