@@ -24,11 +24,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - name: Build the store zips
-        run: |
-          for browser in chrome edge opera; do
-            bun run zip -b "$browser"
-          done
-          bun run zip:firefox
+        run: bun run zip:all
 
       - name: Publish the release
         env:

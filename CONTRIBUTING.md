@@ -36,7 +36,7 @@ Keep each commit one self-contained change with a message saying what and why. V
 1. Set the version in `package.json` and commit it
 2. Tag the commit `v<version>` and push the tag
 
-The [Release workflow](.github/workflows/release.yml) runs on a `v*` tag: it builds the zips of every store (with the source zips) and attaches them to a new GitHub release.
+The [Release workflow](.github/workflows/release.yml) runs on a `v*` tag: it builds the zips of every store in parallel (`bun run zip:all`, with the source zips) and attaches them to a new GitHub release.
 
 ## License
 
