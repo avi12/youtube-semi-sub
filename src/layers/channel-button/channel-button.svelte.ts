@@ -22,8 +22,8 @@ import { getYouTubeSite } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
 
 import {
-  getObservedOfficialSubscription,
   onObservedOfficialSubscriptionChange,
+  readOfficialSubscription,
   setObservedOfficialSubscription
 } from "./official-subscription";
 
@@ -109,7 +109,7 @@ function resolveTarget() {
   return target;
 }
 
-/** Live control state first (it tracks YouTube's entity store), then what this tab saw, then the page data */
+/** Live control state first (it tracks YouTube's entity store), then what this tab saw or read, then the page data */
 function readIsOfficiallySubscribed({ pageChannel, anchor }: Target) {
   const { channelId } = pageChannel.channel;
   const control =
@@ -124,7 +124,7 @@ function readIsOfficiallySubscribed({ pageChannel, anchor }: Target) {
     return liveSubscription;
   }
 
-  const knownSubscription = getObservedOfficialSubscription(channelId) ?? pageChannel.officialSubscription;
+  const knownSubscription = readOfficialSubscription(channelId) ?? pageChannel.officialSubscription;
   return knownSubscription ?? control?.isSubscribed ?? false;
 }
 

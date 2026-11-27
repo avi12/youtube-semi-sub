@@ -20,11 +20,6 @@ const MAX_KEPT_SNAPSHOTS = 20;
 /** The server snapshots this tab read, newest first - they name channels the user never semi-subscribed to as well */
 const snapshotReaders: ((channelId: string) => boolean | undefined)[] = [];
 
-/** The latest official subscription state this tab saw change, or undefined when it saw none */
-export function getObservedOfficialSubscription(channelId: string) {
-  return subscribedByChannel.get(channelId);
-}
-
 /**
  * Whether the user is subscribed to a channel on YouTube, as far as this tab knows: what it saw the user do, else the
  * newest snapshot that names the channel; undefined when none does

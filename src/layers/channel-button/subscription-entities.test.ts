@@ -116,4 +116,11 @@ describe("installSubscriptionEntityWatch", () => {
     expect(globalThis.ytInitialData).toBe(RESPONSE_WITH_ENTITIES);
     expect(readAppliedSnapshot()).toEqual([true, false, undefined]);
   });
+
+  it("reads m.youtube.com's JSON text assignment, handing it on as it came", () => {
+    const text = JSON.stringify(RESPONSE_WITH_ENTITIES);
+    globalThis.ytInitialData = text;
+    expect(globalThis.ytInitialData).toBe(text);
+    expect(readAppliedSnapshot()).toEqual([true, false, undefined]);
+  });
 });

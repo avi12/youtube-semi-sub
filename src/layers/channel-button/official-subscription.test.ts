@@ -6,8 +6,8 @@ import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 
 import {
   applySubscriptionSnapshot,
-  getObservedOfficialSubscription,
   installSubscriptionWatch,
+  readOfficialSubscription,
   setObservedOfficialSubscription
 } from "./official-subscription";
 
@@ -73,7 +73,7 @@ describe("installSubscriptionWatch", () => {
     });
     await flushReports();
     expect(response.bodyUsed).toBe(false);
-    expect(getObservedOfficialSubscription(CHANNEL_ID)).toBe(true);
+    expect(readOfficialSubscription(CHANNEL_ID)).toBe(true);
     expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, {
       channelId: CHANNEL_ID,
       isSubscribed: true
@@ -88,7 +88,7 @@ describe("installSubscriptionWatch", () => {
       })
     );
     await flushReports();
-    expect(getObservedOfficialSubscription(OTHER_CHANNEL_ID)).toBe(false);
+    expect(readOfficialSubscription(OTHER_CHANNEL_ID)).toBe(false);
     expect(pageMessenger.sendMessage).toHaveBeenCalledWith(PageMessage.OFFICIAL_SUBSCRIPTION_CHANGED, {
       channelId: OTHER_CHANNEL_ID,
       isSubscribed: false

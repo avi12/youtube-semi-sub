@@ -4,6 +4,7 @@ import { parseJson } from "@/lib/utils/json";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";
 import { captureResponseReaders } from "@/lib/youtube/page/response-readers";
 import { InnerTubePath, isYouTubeUrlAt } from "@/lib/youtube/site";
+import { z } from "@/lib/zod";
 
 import { applySubscriptionSnapshot } from "./official-subscription";
 
@@ -12,6 +13,9 @@ import { applySubscriptionSnapshot } from "./official-subscription";
 // So it is read from a hard load's `ytInitialData` and from every /browse and /next body, which is never changed here
 
 const SNAPSHOT_PATHNAMES = [InnerTubePath.BROWSE, InnerTubePath.NEXT];
+
+/** m.youtube.com assigns `ytInitialData` as JSON text first, and only that copy keeps `frameworkUpdates` */
+const initialDataTextSchema = z.string();
 
 function isSnapshotResponse(response: Response) {
   return SNAPSHOT_PATHNAMES.some(pathname =>
@@ -38,7 +42,8 @@ export function syncSubscriptionEntities(data: unknown) {
 /** Chains onto whatever override is installed already and hands every body on exactly as it got it */
 export function installSubscriptionEntityWatch() {
   interceptInitialData(data => {
-    syncSubscriptionEntities(data);
+    const parsed = initialDataTextSchema.safeParse(data);
+    syncSubscriptionEntities(parsed.success ? parseJson(parsed.data) : data);
     return data;
   });
 

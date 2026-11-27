@@ -15,7 +15,7 @@
   } from "@/lib/youtube/page/button-view-model";
   import { FILTER_ICON_PATH } from "@/lib/youtube/page/yt-icon";
   import { YouTubeSite } from "@/lib/youtube/site";
-  import { getObservedOfficialSubscription } from "#channel-button/official-subscription";
+  import { readOfficialSubscription } from "#channel-button/official-subscription";
   import { BUTTON_ROOT_ATTRIBUTE, type ButtonPlacement } from "#channel-button/page/page-anchor";
 
   interface Props {
@@ -112,7 +112,7 @@
   }
 
   function describeCollaborator(collaborator: (typeof collaborators)[number]) {
-    const isSubscribed = getObservedOfficialSubscription(collaborator.channelId) ?? collaborator.isSubscribed;
+    const isSubscribed = readOfficialSubscription(collaborator.channelId) ?? collaborator.isSubscribed;
     const { isActive: isCollaboratorActive, ...words } = describeChannelButton({
       channelTitle: collaborator.title,
       subscription: pageState?.subscriptions[collaborator.channelId],
