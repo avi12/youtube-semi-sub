@@ -11,18 +11,18 @@ Works on `www.youtube.com` and `m.youtube.com`, in Chromium browsers (Chrome, Ed
 
 ## Installation
 
-Open the [Releases page](https://github.com/avi12/youtube-semi-sub/releases/latest) and download the latest file for your browser.
+![Chrome Web Store users](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Fchromewebstore.google.com%2Fdetail%2Fbcjhnmoikddfnajabflkgbkghiblhhjf&search=%28%5B0-9%5D%5B0-9%2C%5D%2A%29%20users&replace=%241&labelColor=f1f3f4&color=white&label=Chrome%20Web%20Store%20users&style=flat-square&logo=googlechrome&logoColor=4285F4)\
+![Firefox Add-ons users](https://img.shields.io/amo/users/youtube-semi-sub@avi12.com?labelColor=f1f3f4&color=white&label=Firefox%20Add-ons%20users%E2%A0%80%E3%85%A4&style=flat-square&logo=firefoxbrowser)\
+![Opera Add-ons users](https://img.shields.io/badge/dynamic/regex?url=https%3A%2F%2Faddons.opera.com%2Fextensions%2Fdetails%2Fapp_id%2Fdmjbfdcdoiejbpkompkckebimdbaackl%2F&search=Downloads%3C%2Fdt%3E%3Cdd%3E%28%5B0-9%2C%5D%2B%29%3C%2Fdd%3E&replace=%241&labelColor=f1f3f4&color=white&label=Opera%20Add-ons%20users%E2%A0%80%E2%A0%80%E2%A0%80&style=flat-square&logo=opera&logoColor=FF1B2D)
+
+Or install it by hand: open the [Releases page](https://github.com/avi12/youtube-semi-sub/releases/latest) and download the latest file for your browser.
 
 **Chrome / Edge / Opera / Brave / Vivaldi**
 
-1. Download `youtube-semi-sub-*-chrome.zip` (or `youtube-semi-sub-*-chrome.crx`)
+1. Download `youtube-semi-sub-*-chrome.zip`
 2. Open `chrome://extensions` (or `edge://extensions`, `opera://extensions`, `brave://extensions`)
 3. Turn on **Developer mode** with the toggle in the top-right corner
-4. Drag the zip or CRX file onto the extensions page and confirm the installation
-
-Chrome rejects CRX files that don't come from the Chrome Web Store (`CRX_REQUIRED_PROOF_MISSING`) - if that happens, drag the zip instead.
-
-**Updates.** Each release ships an update manifest (`updates.xml`) that the extension points at, so a browser that allows self-hosted CRX installs (for example Chrome on Linux, or one set up through an enterprise policy) updates it by itself. Where it doesn't, the extension checks for a new release once a day, puts a badge on its icon and shows a banner in the popup - download the new file and drag it in the same way.
+4. Drag the zip onto the extensions page and confirm the installation
 
 Firefox isn't published yet: Firefox only installs signed extensions, so for now run it from source with `bun run dev:firefox`.
 
