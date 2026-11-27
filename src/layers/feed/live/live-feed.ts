@@ -20,7 +20,7 @@ import {
 import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
 import { isCustomEvent } from "@/lib/dom-guards";
 import { getPageState, onPageState } from "@/lib/page/page-state";
-import { observeSubtree } from "@/lib/utils/dom";
+import { observeSubtree, whenDocumentVisible } from "@/lib/utils/dom";
 import { onYouTubeNavigate, onYouTubeNavigateStart } from "@/lib/youtube/page/navigation";
 import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
 import { FeedPathname } from "@/lib/youtube/site";
@@ -152,6 +152,8 @@ function nudgeYouTubeAutoFeedOnce(key: string) {
 }
 
 async function reconcile() {
+  // A hidden tab's grid drops a write, and ytaf skips a nudge while hidden - both wait for the tab to show
+  await whenDocumentVisible();
   const state = getPageState();
   const isOffFeed = !state || !isOnFeedPage();
   if (isOffFeed) {

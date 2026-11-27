@@ -30,6 +30,31 @@ export function whenDocumentParsed() {
   });
 }
 
+/** Resolves once the tab is shown - a grid written while it is hidden never renders what it was given */
+export function whenDocumentVisible() {
+  const isVisible = document.visibilityState === "visible";
+  if (isVisible) {
+    return Promise.resolve();
+  }
+
+  return new Promise<void>(resolve => {
+    const controller = new AbortController();
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        const isShown = document.visibilityState === "visible";
+        if (!isShown) {
+          return;
+        }
+
+        controller.abort();
+        resolve();
+      },
+      { signal: controller.signal }
+    );
+  });
+}
+
 /** Resolves once `selector` matches - watches the document only until then */
 export function waitForElement(selector: string) {
   const elExisting = document.querySelector(selector);
