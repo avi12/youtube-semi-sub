@@ -1,6 +1,7 @@
 <script lang="ts">
   import { DELETE_ICON } from "./icons";
-  import { DEFAULT_TITLE_FILTER, isVideoFilterValid, type VideoFilter } from "@/lib/filter/title-filter";
+  import { isVideoFilterValid } from "@/lib/filter/schema/filter-validity";
+  import { DEFAULT_TITLE_FILTER, type VideoFilter } from "@/lib/filter/schema/video-filter-schema";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import { getModeFilter, type SemiSubscription } from "@/lib/schemas/semi-subscription";

@@ -1,12 +1,10 @@
 import {
-  isAllowListRestricting,
-  isFilterInert,
-  isTabDetailFiltered,
   legacyRegexFilterSchema,
   titleFilterSchema,
   type VideoFilter,
   videoFilterSchema
-} from "@/lib/filter/title-filter";
+} from "@/lib/filter/schema/video-filter-schema";
+import { isAllowListRestricting, isFilterInert, isTabDetailFiltered } from "@/lib/filter/title-filter";
 import { channelIdSchema, channelInfoSchema } from "@/lib/schemas/channel";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";

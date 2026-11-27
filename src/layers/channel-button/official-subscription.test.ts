@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DEFAULT_TITLE_FILTER } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER } from "@/lib/filter/schema/video-filter-schema";
 import { PageMessage, pageMessenger, type PageState } from "@/lib/messaging/page-messaging";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 

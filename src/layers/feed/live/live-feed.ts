@@ -1,23 +1,24 @@
 import {
-  composeForPageState,
-  findRemovedVideoIds,
-  hasResumedChannels,
-  loadNativesFor,
-  planForPageState,
-  prefetchFeedNatives,
-  recordFeedChange,
-  settleResumedChannels,
-  takeHideSettingsChange,
-  trackHideSettings,
-  trackSubscriptionTransitions
-} from "#feed/feed-session";
-import {
   readShelf,
   shelfItemsFromGridItem,
   thumbnailUrlFromGridItem,
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
 import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
+import {
+  composeForPageState,
+  findRemovedVideoIds,
+  loadNativesFor,
+  planForPageState,
+  prefetchFeedNatives
+} from "#feed/session/feed-session";
+import { takeHideSettingsChange, trackHideSettings } from "#feed/session/hidden-videos";
+import { recordFeedChange } from "#feed/session/inserted-videos";
+import {
+  hasResumedChannels,
+  settleResumedChannels,
+  trackSubscriptionTransitions
+} from "#feed/session/resumed-channels";
 import { isCustomEvent } from "@/lib/dom-guards";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import { observeSubtree, whenDocumentVisible } from "@/lib/utils/dom";

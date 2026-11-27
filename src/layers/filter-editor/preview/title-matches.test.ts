@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, FilterKind, FilterMatch, MatchState, type RegexFilter } from "@/lib/filter/title-filter";
+import {
+  type AiFilter,
+  FilterKind,
+  FilterMatch,
+  MatchState,
+  type RegexFilter
+} from "@/lib/filter/schema/video-filter-schema";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 

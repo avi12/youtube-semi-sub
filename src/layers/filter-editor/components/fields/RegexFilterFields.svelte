@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { RegexFilter } from "@/lib/filter/title-filter";
+  import type { RegexFilter } from "@/lib/filter/schema/video-filter-schema";
   import { getEditorControls } from "#filter-editor/controls";
   import {
     ADVANCED_FILTER_FLAGS,

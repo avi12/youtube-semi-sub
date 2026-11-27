@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/schema/video-filter-schema";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 

@@ -1,5 +1,5 @@
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { listAiFilters } from "@/lib/filter/title-filter";
+import { listAiFilters } from "@/lib/filter/schema/video-filter-schema";
 import { type ChannelVideosCache, videoIdSchema } from "@/lib/schemas/feed-video";
 import type { SemiSubscription, SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 import { z } from "@/lib/zod";

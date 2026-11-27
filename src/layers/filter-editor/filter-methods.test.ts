@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DEFAULT_LENGTH_FILTER, DEFAULT_TITLE_FILTER, FilterMethod } from "@/lib/filter/title-filter";
+import { DEFAULT_LENGTH_FILTER, DEFAULT_TITLE_FILTER, FilterMethod } from "@/lib/filter/schema/video-filter-schema";
 
 import { withMethodCondition } from "./filter-methods";
 

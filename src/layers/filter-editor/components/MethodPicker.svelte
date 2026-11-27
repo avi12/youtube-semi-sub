@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { FilterMethod } from "@/lib/filter/title-filter";
+  import type { FilterMethod } from "@/lib/filter/schema/video-filter-schema";
   import { getEditorControls } from "#filter-editor/controls";
   import { FILTER_METHOD_LABEL, FILTER_METHODS } from "#filter-editor/filter-methods";
 

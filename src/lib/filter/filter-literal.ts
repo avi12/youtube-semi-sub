@@ -1,15 +1,15 @@
+import { listRestrictingConditions } from "@/lib/filter/judge/condition-judges";
 import {
   type FilterCondition,
   FilterKind,
   FilterMatch,
   getFilterMatch,
-  isFilterInert,
   type LengthFilter,
-  listRestrictingConditions,
   type TypeFilter,
   type VideoFilter,
   VideoType
-} from "@/lib/filter/title-filter";
+} from "@/lib/filter/schema/video-filter-schema";
+import { isFilterInert } from "@/lib/filter/title-filter";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getModeFilter, getSubscriptionMode, type SemiSubscription } from "@/lib/schemas/semi-subscription";
 import {

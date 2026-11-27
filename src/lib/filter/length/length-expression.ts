@@ -1,5 +1,15 @@
-import type { LengthFilter } from "@/lib/filter/title-filter";
-import { formatDuration, parseDurationText, SECONDS_PER_MINUTE } from "@/lib/youtube/video/video-duration";
+import { createCursor, type Cursor, tokenize, TokenKind } from "@/lib/filter/length/length-tokenizer";
+import {
+  BETWEEN_WORD,
+  CLAUSE_JOINERS,
+  Comparison,
+  COMPARISON_PHRASES,
+  DEFAULT_UNIT_SECONDS,
+  OPEN_ENDED_MARK,
+  RANGE_SEPARATORS,
+  UNIT_SECONDS
+} from "@/lib/filter/length/length-vocabulary";
+import { parseDurationText } from "@/lib/youtube/video/video-duration";
 import { z } from "@/lib/zod";
 
 // A length condition typed as one expression - ">=69m", "5-20m", "under 1h", "between 2 and 10 minutes" - read by
@@ -9,88 +19,6 @@ import { z } from "@/lib/zod";
 //   duration   := (number unit?)+ | clock time ("1:30:00")
 // A number without a unit takes its range partner's unit ("5-20m"), else minutes
 
-const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
-const DEFAULT_UNIT_SECONDS = SECONDS_PER_MINUTE;
-
-const UNIT_SECONDS: Readonly<Record<string, number>> = {
-  s: 1,
-  sec: 1,
-  secs: 1,
-  second: 1,
-  seconds: 1,
-  m: SECONDS_PER_MINUTE,
-  min: SECONDS_PER_MINUTE,
-  mins: SECONDS_PER_MINUTE,
-  minute: SECONDS_PER_MINUTE,
-  minutes: SECONDS_PER_MINUTE,
-  h: SECONDS_PER_HOUR,
-  hr: SECONDS_PER_HOUR,
-  hrs: SECONDS_PER_HOUR,
-  hour: SECONDS_PER_HOUR,
-  hours: SECONDS_PER_HOUR
-};
-
-enum Comparison {
-  LESS_THAN = "<",
-  AT_MOST = "<=",
-  MORE_THAN = ">",
-  AT_LEAST = ">=",
-  EXACTLY = "="
-}
-
-/** Every way to write a comparison, symbols and words, longest first so "<=" wins over "<" */
-const COMPARISON_PHRASES: readonly (readonly [string, Comparison])[] = [
-  ["no more than", Comparison.AT_MOST],
-  ["no longer than", Comparison.AT_MOST],
-  ["no less than", Comparison.AT_LEAST],
-  ["no shorter than", Comparison.AT_LEAST],
-  ["shorter than", Comparison.LESS_THAN],
-  ["longer than", Comparison.MORE_THAN],
-  ["less than", Comparison.LESS_THAN],
-  ["fewer than", Comparison.LESS_THAN],
-  ["more than", Comparison.MORE_THAN],
-  ["at most", Comparison.AT_MOST],
-  ["at least", Comparison.AT_LEAST],
-  ["up to", Comparison.AT_MOST],
-  ["maximum", Comparison.AT_MOST],
-  ["minimum", Comparison.AT_LEAST],
-  ["within", Comparison.AT_MOST],
-  ["exactly", Comparison.EXACTLY],
-  ["under", Comparison.LESS_THAN],
-  ["below", Comparison.LESS_THAN],
-  ["over", Comparison.MORE_THAN],
-  ["above", Comparison.MORE_THAN],
-  ["max", Comparison.AT_MOST],
-  ["<=", Comparison.AT_MOST],
-  [">=", Comparison.AT_LEAST],
-  ["=<", Comparison.AT_MOST],
-  ["=>", Comparison.AT_LEAST],
-  ["==", Comparison.EXACTLY],
-  ["≤", Comparison.AT_MOST],
-  ["≥", Comparison.AT_LEAST],
-  ["<", Comparison.LESS_THAN],
-  [">", Comparison.MORE_THAN],
-  ["=", Comparison.EXACTLY]
-];
-
-const RANGE_SEPARATORS: ReadonlySet<string> = new Set(["-", "\u2013", "\u2014", "..", "to", "and", "~"]);
-const CLAUSE_JOINERS: ReadonlySet<string> = new Set([",", ";", "and", "&", "&&"]);
-const BETWEEN_WORD = "between";
-const OPEN_ENDED_MARK = "+";
-const SYMBOL_CHARACTERS = "<>=≤≥-\u2013\u2014~,;&+.";
-
-enum TokenKind {
-  NUMBER = "number",
-  WORD = "word",
-  SYMBOL = "symbol"
-}
-
-const tokenSchema = z.object({
-  kind: z.enum(TokenKind),
-  text: z.string()
-});
-type Token = z.infer<typeof tokenSchema>;
-
 const boundsSchema = z.object({
   minSeconds: z.number().optional(),
   maxSeconds: z.number().optional()
@@ -98,110 +26,6 @@ const boundsSchema = z.object({
 type Bounds = z.infer<typeof boundsSchema>;
 
 class ExpressionError extends Error {}
-
-function isDigit(character: string) {
-  return character >= "0" && character <= "9";
-}
-
-function isLetter(character: string) {
-  return character.toLowerCase() !== character.toUpperCase();
-}
-
-function readWhile({ text, iStart, isPart }: { text: string; iStart: number; isPart: (character: string) => boolean }) {
-  let iEnd = iStart;
-  while (iEnd < text.length && isPart(text.charAt(iEnd))) {
-    iEnd++;
-  }
-  return iEnd;
-}
-
-/** Digits with colons ("1:30") or one decimal point - a second point starts a ".." range separator instead */
-function readNumberEnd({ text, iStart }: { text: string; iStart: number }) {
-  let iEnd = iStart;
-  let isPointSeen = false;
-  while (iEnd < text.length) {
-    const character = text.charAt(iEnd);
-    const isPoint = character === "." && !isPointSeen && isDigit(text.charAt(iEnd + 1));
-    const isNumberEnd = !isDigit(character) && character !== ":" && !isPoint;
-    if (isNumberEnd) {
-      break;
-    }
-
-    if (isPoint) {
-      isPointSeen = true;
-    }
-
-    iEnd++;
-  }
-  return iEnd;
-}
-
-function isSymbolPart(character: string) {
-  return SYMBOL_CHARACTERS.includes(character);
-}
-
-function readTokenKind({ text, i }: { text: string; i: number }) {
-  const character = text.charAt(i);
-  const isNumberStart = isDigit(character) || (character === "." && isDigit(text.charAt(i + 1)));
-  if (isNumberStart) {
-    return TokenKind.NUMBER;
-  }
-
-  return isLetter(character) ? TokenKind.WORD : TokenKind.SYMBOL;
-}
-
-/** Splits the text into numbers ("69", "1.5", "1:30"), words and runs of symbols ("<=", "..") */
-function tokenize(text: string) {
-  const tokens: Token[] = [];
-  let i = 0;
-  while (i < text.length) {
-    if (text.charAt(i).trim() === "") {
-      i++;
-      continue;
-    }
-
-    const kind = readTokenKind({
-      text,
-      i
-    });
-
-    const iEnd =
-      kind === TokenKind.NUMBER
-        ? readNumberEnd({
-            text,
-            iStart: i
-          })
-        : Math.max(
-            readWhile({
-              text,
-              iStart: i,
-              isPart: kind === TokenKind.WORD ? isLetter : isSymbolPart
-            }),
-            i + 1
-          );
-    tokens.push({
-      kind,
-      text: text.slice(i, iEnd).toLowerCase()
-    });
-    i = iEnd;
-  }
-  return tokens;
-}
-
-/** Reads tokens front to back */
-function createCursor(tokens: Token[]) {
-  let iToken = 0;
-  return {
-    peek: (offset = 0) => tokens[iToken + offset],
-    take: () => tokens[iToken++],
-    skip(count: number) {
-      iToken += count;
-    },
-    isDone: () => iToken >= tokens.length
-  };
-}
-
-type Cursor = ReturnType<typeof createCursor>;
 
 /** The comparison the next tokens spell, consumed, or null */
 function takeComparison(cursor: Cursor) {
@@ -447,34 +271,4 @@ export function parseLengthExpression(text: string) {
       error: error.message
     };
   }
-}
-
-/** A length in the shortest units it reads in: "45s", "20m", "1h", "1h30m" */
-function formatLengthValue(totalSeconds: number) {
-  const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-  const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
-  const seconds = totalSeconds % SECONDS_PER_MINUTE;
-  const hasRemainder = seconds !== 0 && totalSeconds >= SECONDS_PER_MINUTE;
-  if (hasRemainder) {
-    return formatDuration(totalSeconds);
-  }
-
-  const hasSeconds = seconds > 0 || totalSeconds === 0;
-  const parts = [hours > 0 ? `${hours}h` : "", minutes > 0 ? `${minutes}m` : "", hasSeconds ? `${seconds}s` : ""];
-  return parts.join("");
-}
-
-/** The expression a stored length filter reads as, for the field to start from */
-export function formatLengthExpression({ minSeconds, maxSeconds }: LengthFilter) {
-  if (minSeconds !== undefined && maxSeconds !== undefined) {
-    return minSeconds === maxSeconds
-      ? `=${formatLengthValue(minSeconds)}`
-      : `${formatLengthValue(minSeconds)}-${formatLengthValue(maxSeconds)}`;
-  }
-
-  if (maxSeconds !== undefined) {
-    return `<=${formatLengthValue(maxSeconds)}`;
-  }
-
-  return minSeconds === undefined ? "" : `>=${formatLengthValue(minSeconds)}`;
 }

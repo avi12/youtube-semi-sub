@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { listAiFilters, selectFeedVideos, selectHiddenVideoIds } from "@/lib/filter/title-filter";
+  import { listAiFilters } from "@/lib/filter/schema/video-filter-schema";
+  import { selectFeedVideos, selectHiddenVideoIds } from "@/lib/filter/title-filter";
   import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
   import { videosByChannelFromCache } from "@/lib/schemas/feed-video";
   import {

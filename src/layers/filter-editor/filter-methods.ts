@@ -7,7 +7,7 @@ import {
   FilterMatch,
   FilterMethod,
   VideoType
-} from "@/lib/filter/title-filter";
+} from "@/lib/filter/schema/video-filter-schema";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 
 // The editor's registry of filter methods: a new method is an entry here, a condition kind in title-filter and a

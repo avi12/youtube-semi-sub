@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { type TypeFilter, VideoType } from "@/lib/filter/title-filter";
+  import { type TypeFilter, VideoType } from "@/lib/filter/schema/video-filter-schema";
   import { getEditorControls } from "#filter-editor/controls";
   import { VIDEO_TYPE_LABEL } from "#filter-editor/filter-methods";
 

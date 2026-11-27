@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FilterKind, type RegexFilter } from "@/lib/filter/title-filter";
+import { FilterKind, type RegexFilter } from "@/lib/filter/schema/video-filter-schema";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { applyOfficialSubscription, mergeSemiSubscription } from "@/lib/semi-subscription-storage";

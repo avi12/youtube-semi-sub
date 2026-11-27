@@ -1,12 +1,7 @@
-import {
-  composeForPageState,
-  findHiddenVideoIds,
-  loadNativesFor,
-  planForPageState,
-  recordFeedChange,
-  waitForPageState
-} from "#feed/feed-session";
 import { isHiddenVideoListHonored } from "#feed/live/ytaf";
+import { composeForPageState, loadNativesFor, planForPageState, waitForPageState } from "#feed/session/feed-session";
+import { findHiddenVideoIds } from "#feed/session/hidden-videos";
+import { recordFeedChange } from "#feed/session/inserted-videos";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { getPageState, whenPageStateKnown } from "@/lib/page/page-state";
 import { interceptInitialData } from "@/lib/youtube/page/initial-data-hook";

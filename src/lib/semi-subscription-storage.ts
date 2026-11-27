@@ -1,4 +1,4 @@
-import type { VideoFilter } from "@/lib/filter/title-filter";
+import type { VideoFilter } from "@/lib/filter/schema/video-filter-schema";
 import type { ChannelInfo } from "@/lib/schemas/channel";
 import { type SemiSubscription, type SemiSubscriptions, withModeFilter } from "@/lib/schemas/semi-subscription";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";

@@ -5,7 +5,7 @@ import { createFakeBase } from "#ai-match/classify/fixtures/fake-prompt-session"
 import { BuiltInAvailability } from "#ai-match/engine/prompt-api";
 import { AiEngine } from "@/lib/ai/ai-status";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/schema/video-filter-schema";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { aiVerdictsItem, channelVideosItem, isAiEnabledItem, semiSubscriptionsItem } from "@/lib/storage";

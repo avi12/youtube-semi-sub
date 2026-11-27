@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AI_DESCRIPTION_MAX_LENGTH, type AiFilter } from "@/lib/filter/title-filter";
+  import { AI_DESCRIPTION_MAX_LENGTH, type AiFilter } from "@/lib/filter/schema/video-filter-schema";
   import { getEditorControls } from "#filter-editor/controls";
 
   interface Props {

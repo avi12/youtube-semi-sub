@@ -1,6 +1,6 @@
 <script lang="ts">
   import { describeFilterRule } from "@/lib/filter/filter-literal";
-  import type { VideoFilter } from "@/lib/filter/title-filter";
+  import type { VideoFilter } from "@/lib/filter/schema/video-filter-schema";
   import type { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 
   interface Props {

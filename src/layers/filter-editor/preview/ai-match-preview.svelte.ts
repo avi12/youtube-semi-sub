@@ -2,7 +2,9 @@ import { untrack } from "svelte";
 
 import { type AiStatus, isAiEngineAvailable } from "@/lib/ai/ai-status";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, type AiJudgeContext, isVideoFilterValid } from "@/lib/filter/title-filter";
+import type { AiJudgeContext } from "@/lib/filter/judge/condition-judges";
+import { isVideoFilterValid } from "@/lib/filter/schema/filter-validity";
+import type { AiFilter } from "@/lib/filter/schema/video-filter-schema";
 import { MessageType, sendMessage } from "@/lib/messaging/extension-messaging";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { aiVerdictsItem, isAiEnabledItem } from "@/lib/storage";

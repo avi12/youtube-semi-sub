@@ -8,7 +8,7 @@ import { openBuiltInSession } from "#ai-match/engine/prompt-api";
 import { AiEngine, isAiModelReady } from "@/lib/ai/ai-status";
 import { getAiFilterKey, normalizeAiDescription } from "@/lib/filter/ai-filter-key";
 import type { VideoVerdicts } from "@/lib/filter/ai-verdicts";
-import { listAiFilters } from "@/lib/filter/title-filter";
+import { listAiFilters } from "@/lib/filter/schema/video-filter-schema";
 import type { ClassifyRequest } from "@/lib/messaging/extension-messaging";
 import { sortNewestFirst } from "@/lib/schemas/feed-video";
 import { getJudgingFilters } from "@/lib/schemas/semi-subscription";

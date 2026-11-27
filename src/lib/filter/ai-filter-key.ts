@@ -1,4 +1,4 @@
-import type { AiFilter } from "@/lib/filter/title-filter";
+import type { AiFilter } from "@/lib/filter/schema/video-filter-schema";
 import { WHITESPACE_RUN_PATTERN } from "@/lib/utils/text";
 
 /**

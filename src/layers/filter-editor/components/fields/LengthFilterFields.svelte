@@ -1,7 +1,8 @@
 <script lang="ts">
   import { describeLengthRange } from "@/lib/filter/filter-literal";
-  import { formatLengthExpression, parseLengthExpression } from "@/lib/filter/length-expression";
-  import { FilterKind, type LengthFilter } from "@/lib/filter/title-filter";
+  import { parseLengthExpression } from "@/lib/filter/length/length-expression";
+  import { formatLengthExpression } from "@/lib/filter/length/length-format";
+  import { FilterKind, type LengthFilter } from "@/lib/filter/schema/video-filter-schema";
   import { getEditorControls } from "#filter-editor/controls";
   import { untrack } from "svelte";
 

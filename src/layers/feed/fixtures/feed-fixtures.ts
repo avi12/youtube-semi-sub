@@ -9,7 +9,7 @@ export const NOW = Date.UTC(2026, 9, 15, 12);
 export const CHANNEL_ID = "UCsemisubscribedchannel1";
 export const OTHER_CHANNEL_ID = "UCalreadysubscribedchan2";
 
-const VIDEO_ID_DIGITS = 6;
+export const VIDEO_ID_DIGITS = 6;
 const SHORTS_ROOT_VISUAL_ELEMENT = 37414;
 const SHORTS_THUMBNAIL_WIDTH = 405;
 const SHORTS_THUMBNAIL_HEIGHT = 720;

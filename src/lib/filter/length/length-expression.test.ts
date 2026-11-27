@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FilterKind } from "@/lib/filter/title-filter";
-
-import { formatLengthExpression, parseLengthExpression } from "./length-expression";
+import { parseLengthExpression } from "./length-expression";
 
 describe("parseLengthExpression", () => {
   it.each([
@@ -63,25 +61,5 @@ describe("parseLengthExpression", () => {
   it("says what to type when it can't read the expression", () => {
     expect(parseLengthExpression("15").error).toBe("Say how it compares, like <=10m, >10m or 5-20m");
     expect(parseLengthExpression(">=").error).toBe('Add a length after ">=", like 10m');
-  });
-});
-
-describe("formatLengthExpression", () => {
-  it("writes stored bounds back as an expression that reads the same", () => {
-    for (const bounds of [
-      { minSeconds: 4140 },
-      { maxSeconds: 90 },
-      {
-        minSeconds: 300,
-        maxSeconds: 1200
-      },
-      { maxSeconds: 5430 }
-    ]) {
-      const expression = formatLengthExpression({
-        kind: FilterKind.LENGTH,
-        ...bounds
-      });
-      expect(parseLengthExpression(expression).bounds).toEqual(bounds);
-    }
   });
 });

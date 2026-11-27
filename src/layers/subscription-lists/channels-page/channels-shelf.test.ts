@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FilterKind } from "@/lib/filter/title-filter";
+import { FilterKind } from "@/lib/filter/schema/video-filter-schema";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 
 import { readSemiChannelId, withSemiChannelsSection } from "./channels-shelf";

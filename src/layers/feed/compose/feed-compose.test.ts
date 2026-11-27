@@ -17,7 +17,7 @@ import {
   videoIdFromGridItem,
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
-import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
+import { DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/schema/video-filter-schema";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import type { SemiSubscriptions } from "@/lib/schemas/semi-subscription";
 

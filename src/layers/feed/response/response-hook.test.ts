@@ -30,7 +30,12 @@ import {
 } from "#feed/items/feed-items";
 import { browseResponseSchema } from "#feed/items/feed-schemas";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind, type TitleFilter } from "@/lib/filter/title-filter";
+import {
+  type AiFilter,
+  DEFAULT_TITLE_FILTER,
+  FilterKind,
+  type TitleFilter
+} from "@/lib/filter/schema/video-filter-schema";
 import type { PageState } from "@/lib/messaging/page-messaging";
 import { captureResponseReaders } from "@/lib/youtube/page/response-readers";
 import type * as SiteNamespace from "@/lib/youtube/site";

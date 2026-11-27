@@ -3,7 +3,7 @@ import { fakeBrowser } from "wxt/testing/fake-browser";
 
 import { browser } from "#imports";
 import { getAiFilterKey } from "@/lib/filter/ai-filter-key";
-import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/title-filter";
+import { type AiFilter, DEFAULT_TITLE_FILTER, FilterKind } from "@/lib/filter/schema/video-filter-schema";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { aiVerdictsItem, channelCheckedAtItem, channelVideosItem, semiSubscriptionsItem } from "@/lib/storage";
 import rssFeedXml from "@/lib/youtube/fixtures/rss-feed.xml?raw";

@@ -1,16 +1,13 @@
+import type { AiJudgeContext } from "@/lib/filter/judge/condition-judges";
+import { compileTitleFilter, getTitleFilterError, isVideoFilterValid } from "@/lib/filter/schema/filter-validity";
 import {
-  type AiJudgeContext,
-  compileTitleFilter,
-  createModeJudge,
   FilterKind,
-  getTitleFilterError,
-  isMembersOnlyLocked,
-  isVideoFilterValid,
   listFilterConditions,
   MatchState,
   type RegexFilter,
   type VideoFilter
-} from "@/lib/filter/title-filter";
+} from "@/lib/filter/schema/video-filter-schema";
+import { createModeJudge, isMembersOnlyLocked } from "@/lib/filter/title-filter";
 import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
 import { z } from "@/lib/zod";
