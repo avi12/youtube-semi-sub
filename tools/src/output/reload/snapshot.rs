@@ -25,9 +25,13 @@ pub(crate) struct BuildSnapshot {
     pub(crate) manifest: ExtensionManifest,
 }
 
+fn is_browser_metadata(file: &str) -> bool {
+    file.starts_with(BROWSER_METADATA_DIR_PREFIX)
+}
+
 fn is_snapshot_file(file: &str) -> bool {
     let hmr_prefix = format!("{HMR_OUT_SUBDIR}/");
-    !file.starts_with(BROWSER_METADATA_DIR_PREFIX) && !file.starts_with(&hmr_prefix)
+    !is_browser_metadata(file) && !file.starts_with(&hmr_prefix)
 }
 
 fn list_directory(directory: &Path) -> Result<Vec<fs::DirEntry>> {
@@ -37,7 +41,7 @@ fn list_directory(directory: &Path) -> Result<Vec<fs::DirEntry>> {
         .collect()
 }
 
-fn list_output_files(output_dir: &Path) -> Result<Vec<String>> {
+fn list_output_files(output_dir: &Path, is_included: fn(&str) -> bool) -> Result<Vec<String>> {
     let mut files = Vec::new();
     if !output_dir.exists() {
         return Ok(files);
@@ -57,21 +61,35 @@ fn list_output_files(output_dir: &Path) -> Result<Vec<String>> {
             files.push(relative.to_string_lossy().replace('\\', "/"));
         }
     }
-    files.retain(|file| is_snapshot_file(file));
+    files.retain(|file| is_included(file));
     files.sort();
     Ok(files)
 }
 
-/// Hashes every output file (minus browser metadata and the HMR modules) and reads the manifest.
-pub(crate) fn take_build_snapshot(output_dir: &Path) -> Result<BuildSnapshot> {
-    let files = list_output_files(output_dir)?;
-    let has_manifest = files.iter().any(|file| file == MANIFEST_FILE);
+fn hash_output_files_where(
+    output_dir: &Path,
+    is_included: fn(&str) -> bool,
+) -> Result<BTreeMap<String, String>> {
     let mut file_hashes = BTreeMap::new();
-    for file in files {
+    for file in list_output_files(output_dir, is_included)? {
         let path = output_dir.join(&file);
         let bytes = fs::read(&path).map_err(OutputError::with_path(&path))?;
         file_hashes.insert(file, ContentHash::from_bytes(&bytes).as_str().to_owned());
     }
+    Ok(file_hashes)
+}
+
+/// Every output file's content hash, keyed by its `/`-separated relative path: what a copy of the
+/// extension elsewhere (an Android device) needs, so the HMR modules are included and only the
+/// browser's own metadata is left out.
+pub(crate) fn hash_output_files(output_dir: &Path) -> Result<BTreeMap<String, String>> {
+    hash_output_files_where(output_dir, |file| !is_browser_metadata(file))
+}
+
+/// Hashes every output file (minus browser metadata and the HMR modules) and reads the manifest.
+pub(crate) fn take_build_snapshot(output_dir: &Path) -> Result<BuildSnapshot> {
+    let file_hashes = hash_output_files_where(output_dir, is_snapshot_file)?;
+    let has_manifest = file_hashes.contains_key(MANIFEST_FILE);
     let manifest = if has_manifest {
         ExtensionManifest::read(output_dir)?
     } else {

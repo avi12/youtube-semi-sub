@@ -57,3 +57,26 @@ fn firefox_and_flags_override_the_defaults() -> Result<()> {
 fn a_zero_port_is_rejected() {
     assert!(resolve(&["--cdp-port", "0"], &host(OsPlatform::Windows, false)).is_err());
 }
+
+#[test]
+fn android_implies_firefox_and_defaults_to_the_release_app() -> Result<()> {
+    let options = resolve(&["--android"], &host(OsPlatform::Windows, false))?;
+    assert_eq!(options.browser(), BuildBrowser::Firefox);
+    let android = options.android.expect("android options");
+    assert_eq!(android.package, "org.mozilla.firefox");
+    assert_eq!(android.serial, None);
+    let chosen = resolve(
+        &["--android", "--android-serial", "emulator-5554"],
+        &host(OsPlatform::Windows, false),
+    )?;
+    assert_eq!(
+        chosen.android.and_then(|android| android.serial).as_deref(),
+        Some("emulator-5554")
+    );
+    assert!(resolve(
+        &["--android-serial", "x"],
+        &host(OsPlatform::Windows, false)
+    )
+    .is_err());
+    Ok(())
+}

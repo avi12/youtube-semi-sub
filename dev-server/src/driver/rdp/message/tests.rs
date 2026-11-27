@@ -28,6 +28,15 @@ fn requests_keep_their_wire_shape() -> Result<()> {
         sent(RequestKind::WatchTargets, &WatchTargetsParams::FRAMES)?,
         [json!({"to":"a1","type":"watchTargets","targetType":"frame"})]
     );
+    assert_eq!(
+        sent(
+            RequestKind::InstallTemporaryAddon,
+            &InstallTemporaryAddonParams {
+                addon_path: "/data/local/tmp/x"
+            }
+        )?,
+        [json!({"to":"a1","type":"installTemporaryAddon","addonPath":"/data/local/tmp/x"})]
+    );
     let evaluation = EvaluateParams::new("x").not_eager().awaiting();
     assert_eq!(
         sent(RequestKind::EvaluateJsAsync, &evaluation)?,

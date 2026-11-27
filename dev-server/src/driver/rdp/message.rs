@@ -52,6 +52,10 @@ pub struct ResultId(Value);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RequestKind {
+    /// The root's singleton actors, the add-ons actor among them.
+    GetRoot,
+    /// Installs an add-on from the browser's own file system until the browser closes.
+    InstallTemporaryAddon,
     /// The open tabs.
     ListTabs,
     /// The installed add-ons.
@@ -129,6 +133,14 @@ impl GetProcessParams {
     pub const PARENT: Self = Self {
         id: PARENT_PROCESS_ID,
     };
+}
+
+/// The parameters of `installTemporaryAddon`.
+#[derive(Debug, Clone, Copy, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstallTemporaryAddonParams<'path> {
+    /// The add-on's folder or file, as the browser's own file system names it.
+    pub addon_path: &'path str,
 }
 
 /// The parameters of `getWatcher`.

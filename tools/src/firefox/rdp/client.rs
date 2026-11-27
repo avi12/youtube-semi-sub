@@ -5,14 +5,15 @@ use std::collections::VecDeque;
 use std::time::Duration;
 
 use dev_hot::driver::rdp::message::{
-    encode_request, ActorId, Addon, EvaluateParams, NoParams, PacketKind, RequestKind, ResultId,
+    encode_request, ActorId, Addon, EvaluateParams, InstallTemporaryAddonParams, NoParams,
+    PacketKind, RequestKind, ResultId,
 };
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::time::{timeout_at, Instant};
 
-use super::replies::AddonList;
+use super::replies::{AddonList, InstallReply, RootReply};
 use crate::firefox::framed::Framed;
 use crate::firefox::{FirefoxError, Result};
 
@@ -181,6 +182,37 @@ impl Rdp {
             .request(&ActorId::root(), RequestKind::ListAddons, &NoParams {})
             .await?;
         Ok(reply.parse::<AddonList>()?.addons)
+    }
+
+    /// Installs the add-on at `addon_path` - a path on the browser's own file system, which on an
+    /// Android device is not the host's - until the browser closes, and returns it as `listAddons`
+    /// describes it.
+    pub(crate) async fn install_temporary_addon(&mut self, addon_path: &str) -> Result<Addon> {
+        let root = self
+            .request(&ActorId::root(), RequestKind::GetRoot, &NoParams {})
+            .await?;
+        let addons_actor = root.parse::<RootReply>()?.addons_actor.ok_or_else(|| {
+            FirefoxError::Failed("the browser offers no add-ons actor".to_owned())
+        })?;
+        let reply = self
+            .request(
+                &addons_actor,
+                RequestKind::InstallTemporaryAddon,
+                &InstallTemporaryAddonParams { addon_path },
+            )
+            .await?
+            .parse::<InstallReply>()?;
+        let Some(id) = reply.addon.and_then(|addon| addon.id) else {
+            let reason = reply.message.unwrap_or_default();
+            return Err(FirefoxError::Failed(format!(
+                "installing {addon_path} failed: {reason}"
+            )));
+        };
+        self.addons()
+            .await?
+            .into_iter()
+            .find(|addon| addon.id.as_deref() == Some(id.as_str()))
+            .ok_or_else(|| FirefoxError::Failed(format!("{id} is missing after its install")))
     }
 }
 

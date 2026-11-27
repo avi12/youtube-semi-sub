@@ -29,6 +29,7 @@
   "scripts": {
     "dev": "bun run devtool dev run",
     "dev:firefox": "bun run devtool dev run --firefox",
+    "dev:android": "bun run devtool dev run --android",
     "devtool": "cargo run --release --quiet --manifest-path tools/Cargo.toml --",
     "dev-server:test": "cargo test --manifest-path dev-server/Cargo.toml",
     "tools:test": "cargo test --manifest-path tools/Cargo.toml",

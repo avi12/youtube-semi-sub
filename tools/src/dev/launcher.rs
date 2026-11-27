@@ -4,7 +4,8 @@
 //! `scripts/dev/enums.ts` and `scripts/dev-bridge.ts`.
 //!
 //! Closing the browser ends the server and ending the server closes the browser; only the process
-//! this launcher started is ever killed.
+//! this launcher started is ever killed. Firefox on an Android device is the user's own app, so
+//! ending the server leaves it running.
 
 mod browser;
 mod build;
@@ -68,8 +69,11 @@ async fn start(args: &RunArgs) -> Result<()> {
     let options = resolve_options(&args.options, &environment)?;
     std::env::set_current_dir(&options.project_root)?;
     install_log_layer()?;
-    clean_leftover_instances(&options, &environment).await?;
-    setup_profile(&options, &environment)?;
+    // Firefox on a device runs on the user's own profile there
+    if options.android.is_none() {
+        clean_leftover_instances(&options, &environment).await?;
+        setup_profile(&options, &environment)?;
+    }
 
     let name = browser_name(&options);
     println!("Building extension for {name} (production)...");
@@ -89,16 +93,16 @@ async fn start(args: &RunArgs) -> Result<()> {
     })
     .await?;
     println!(
-        "{name} launched with extension sideloaded (debug port {}, profile {}).",
-        options.cdp_port,
-        options
-            .profile_dir
-            .strip_prefix(&options.project_root)
-            .unwrap_or(&options.profile_dir)
-            .display()
+        "{name} launched with extension sideloaded ({}).",
+        running.describe_location(&options)
     );
     let target = running.reload_target(&options, &output_dir)?;
-    let host = DevHost::new(options.clone(), output_dir.clone(), target)?;
+    let host = DevHost::new(
+        options.clone(),
+        output_dir.clone(),
+        target,
+        running.device_mirror(),
+    )?;
     host.reload_if_background_stale().await?;
     let config = sidecar_config(&options, &running, &output_dir, hmr_source_files)?;
     Box::pin(serve(host, config, running)).await
@@ -185,7 +189,7 @@ async fn serve(host: DevHost, config: SidecarConfig, mut running: RunningBrowser
     let stop = tokio::select! {
         result = &mut hot_loop => Stop::HotLoop(result),
         () = interrupted() => Stop::Interrupted,
-        _ = running.child.wait() => Stop::BrowserClosed,
+        () = running.wait_closed() => Stop::BrowserClosed,
     };
     if matches!(stop, Stop::BrowserClosed) {
         println!("\nBrowser closed. Exiting.");
@@ -200,8 +204,7 @@ async fn serve(host: DevHost, config: SidecarConfig, mut running: RunningBrowser
         }
     };
     drop(notification_sender);
-    // Only the process this launcher started
-    let _ = running.child.kill().await;
+    running.stop().await;
     Ok(outcome?)
 }
 

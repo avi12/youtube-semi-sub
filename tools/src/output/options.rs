@@ -9,6 +9,7 @@ use clap::{Args, ValueEnum};
 use serde::{Deserialize, Serialize};
 
 use super::error::{OutputError, Result};
+use crate::android::DEFAULT_FIREFOX_PACKAGE;
 use crate::firefox::MARIONETTE_DEFAULT_PORT;
 use crate::port::parse_port_number;
 
@@ -132,6 +133,26 @@ pub(crate) struct OptionArgs {
     /// Keep test browsers silent
     #[arg(long, env = "DEVTOOL_MUTE_AUDIO")]
     mute_audio: bool,
+    /// Target Firefox on an Android device or emulator over adb (implies --firefox)
+    #[arg(long, env = "DEVTOOL_ANDROID")]
+    android: bool,
+    /// The adb serial of the device; unset picks the only one connected
+    #[arg(long, env = "DEVTOOL_ANDROID_SERIAL", requires = "android")]
+    android_serial: Option<String>,
+    /// The Firefox app on the device: `org.mozilla.firefox`, `org.mozilla.firefox_beta` or
+    /// `org.mozilla.fenix` (Nightly)
+    #[arg(long, env = "DEVTOOL_ANDROID_PACKAGE", requires = "android")]
+    android_package: Option<String>,
+}
+
+/// The Android device a dev session runs Firefox on.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(test, derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct AndroidOptions {
+    /// Unset picks the only device connected.
+    pub(crate) serial: Option<String>,
+    pub(crate) package: String,
 }
 
 /// The options after flags, environment and defaults are merged.
@@ -156,6 +177,8 @@ pub(crate) struct DevOptions {
     pub(crate) env_files: Vec<String>,
     pub(crate) install_marker_path: String,
     pub(crate) installed_lockfile_path: PathBuf,
+    /// Set when Firefox runs on an Android device instead of this machine.
+    pub(crate) android: Option<AndroidOptions>,
 }
 
 impl DevOptions {
@@ -186,6 +209,7 @@ fn default_profile_name(is_firefox: bool, platform_suffix: &str) -> String {
 
 /// Merges the flags with the host's facts.
 pub(crate) fn resolve_options(args: &OptionArgs, host: &HostEnvironment) -> Result<DevOptions> {
+    let is_firefox = args.firefox || args.android;
     let project_root = std::path::absolute(&args.project_root)
         .map_err(OutputError::with_path(&args.project_root))?;
     let platform_suffix = if host.is_wsl {
@@ -195,19 +219,26 @@ pub(crate) fn resolve_options(args: &OptionArgs, host: &HostEnvironment) -> Resu
     };
     let default_profile = project_root
         .join(USER_PROFILES_DIR)
-        .join(default_profile_name(args.firefox, platform_suffix));
+        .join(default_profile_name(is_firefox, platform_suffix));
     let profile_dir = args
         .profile_dir
         .as_ref()
         .map_or(default_profile, |dir| project_root.join(dir));
+    let android = args.android.then(|| AndroidOptions {
+        serial: args.android_serial.clone(),
+        package: args
+            .android_package
+            .clone()
+            .unwrap_or_else(|| DEFAULT_FIREFOX_PACKAGE.to_owned()),
+    });
     Ok(DevOptions {
-        is_firefox: args.firefox,
+        is_firefox,
         is_audio_muted: args.mute_audio,
         is_wsl: host.is_wsl,
         profile_platform_suffix: platform_suffix.to_owned(),
         cdp_port: args
             .cdp_port
-            .unwrap_or_else(|| default_cdp_port(args.firefox, host.platform)),
+            .unwrap_or_else(|| default_cdp_port(is_firefox, host.platform)),
         marionette_port: args.marionette_port.unwrap_or(MARIONETTE_DEFAULT_PORT),
         profile_dir,
         out_dir: args.out_dir.clone(),
@@ -222,6 +253,7 @@ pub(crate) fn resolve_options(args: &OptionArgs, host: &HostEnvironment) -> Resu
         env_files: ENV_FILES.map(str::to_owned).to_vec(),
         install_marker_path: INSTALL_MARKER_PATH.to_owned(),
         installed_lockfile_path: lockfile_path(&project_root),
+        android,
         project_root,
     })
 }

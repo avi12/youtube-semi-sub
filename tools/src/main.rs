@@ -6,6 +6,7 @@
 //!
 //! Exit codes: 0 on success, 1 when a command failed.
 
+mod android;
 mod cdp;
 mod dev;
 mod error;

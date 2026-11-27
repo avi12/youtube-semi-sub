@@ -12,7 +12,7 @@ pub(crate) use plan::{
     plan_reload, plan_stale_background_reload, BackgroundSwapPlan, ExtensionReloadPlan,
     PageRefreshPlan, ReloadPlan,
 };
-pub(crate) use snapshot::{take_build_snapshot, BuildSnapshot};
+pub(crate) use snapshot::{hash_output_files, take_build_snapshot, BuildSnapshot};
 
 use super::error::{OutputError, Result};
 

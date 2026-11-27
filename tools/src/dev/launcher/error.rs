@@ -2,6 +2,8 @@
 
 use thiserror::Error;
 
+use crate::android::AndroidError;
+
 use crate::dev::browsers::BrowserError;
 use crate::dev::hmr::HmrError;
 use crate::output::OutputError;
@@ -28,6 +30,9 @@ pub(crate) enum LauncherError {
     /// The HMR build failed.
     #[error(transparent)]
     Hmr(#[from] HmrError),
+    /// The Android device side failed.
+    #[error(transparent)]
+    Android(#[from] AndroidError),
     /// The hot loop library failed.
     #[error(transparent)]
     Library(#[from] dev_hot::Error),

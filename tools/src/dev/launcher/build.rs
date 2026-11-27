@@ -186,6 +186,7 @@ mod tests {
             env_files: Vec::new(),
             install_marker_path: String::new(),
             installed_lockfile_path: PathBuf::new(),
+            android: None,
         }
     }
 

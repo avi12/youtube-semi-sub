@@ -11,6 +11,28 @@ pub(crate) struct AddonList {
     pub(crate) addons: Vec<Addon>,
 }
 
+/// The reply to `getRoot`: the root's singleton actors.
+#[derive(Debug, Default, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub(crate) struct RootReply {
+    pub(crate) addons_actor: Option<ActorId>,
+}
+
+/// The add-on `installTemporaryAddon` names: only its id (its `actor` is `false` there).
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+pub(crate) struct InstalledAddon {
+    pub(crate) id: Option<String>,
+}
+
+/// The reply to `installTemporaryAddon`: the add-on, or why it was refused.
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+pub(crate) struct InstallReply {
+    pub(crate) addon: Option<InstalledAddon>,
+    pub(crate) message: Option<String>,
+}
+
 /// The reply to `getTarget`.
 #[derive(Debug, Default, Deserialize)]
 #[serde(default, rename_all = "camelCase")]

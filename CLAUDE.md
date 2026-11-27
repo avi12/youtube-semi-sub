@@ -160,6 +160,7 @@ After each modification - every bug fix included, before reporting it done - run
   - A `main-world` change reloads the extension; no tab is reloaded, so open tabs keep the old page script
 - `src` carries no dev-only code or permission; `scripting` is added to dev builds only
 - WXT builds Firefox as MV2 unless told otherwise: `tools/assets/dev/wxt-build-worker.mjs` pins MV3
+- `bun run dev:android`: the same dev server on Firefox for Android over adb (`--android-serial` when several devices are connected, `--android-package` for Beta or Nightly; "Remote debugging via USB" must be on). The extension is installed as a temporary add-on from `/data/local/tmp/devtool/<gecko id>` on the device, which every build is copied into (changed files only, the HMR manifest last); reloads, background swaps and HMR then go through the same RDP target as desktop Firefox, on the port adb forwards. Stopping it leaves Firefox running. A second dev server beside it needs its own `--cdp-port` (the HMR port derives from it) and `--out-dir`
 - Dev ports: CDP 9280 (Linux 9281), Firefox 9282, Marionette 2838. Profiles live in `user-profiles/`, seeded once from your own (Chromium: bookmarks; Firefox: session files); `--profile-dir` and `--mute-audio` are for test runs
 - Gates for the Rust side: `bun run tools:test`, `bun run dev-server:test` (`bun run lint` runs fmt, clippy and deny), and `bun run assets:check` for the injected scripts
 - Firefox first when verifying cross-browser behaviour - it is the strictest environment

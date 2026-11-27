@@ -13,6 +13,7 @@ use tokio::sync::Mutex;
 use super::build::{build_hmr_modules, build_with_lock_retry};
 use super::error::Result;
 use super::log::{format_elapsed, log_event};
+use crate::android::DeviceMirror;
 use crate::dev::browsers::{apply_reload_plan, ApplyRequest, ExtensionReloader, ReloadTarget};
 use crate::dev::hmr::ContentScriptUpdate;
 use crate::output::manifest::ExtensionManifest;
@@ -47,6 +48,8 @@ pub(super) struct DevHost {
     last_snapshot: Mutex<BuildSnapshot>,
     /// What the HMR builds since the last extension build do to the running pages.
     content_script_update: Mutex<ContentScriptUpdate>,
+    /// The device folder Firefox for Android runs the extension from; every build lands there too.
+    device_mirror: Option<Arc<DeviceMirror>>,
 }
 
 impl DevHost {
@@ -54,6 +57,7 @@ impl DevHost {
         options: DevOptions,
         output_dir: PathBuf,
         target: Arc<dyn ReloadTarget>,
+        device_mirror: Option<Arc<DeviceMirror>>,
     ) -> Result<Self> {
         let last_snapshot = Mutex::new(take_build_snapshot(&output_dir)?);
         let reloader = ExtensionReloader::new(Arc::clone(&target), Arc::new(log_event));
@@ -64,7 +68,24 @@ impl DevHost {
             reloader,
             last_snapshot,
             content_script_update: Mutex::default(),
+            device_mirror,
         })
+    }
+
+    /// Copies what the build changed to the device, before anything there reloads or polls it.
+    async fn sync_device(&self) -> Result<()> {
+        let Some(mirror) = &self.device_mirror else {
+            return Ok(());
+        };
+        let report = mirror.sync().await?;
+        if report.written > 0 {
+            log_event(&format!(
+                "Copied {} changed file(s) to the device ({})",
+                report.written,
+                format_elapsed(u64::try_from(report.elapsed_ms).unwrap_or(u64::MAX))
+            ));
+        }
+        Ok(())
     }
 
     async fn apply(&self, plan: &ReloadPlan) -> Result<String> {
@@ -105,6 +126,7 @@ impl Host for DevHost {
         build_with_lock_retry(&self.options)
             .await
             .map_err(host_error)?;
+        self.sync_device().await.map_err(host_error)?;
         Ok(None)
     }
 
@@ -115,6 +137,8 @@ impl Host for DevHost {
         // A retried build compares against its own first attempt, so the stronger answer stays
         let mut update = self.content_script_update.lock().await;
         *update = (*update).max(build.content_script_update);
+        drop(update);
+        self.sync_device().await.map_err(host_error)?;
         Ok(RebuildHmrResult {
             hmr_source_files: build.source_modules,
         })
