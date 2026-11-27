@@ -1,4 +1,7 @@
 import { applySubscriptionSnapshot } from "#channel-button";
+import { patchGuideResponse } from "#subscription-lists/guide/data/guide-patch";
+import { buildSemiGuideEntry } from "#subscription-lists/guide/data/semi-guide-entries";
+import { readGuideSubscriptions } from "#subscription-lists/guide/data/subscriptions-section";
 import {
   listFilteredSubscribedChannelIds,
   listFollowedSubscriptions,
@@ -8,8 +11,6 @@ import { getPageState } from "@/lib/page/page-state";
 import { parseJson } from "@/lib/utils/json";
 import { captureResponseReaders } from "@/lib/youtube/page/response-readers";
 import { InnerTubePath, isYouTubeUrlAt } from "@/lib/youtube/site";
-
-import { buildSemiGuideEntry, patchGuideResponse, readGuideSubscriptions } from "./guide-data";
 
 // www.youtube.com fetches the sidebar from /youtubei/v1/guide (and re-fetches it when it expires) and reads the body
 // with text(). Patching the body puts the semi-subscribed channels into the very first render of the guide and of

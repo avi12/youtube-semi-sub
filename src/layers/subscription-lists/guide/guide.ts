@@ -1,19 +1,19 @@
 import { mount, unmount } from "svelte";
 
+import { patchGuideItems } from "#subscription-lists/guide/data/guide-patch";
+import { guideDataSchema } from "#subscription-lists/guide/data/guide-schemas";
+import {
+  buildSemiGuideEntry,
+  readSemiGuideEntryChannelId,
+  readSubscribedGuideEntryChannelId
+} from "#subscription-lists/guide/data/semi-guide-entries";
+import { withoutCachedSubscriptionsFlyout } from "#subscription-lists/guide/data/subscriptions-flyout";
 import { listsView } from "#subscription-lists/lists-view.svelte";
 import { listFilteredSubscribedChannelIds, listFollowedSubscriptions } from "#subscription-lists/semi-channels";
 import { onPageState } from "@/lib/page/page-state";
 import { createFrameScheduler, observeSubtree, waitForElement, whenDocumentParsed } from "@/lib/utils/dom";
 import { isPolymerElement, type PolymerElement } from "@/lib/youtube/page/elements/polymer";
 
-import {
-  buildSemiGuideEntry,
-  guideDataSchema,
-  patchGuideItems,
-  readSemiGuideEntryChannelId,
-  readSubscribedGuideEntryChannelId,
-  withoutCachedSubscriptionsFlyout
-} from "./guide-data";
 import GuideEntryAction from "./GuideEntryAction.svelte";
 
 // www.youtube.com sidebar: the guide data is written through YouTube's own model, so the entries render, navigate
