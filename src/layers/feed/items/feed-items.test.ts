@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   CHANNEL_ID,
+  contextRendererItem,
   continuationItem,
   desktopFeedItem,
   mobileShortsShelf,
@@ -14,6 +15,7 @@ import {
   collectContentVideoIds,
   readShelf,
   thumbnailUrlFromGridItem,
+  titleFromGridItem,
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
 import { ShelfRendererKind } from "@/lib/youtube/schemas/renderers";
@@ -98,5 +100,18 @@ describe("thumbnailUrlFromGridItem", () => {
   it("reads a Short's thumbnail too", () => {
     const [short] = readShelf(shortsShelf([90]))?.items ?? [];
     expect(thumbnailUrlFromGridItem(short)).toBe(`https://i.ytimg.com/vi/${videoId(90)}/sardefault.jpg?sqp=signed`);
+  });
+});
+
+describe("titleFromGridItem", () => {
+  it("reads the headline m.youtube.com's renderer titles a video with", () => {
+    expect(
+      titleFromGridItem(
+        contextRendererItem({
+          index: 1,
+          published: PUBLISHED
+        })
+      )
+    ).toBe("Subscribed video 1");
   });
 });

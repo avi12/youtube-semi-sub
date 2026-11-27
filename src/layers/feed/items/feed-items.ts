@@ -212,7 +212,7 @@ export function publishedTextsFromGridItem(item: unknown) {
 export function titleFromRenderer(video: VideoRenderer) {
   return video.kind === RendererKind.LOCKUP_VIEW_MODEL
     ? (video.renderer.metadata?.lockupMetadataViewModel?.title?.content ?? null)
-    : readText(video.renderer.title) || null;
+    : readText(video.renderer.title ?? video.renderer.headline) || null;
 }
 
 /** The length the renderer's thumbnail badge shows; undefined for a live or upcoming video */
