@@ -2,7 +2,7 @@
   import { DialogButtonVariant } from "./controls/dialog-button-variant";
   import DialogButton from "./controls/DialogButton.svelte";
   import DialogCloseButton from "./controls/DialogCloseButton.svelte";
-  import { YOUTUBE_EDITOR_CONTROLS } from "./controls/youtube-editor-controls";
+  import { YOUTUBE_EDITOR_CONTROLS } from "#dialog/controls/editor/youtube-editor-controls";
   import { isPageDarkTheme } from "./page-theme";
   import SemiSubSnackbar from "./SemiSubSnackbar.svelte";
   import { ToastMessage } from "./toast-message";

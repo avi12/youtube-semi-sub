@@ -20,7 +20,7 @@
   "rules": { "unused-enum-members": "warn" },
   "overrides": [
     {
-      "files": ["src/lib/youtube/page/yt-icon.ts", "src/lib/youtube/page/button-view-model.ts"],
+      "files": ["src/lib/youtube/page/elements/yt-icon.ts", "src/lib/youtube/page/elements/button-view-model.ts"],
       "rules": { "unused-enum-members": "off" }
     }
   ]

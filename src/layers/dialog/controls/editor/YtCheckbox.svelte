@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { polymerHostAttributes } from "@/lib/youtube/page/polymer-host";
+  import { polymerHostAttributes } from "@/lib/youtube/page/elements/polymer-host";
   import type { EditorCheckboxProps } from "#filter-editor";
 
   // www's own Polymer checkbox, `tp-yt-paper-checkbox`, driven by its `checked` attribute. A press anywhere on the row

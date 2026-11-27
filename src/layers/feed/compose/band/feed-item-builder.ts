@@ -6,7 +6,6 @@ import type { ChannelInfo } from "@/lib/schemas/channel";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { buildChannelPath, formatHandle } from "@/lib/youtube/channel-link";
 import { buildChannelEndpoint, buildWatchEndpoint } from "@/lib/youtube/endpoints";
-import { formatRelativeTime } from "@/lib/youtube/relative-time";
 import {
   type Lockup,
   LOCKUP_VIDEO_CONTENT_TYPE,
@@ -14,7 +13,8 @@ import {
   RendererKind
 } from "@/lib/youtube/schemas/renderers";
 import { readText } from "@/lib/youtube/schemas/text";
-import { findLockupDurationBadge } from "@/lib/youtube/video-duration";
+import { formatRelativeTime } from "@/lib/youtube/video/relative-time";
+import { findLockupDurationBadge } from "@/lib/youtube/video/video-duration";
 
 // Builds a feed tile for a semi-subscribed video in the renderer the feed already uses (a sibling item is the
 // template). The channel's own Videos-tab renderer ("native") supplies duration, views and menu when known; the

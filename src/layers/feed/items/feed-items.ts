@@ -1,6 +1,5 @@
 import { channelIdSchema } from "@/lib/schemas/channel";
 import { VIDEO_ID_PATTERN } from "@/lib/schemas/feed-video";
-import { isMembersOnlyClassicRenderer, isMembersOnlyLockup } from "@/lib/youtube/members-only";
 import { browseEndpointSchema } from "@/lib/youtube/schemas/browse";
 import {
   CLASSIC_RENDERER_KINDS,
@@ -11,7 +10,8 @@ import {
   ShelfRendererKind
 } from "@/lib/youtube/schemas/renderers";
 import { type FormattedText, readText } from "@/lib/youtube/schemas/text";
-import { durationFromClassicRenderer, durationFromLockup } from "@/lib/youtube/video-duration";
+import { isMembersOnlyClassicRenderer, isMembersOnlyLockup } from "@/lib/youtube/video/members-only";
+import { durationFromClassicRenderer, durationFromLockup } from "@/lib/youtube/video/video-duration";
 import { z } from "@/lib/zod";
 
 import type { VideoRenderer } from "./feed-schemas";

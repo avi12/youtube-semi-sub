@@ -1,5 +1,5 @@
 import { elementSchema, htmlElementSchema } from "@/lib/dom-guards";
-import { ironDropdownElementSchema, isIronDropdown } from "@/lib/youtube/page/iron-dropdown";
+import { ironDropdownElementSchema, isIronDropdown } from "@/lib/youtube/page/elements/iron-dropdown";
 import { z } from "@/lib/zod";
 
 import { FeedTileTag, videoIdFromTile } from "./feed-grid";

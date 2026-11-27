@@ -15,9 +15,9 @@
   import { SUBSCRIPTION_MODE_NAME, SubscriptionMode } from "@/lib/schemas/subscription-mode";
   import { pluralize } from "@/lib/utils/pluralize";
   import { formatHandle, getChannelUrl } from "@/lib/youtube/channel-link";
-  import Button from "#popup/ui/Button.svelte";
+  import Button from "#popup/ui/buttons/Button.svelte";
   import Icon from "#popup/ui/Icon.svelte";
-  import ListCard from "#popup/ui/ListCard.svelte";
+  import ListCard from "#popup/ui/list/ListCard.svelte";
   import { tick } from "svelte";
 
   interface Props extends AiJudgeContext {

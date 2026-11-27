@@ -2,8 +2,6 @@ import { type FeedVideo, feedVideoSchema } from "@/lib/schemas/feed-video";
 import { parseJson } from "@/lib/utils/json";
 import { buildChannelPath } from "@/lib/youtube/channel-link";
 import { findInitialDataJson } from "@/lib/youtube/initial-data";
-import { isMembersOnlyClassicRenderer, isMembersOnlyLockup } from "@/lib/youtube/members-only";
-import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
 import { channelMetadataRendererSchema, tabbedColumnSchema } from "@/lib/youtube/schemas/browse";
 import {
   type ClassicRenderer,
@@ -14,8 +12,10 @@ import {
 } from "@/lib/youtube/schemas/renderers";
 import { readText } from "@/lib/youtube/schemas/text";
 import { YOUTUBE_ORIGIN } from "@/lib/youtube/site";
-import { durationFromClassicRenderer, durationFromLockup } from "@/lib/youtube/video-duration";
-import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
+import { isMembersOnlyClassicRenderer, isMembersOnlyLockup } from "@/lib/youtube/video/members-only";
+import { parseFirstRelativeTime } from "@/lib/youtube/video/relative-time";
+import { durationFromClassicRenderer, durationFromLockup } from "@/lib/youtube/video/video-duration";
+import { buildVideoThumbnailUrl } from "@/lib/youtube/video/video-thumbnail";
 import { z } from "@/lib/zod";
 
 import { fetchText } from "./fetch-text";

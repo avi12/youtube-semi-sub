@@ -11,7 +11,7 @@ import {
   ButtonViewModelState,
   ButtonViewModelStyle,
   ButtonViewModelType
-} from "@/lib/youtube/page/button-view-model";
+} from "@/lib/youtube/page/elements/button-view-model";
 import { z } from "@/lib/zod";
 import { createGuard, VOID_METHOD_SCHEMA } from "@/lib/zod-guard";
 

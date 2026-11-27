@@ -2,7 +2,7 @@ import { AnchorSide, type FeedItemSlot, type FeedSlot, type PlacementAnchor } fr
 import { collectContentVideoIds, publishedTextsFromGridItem, videoIdFromGridItem } from "#feed/items/feed-items";
 import { type FeedVideo, sortNewestFirst } from "@/lib/schemas/feed-video";
 import { MILLISECONDS_PER_DAY } from "@/lib/utils/time";
-import { parseFirstRelativeTime } from "@/lib/youtube/relative-time";
+import { parseFirstRelativeTime } from "@/lib/youtube/video/relative-time";
 import { z } from "@/lib/zod";
 
 // The feed's root contents mix section markers (shelves) with root-level video items. The root videos form the

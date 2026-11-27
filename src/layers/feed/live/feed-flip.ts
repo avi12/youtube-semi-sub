@@ -1,5 +1,5 @@
 import { settleBefore } from "@/lib/utils/promise";
-import { flushPolymer } from "@/lib/youtube/page/polymer";
+import { flushPolymer } from "@/lib/youtube/page/elements/polymer";
 
 import { type FeedGrid, videoIdFromTile } from "./feed-grid";
 import {

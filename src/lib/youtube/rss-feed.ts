@@ -1,7 +1,7 @@
 import { type FeedVideo, feedVideoSchema, VIDEO_DESCRIPTION_MAX_LENGTH } from "@/lib/schemas/feed-video";
 import { WHITESPACE_RUN_PATTERN } from "@/lib/utils/text";
 import { isShortsUrl } from "@/lib/youtube/site";
-import { buildVideoThumbnailUrl } from "@/lib/youtube/video-thumbnail";
+import { buildVideoThumbnailUrl } from "@/lib/youtube/video/video-thumbnail";
 import { z } from "@/lib/zod";
 
 const URL_PATTERN = /https?:\/\/\S+/g;

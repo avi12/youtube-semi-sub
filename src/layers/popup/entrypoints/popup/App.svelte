@@ -18,19 +18,19 @@
   } from "@/lib/storage";
   import { prefersReducedMotion } from "@/lib/utils/motion";
   import { pluralize } from "@/lib/utils/pluralize";
-  import { formatRelativeTime } from "@/lib/youtube/relative-time";
+  import { formatRelativeTime } from "@/lib/youtube/video/relative-time";
   import { followModelDownload, refreshAiStatus } from "#popup/ai/ai-match-setup.svelte";
   import AiMatchCard from "#popup/ai/AiMatchCard.svelte";
   import ChannelRow from "#popup/ChannelRow.svelte";
   import EmptyState from "#popup/EmptyState.svelte";
   import { LOADING_INDICATOR_SIZE, REFRESH_ICON } from "#popup/icons";
-  import Button from "#popup/ui/Button.svelte";
+  import Button from "#popup/ui/buttons/Button.svelte";
   import Icon from "#popup/ui/Icon.svelte";
-  import ListItem from "#popup/ui/ListItem.svelte";
-  import LoadingIndicator from "#popup/ui/LoadingIndicator.svelte";
-  import Snackbar from "#popup/ui/Snackbar.svelte";
-  import { showSnackbar } from "#popup/ui/snackbar-state.svelte";
-  import Switch from "#popup/ui/Switch.svelte";
+  import ListItem from "#popup/ui/list/ListItem.svelte";
+  import LoadingIndicator from "#popup/ui/feedback/LoadingIndicator.svelte";
+  import Snackbar from "#popup/ui/feedback/Snackbar.svelte";
+  import { showSnackbar } from "#popup/ui/feedback/snackbar-state.svelte";
+  import Switch from "#popup/ui/buttons/Switch.svelte";
   import { untrack } from "svelte";
 
   interface Props {

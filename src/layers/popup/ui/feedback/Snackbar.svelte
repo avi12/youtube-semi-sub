@@ -1,7 +1,7 @@
 <script lang="ts">
   import { CLOSE_ICON } from "#popup/icons";
   import Icon from "#popup/ui/Icon.svelte";
-  import { dismissSnackbar, getSnackbar } from "#popup/ui/snackbar-state.svelte";
+  import { dismissSnackbar, getSnackbar } from "#popup/ui/feedback/snackbar-state.svelte";
 
   const request = $derived(getSnackbar());
 </script>

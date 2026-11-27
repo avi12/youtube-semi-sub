@@ -1,7 +1,7 @@
 <script lang="ts">
   import { DialogButtonVariant } from "./dialog-button-variant";
   import YtButton from "./YtButton.svelte";
-  import { ButtonViewModelType } from "@/lib/youtube/page/button-view-model";
+  import { ButtonViewModelType } from "@/lib/youtube/page/elements/button-view-model";
   import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
 
   // www's dialogs use YouTube's own Polymer button; m.youtube.com has no Polymer, so it keeps a plain one styled with

@@ -19,14 +19,14 @@
   } from "@/lib/filter/title-filter";
   import type { FeedVideo } from "@/lib/schemas/feed-video";
   import { SubscriptionMode } from "@/lib/schemas/subscription-mode";
-  import AiFilterFields from "#filter-editor/components/AiFilterFields.svelte";
+  import AiFilterFields from "#filter-editor/components/fields/AiFilterFields.svelte";
   import FilterPreview from "#filter-editor/components/FilterPreview.svelte";
   import FilterRule from "#filter-editor/components/FilterRule.svelte";
-  import LengthFilterFields from "#filter-editor/components/LengthFilterFields.svelte";
+  import LengthFilterFields from "#filter-editor/components/fields/LengthFilterFields.svelte";
   import MethodPicker from "#filter-editor/components/MethodPicker.svelte";
-  import RegexFilterFields from "#filter-editor/components/RegexFilterFields.svelte";
-  import SegmentedSwitch from "#filter-editor/components/SegmentedSwitch.svelte";
-  import TypeFilterFields from "#filter-editor/components/TypeFilterFields.svelte";
+  import RegexFilterFields from "#filter-editor/components/fields/RegexFilterFields.svelte";
+  import SegmentedSwitch from "#filter-editor/components/controls/SegmentedSwitch.svelte";
+  import TypeFilterFields from "#filter-editor/components/fields/TypeFilterFields.svelte";
   import { type EditorControls, setEditorControls } from "#filter-editor/controls";
   import { DEFAULT_EDITOR_CONTROLS } from "#filter-editor/default-controls";
   import {

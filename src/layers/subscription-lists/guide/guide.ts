@@ -4,7 +4,7 @@ import { listsView } from "#subscription-lists/lists-view.svelte";
 import { listFilteredSubscribedChannelIds, listFollowedSubscriptions } from "#subscription-lists/semi-channels";
 import { onPageState } from "@/lib/page/page-state";
 import { createFrameScheduler, observeSubtree, waitForElement, whenDocumentParsed } from "@/lib/utils/dom";
-import { isPolymerElement, type PolymerElement } from "@/lib/youtube/page/polymer";
+import { isPolymerElement, type PolymerElement } from "@/lib/youtube/page/elements/polymer";
 
 import {
   buildSemiGuideEntry,

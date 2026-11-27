@@ -1,7 +1,7 @@
 <script lang="ts">
   import { pluralize } from "@/lib/utils/pluralize";
-  import { formatRelativeTime } from "@/lib/youtube/relative-time";
-  import { formatDuration } from "@/lib/youtube/video-duration";
+  import { formatRelativeTime } from "@/lib/youtube/video/relative-time";
+  import { formatDuration } from "@/lib/youtube/video/video-duration";
   import { getEditorControls } from "#filter-editor/controls";
   import { popTile, slideTile } from "#filter-editor/preview/tile-motion";
   import type { PreviewHints, PreviewRow, VideoFilterPreview } from "#filter-editor/preview/title-matches";

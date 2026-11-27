@@ -1,6 +1,6 @@
 <script lang="ts">
   import YtButton from "./YtButton.svelte";
-  import { ButtonViewModelIcon, ButtonViewModelType } from "@/lib/youtube/page/button-view-model";
+  import { ButtonViewModelIcon, ButtonViewModelType } from "@/lib/youtube/page/elements/button-view-model";
   import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
 
   // www's dialogs close with YouTube's own icon button; m.youtube.com has no Polymer, so it keeps a plain one

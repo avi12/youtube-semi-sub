@@ -1,6 +1,6 @@
 <script lang="ts">
   import { isInputElement } from "@/lib/dom-guards";
-  import { polymerHostAttributes } from "@/lib/youtube/page/polymer-host";
+  import { polymerHostAttributes } from "@/lib/youtube/page/elements/polymer-host";
   import { type EditorTextFieldProps, FOCUSED_ON_OPEN_ATTRIBUTE } from "#filter-editor";
 
   // www's own Polymer text field, `tp-yt-paper-input`, driven by its attributes: it floats the label, underlines the

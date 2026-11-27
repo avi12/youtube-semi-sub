@@ -1,5 +1,5 @@
 import type { LengthFilter } from "@/lib/filter/title-filter";
-import { formatDuration, parseDurationText, SECONDS_PER_MINUTE } from "@/lib/youtube/video-duration";
+import { formatDuration, parseDurationText, SECONDS_PER_MINUTE } from "@/lib/youtube/video/video-duration";
 import { z } from "@/lib/zod";
 
 // A length condition typed as one expression - ">=69m", "5-20m", "under 1h", "between 2 and 10 minutes" - read by

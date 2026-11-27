@@ -1,4 +1,4 @@
-import type { ButtonViewModelData } from "@/lib/youtube/page/button-view-model";
+import type { ButtonViewModelData } from "@/lib/youtube/page/elements/button-view-model";
 
 // MAIN world: what YouTube's own scripts define on the page - its globals and the custom elements typed here
 

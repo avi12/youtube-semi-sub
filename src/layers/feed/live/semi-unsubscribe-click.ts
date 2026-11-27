@@ -2,7 +2,7 @@ import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
 import { isElement } from "@/lib/dom-guards";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
-import { IRON_DROPDOWN_SELECTOR, isIronDropdown } from "@/lib/youtube/page/iron-dropdown";
+import { IRON_DROPDOWN_SELECTOR, isIronDropdown } from "@/lib/youtube/page/elements/iron-dropdown";
 
 import { FeedTileTag, videoIdFromTile } from "./feed-grid";
 

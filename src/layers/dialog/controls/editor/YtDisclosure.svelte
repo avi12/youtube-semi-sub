@@ -1,6 +1,6 @@
 <script lang="ts">
-  import YtButton from "./YtButton.svelte";
-  import { ButtonViewModelIcon, ButtonViewModelType } from "@/lib/youtube/page/button-view-model";
+  import YtButton from "#dialog/controls/YtButton.svelte";
+  import { ButtonViewModelIcon, ButtonViewModelType } from "@/lib/youtube/page/elements/button-view-model";
   import type { EditorDisclosureProps } from "#filter-editor";
 
   // www's own text button with YouTube's expand chevron, the way its own panels show more

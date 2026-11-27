@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ListCard from "#popup/ui/ListCard.svelte";
+  import ListCard from "#popup/ui/list/ListCard.svelte";
   import type { Snippet } from "svelte";
 
   interface Props {

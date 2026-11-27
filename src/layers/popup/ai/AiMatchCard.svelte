@@ -5,12 +5,12 @@
   import { LITERT_MODEL_SIZE_LABEL } from "#ai-match";
   import { LOADING_INDICATOR_SIZE } from "#popup/icons";
   import { AI_MATCH_ICON } from "#popup/icons";
-  import Button from "#popup/ui/Button.svelte";
+  import Button from "#popup/ui/buttons/Button.svelte";
   import Icon from "#popup/ui/Icon.svelte";
-  import LinearProgress from "#popup/ui/LinearProgress.svelte";
-  import ListItem from "#popup/ui/ListItem.svelte";
-  import LoadingIndicator from "#popup/ui/LoadingIndicator.svelte";
-  import Switch from "#popup/ui/Switch.svelte";
+  import LinearProgress from "#popup/ui/feedback/LinearProgress.svelte";
+  import ListItem from "#popup/ui/list/ListItem.svelte";
+  import LoadingIndicator from "#popup/ui/feedback/LoadingIndicator.svelte";
+  import Switch from "#popup/ui/buttons/Switch.svelte";
 
   interface Props {
     isAiEnabled: boolean;

@@ -4,8 +4,8 @@ import { createPageWatcher } from "#subscription-lists/semi-list-surface";
 import { isElement } from "@/lib/dom-guards";
 import { onPageState } from "@/lib/page/page-state";
 import { createFrameScheduler } from "@/lib/utils/dom";
+import { isPolymerElement } from "@/lib/youtube/page/elements/polymer";
 import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
-import { isPolymerElement } from "@/lib/youtube/page/polymer";
 import { FeedPathname } from "@/lib/youtube/site";
 
 import { readSemiChannelId, withSemiChannelsSection } from "./channels-shelf";

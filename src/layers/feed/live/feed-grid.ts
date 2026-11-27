@@ -1,5 +1,5 @@
 import { shortsLockupFromItem, videoIdFromContent } from "#feed/items/feed-items";
-import { isPolymerElement } from "@/lib/youtube/page/polymer";
+import { isPolymerElement } from "@/lib/youtube/page/elements/polymer";
 import {
   getYouTubeSite,
   SHORTS_PATH_PATTERN,

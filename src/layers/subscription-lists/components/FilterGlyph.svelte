@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { attachIcon, FILTER_ICON_PATH, YtIconName } from "@/lib/youtube/page/yt-icon";
+  import { attachIcon, FILTER_ICON_PATH, YtIconName } from "@/lib/youtube/page/elements/yt-icon";
   import { getYouTubeSite, YouTubeSite } from "@/lib/youtube/site";
 
   // The semi-subscription mark across every in-page list, in YouTube's own filter icon: www's Polymer `yt-icon`,

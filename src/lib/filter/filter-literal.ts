@@ -18,7 +18,7 @@ import {
   SUBSCRIPTION_MODE_NAME,
   SubscriptionMode
 } from "@/lib/schemas/subscription-mode";
-import { SECONDS_PER_MINUTE } from "@/lib/youtube/video-duration";
+import { SECONDS_PER_MINUTE } from "@/lib/youtube/video/video-duration";
 import { z } from "@/lib/zod";
 
 export enum FilterLiteralKind {

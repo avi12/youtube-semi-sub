@@ -2,9 +2,9 @@ import { buildSemiSubscribedBareItem, buildSemiSubscribedRichItem } from "#feed/
 import { withSemiUnsubscribeItem } from "#feed/compose/semi-unsubscribe-menu";
 import type { FeedVideo } from "@/lib/schemas/feed-video";
 import { buildReelWatchEndpoint } from "@/lib/youtube/endpoints";
-import { formatRelativeTime } from "@/lib/youtube/relative-time";
 import { RendererKind, ShelfRendererKind, type ShortsLockup } from "@/lib/youtube/schemas/renderers";
-import { buildShortsThumbnailUrl } from "@/lib/youtube/video-thumbnail";
+import { formatRelativeTime } from "@/lib/youtube/video/relative-time";
+import { buildShortsThumbnailUrl } from "@/lib/youtube/video/video-thumbnail";
 
 // Builds a Shorts-shelf tile for a semi-subscribed Short. The channel's own Shorts-tab tile ("native") supplies views,
 // thumbnails and menu when known. Otherwise the tile is made from the cached upload in the shape of the shelf's own

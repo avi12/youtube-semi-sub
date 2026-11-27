@@ -8,8 +8,8 @@
   import { setSemiSubscriptionFilter } from "@/lib/semi-subscription-storage";
   import { FilterEditor, FOCUSED_ON_OPEN_SELECTOR } from "#filter-editor";
   import AiSetupAction from "#popup/ai/AiSetupAction.svelte";
-  import Button from "#popup/ui/Button.svelte";
-  import ConnectedButtons from "#popup/ui/ConnectedButtons.svelte";
+  import Button from "#popup/ui/buttons/Button.svelte";
+  import ConnectedButtons from "#popup/ui/buttons/ConnectedButtons.svelte";
   import Icon from "#popup/ui/Icon.svelte";
   import { onMount, untrack } from "svelte";
 

@@ -6,8 +6,8 @@
     ButtonViewModelState,
     ButtonViewModelStyle,
     ButtonViewModelType
-  } from "@/lib/youtube/page/button-view-model";
-  import { polymerHostAttributes } from "@/lib/youtube/page/polymer-host";
+  } from "@/lib/youtube/page/elements/button-view-model";
+  import { polymerHostAttributes } from "@/lib/youtube/page/elements/polymer-host";
 
   // www's own `<yt-button-view-model>`, its look handed over through `.data`. The real <button> it renders is a submit
   // button inside the dialog's form, so a plain action stops that default and only `isSubmit` lets it through

@@ -12,8 +12,8 @@
     ButtonViewModelState,
     ButtonViewModelStyle,
     ButtonViewModelType
-  } from "@/lib/youtube/page/button-view-model";
-  import { FILTER_ICON_PATH } from "@/lib/youtube/page/yt-icon";
+  } from "@/lib/youtube/page/elements/button-view-model";
+  import { FILTER_ICON_PATH } from "@/lib/youtube/page/elements/yt-icon";
   import { YouTubeSite } from "@/lib/youtube/site";
   import { readOfficialSubscription } from "#channel-button/official-subscription";
   import { BUTTON_ROOT_ATTRIBUTE, type ButtonPlacement } from "#channel-button/page/page-anchor";
