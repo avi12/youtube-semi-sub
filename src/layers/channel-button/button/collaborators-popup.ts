@@ -1,9 +1,9 @@
 import { on } from "svelte/events";
 
+import { isElement } from "@/lib/dom-guards";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { focusPlayer } from "@/lib/page/focus-player";
 import { channelInfoSchema } from "@/lib/schemas/channel";
-import { functionSchema } from "@/lib/schemas/function";
 import {
   type ButtonViewModelData,
   ButtonViewModelIcon,
@@ -13,6 +13,7 @@ import {
   ButtonViewModelType
 } from "@/lib/youtube/page/button-view-model";
 import { z } from "@/lib/zod";
+import { createGuard, VOID_METHOD_SCHEMA } from "@/lib/zod-guard";
 
 // MAIN world: a collaboration's picker. YouTube's own Subscribe opens a "Collaborators" dialog with one Subscribe
 // button per channel; this opens that same dialog with our button in every row
@@ -36,9 +37,7 @@ const POPUP_TYPE_DIALOG = "DIALOG";
 const DIALOG_TITLE = "Collaborators";
 const AVATAR_SIZE_MEDIUM = "AVATAR_SIZE_M";
 
-const closeableSchema = z.object({
-  close: functionSchema
-});
+const isCloseable = createGuard(z.object({ close: VOID_METHOD_SCHEMA }));
 
 let stopListeningForPick: (() => void) | null = null;
 
@@ -86,9 +85,8 @@ function buildRow(choice: CollaboratorChoice) {
 }
 
 function closeDialog(elDialog: Element) {
-  const parsed = closeableSchema.safeParse(elDialog);
-  if (parsed.success) {
-    parsed.data.close.call(elDialog);
+  if (isCloseable(elDialog)) {
+    elDialog.close();
   }
 }
 
@@ -99,7 +97,7 @@ function listenForPick(choices: CollaboratorChoice[]) {
     document,
     OVERLAY_CLOSED_EVENT,
     event => {
-      const isCollaboratorsDialog = event.target instanceof Element && event.target.matches(DIALOG_SELECTOR);
+      const isCollaboratorsDialog = isElement(event.target) && event.target.matches(DIALOG_SELECTOR);
       if (!isCollaboratorsDialog) {
         return;
       }
@@ -118,7 +116,7 @@ function listenForPick(choices: CollaboratorChoice[]) {
     document,
     "click",
     event => {
-      const elTarget = event.target instanceof Element ? event.target : null;
+      const elTarget = isElement(event.target) ? event.target : null;
       const elRow = elTarget?.closest(ROW_SELECTOR);
       const elDialog = elRow?.closest(DIALOG_SELECTOR);
       const elButton = elTarget?.closest(ROW_BUTTON_SELECTOR);

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { isInputElement } from "@/lib/dom-guards";
   import { polymerHostAttributes } from "@/lib/youtube/page/polymer-host";
   import { type EditorTextFieldProps, FOCUSED_ON_OPEN_ATTRIBUTE } from "#filter-editor";
 
@@ -46,7 +47,7 @@
     })}
     class="text-field__input"
     oninput={e => {
-      if (e.target instanceof HTMLInputElement) {
+      if (isInputElement(e.target)) {
         onValueChange(e.target.value);
       }
     }}></span>

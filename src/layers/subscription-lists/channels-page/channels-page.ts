@@ -1,6 +1,7 @@
 import { openSemiSubDialog } from "#subscription-lists/components/open-dialog";
 import { listsView } from "#subscription-lists/lists-view.svelte";
 import { createPageWatcher } from "#subscription-lists/semi-list-surface";
+import { isElement } from "@/lib/dom-guards";
 import { onPageState } from "@/lib/page/page-state";
 import { createFrameScheduler } from "@/lib/utils/dom";
 import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
@@ -38,7 +39,7 @@ function syncChannelsSection() {
 
 /** Our rows' buttons carry no command of their own: a click opens the dialog for that row's channel */
 function handleManageButtonClick(event: MouseEvent) {
-  const elButton = event.target instanceof Element ? event.target.closest(CHANNEL_BUTTON_SELECTOR) : null;
+  const elButton = isElement(event.target) ? event.target.closest(CHANNEL_BUTTON_SELECTOR) : null;
   const elChannel = elButton?.closest(CHANNEL_RENDERER_SELECTOR);
   const isPolymerChannel = elChannel && isPolymerElement(elChannel);
   const channelId = isPolymerChannel ? readSemiChannelId(elChannel.data) : null;

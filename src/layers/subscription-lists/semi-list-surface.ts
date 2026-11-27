@@ -1,7 +1,7 @@
 import { type Component, mount, unmount } from "svelte";
 
+import { elementSchema } from "@/lib/dom-guards";
 import { onPageState } from "@/lib/page/page-state";
-import { elementSchema } from "@/lib/schemas/dom";
 import type { SemiSubscription } from "@/lib/schemas/semi-subscription";
 import { createFrameScheduler, observeSubtree } from "@/lib/utils/dom";
 import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";

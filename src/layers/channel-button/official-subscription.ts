@@ -1,3 +1,4 @@
+import { isRequest, isUrl } from "@/lib/dom-guards";
 import { type OfficialSubscriptionChange, PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { whenPageStateKnown } from "@/lib/page/page-state";
 import { channelIdSchema } from "@/lib/schemas/channel";
@@ -95,11 +96,11 @@ export function applySubscriptionSnapshot(readIsSubscribed: (channelId: string) 
 }
 
 function getRequestUrl(input: RequestInfo | URL) {
-  if (input instanceof Request) {
+  if (isRequest(input)) {
     return input.url;
   }
 
-  return input instanceof URL ? input.href : input;
+  return isUrl(input) ? input.href : input;
 }
 
 function getSubscriptionEndpointPath(input: RequestInfo | URL) {
@@ -119,7 +120,7 @@ function readRequestBody({ input, init }: { input: RequestInfo | URL; init: Requ
     return Promise.resolve(body);
   }
 
-  const isBodyInRequest = input instanceof Request && body === undefined;
+  const isBodyInRequest = isRequest(input) && body === undefined;
   if (isBodyInRequest) {
     return input.clone().text();
   }

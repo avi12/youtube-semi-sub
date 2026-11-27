@@ -1,4 +1,4 @@
-import { elementSchema, htmlElementSchema } from "@/lib/schemas/dom";
+import { elementSchema, htmlElementSchema, isButtonElement } from "@/lib/dom-guards";
 import { z } from "@/lib/zod";
 
 import { PageKind } from "./channel-page-data";
@@ -120,7 +120,7 @@ export function findPageAnchor({ kind, isSignedIn }: { kind: PageKind; isSignedI
         continue;
       }
 
-      const elNativeButton = elControl instanceof HTMLButtonElement ? elControl : elControl.querySelector("button");
+      const elNativeButton = isButtonElement(elControl) ? elControl : elControl.querySelector("button");
       const anchor: PageAnchor = {
         elContainer,
         elSubscribe,

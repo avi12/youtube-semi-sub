@@ -1,4 +1,5 @@
 import { SEMI_UNSUBSCRIBE_LABEL } from "#feed/compose/semi-unsubscribe-menu";
+import { isElement } from "@/lib/dom-guards";
 import { PageMessage, pageMessenger } from "@/lib/messaging/page-messaging";
 import { getPageState } from "@/lib/page/page-state";
 import { IRON_DROPDOWN_SELECTOR, isIronDropdown } from "@/lib/youtube/page/iron-dropdown";
@@ -43,7 +44,7 @@ function closeMenu(elItem: Element) {
 }
 
 function handleClick(event: MouseEvent) {
-  if (!(event.target instanceof Element)) {
+  if (!isElement(event.target)) {
     return;
   }
 

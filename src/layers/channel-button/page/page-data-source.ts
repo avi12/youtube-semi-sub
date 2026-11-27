@@ -1,27 +1,24 @@
-import { functionSchema } from "@/lib/schemas/function";
 import { readYtcfg, YtcfgKey } from "@/lib/youtube/page/globals";
 import { LIVE_PATH_PATTERN, WATCH_VIDEO_PARAM } from "@/lib/youtube/site";
 import { z } from "@/lib/zod";
+import { createGuard } from "@/lib/zod-guard";
 
 // MAIN world: the current page's InnerTube data ({ response, playerResponse }) as YouTube's app holds it. Unlike
 // window.ytInitialData, the app's copy follows SPA navigations
 
-interface PageManagerElement extends Element {
-  getCurrentData(): unknown;
-}
-
-const pageManagerSchema = z.looseObject({
-  getCurrentData: functionSchema
-});
+const isPageManagerElement = createGuard(
+  z.object({
+    getCurrentData: z.function({
+      input: [],
+      output: z.unknown()
+    })
+  })
+);
 
 /** m.youtube.com's app element keeps the page data as an own property */
 const mobileAppSchema = z.looseObject({
   data: z.unknown()
 });
-
-function isPageManagerElement(elCandidate: Element | null): elCandidate is PageManagerElement {
-  return pageManagerSchema.safeParse(elCandidate).success;
-}
 
 const PAGE_MANAGER_SELECTOR = "ytd-page-manager";
 const MOBILE_APP_SELECTOR = "ytm-app";

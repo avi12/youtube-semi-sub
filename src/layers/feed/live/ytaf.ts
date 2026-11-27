@@ -1,3 +1,4 @@
+import { isCustomEvent } from "@/lib/dom-guards";
 import { z } from "@/lib/zod";
 
 // YouTube Auto Feed (avi12/youtube-auto-feed) rewrites the feed grid from its own /browse polls and drops what
@@ -99,7 +100,7 @@ export function nudgeYouTubeAutoFeed() {
 }
 
 function readOverheardSettings(event: Event) {
-  const detail = event instanceof CustomEvent ? event.detail : undefined;
+  const detail = isCustomEvent(event) ? event.detail : undefined;
   const push = settingsPushSchema.safeParse(detail);
   if (push.success) {
     return push.data.message.data;

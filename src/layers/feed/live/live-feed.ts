@@ -18,6 +18,7 @@ import {
   videoIdFromShelfItem
 } from "#feed/items/feed-items";
 import { SUBSCRIPTIONS_BROWSE_ID } from "#feed/response/feed-response";
+import { isCustomEvent } from "@/lib/dom-guards";
 import { getPageState, onPageState } from "@/lib/page/page-state";
 import { observeSubtree } from "@/lib/utils/dom";
 import { onYouTubeNavigate, onYouTubeNavigateStart } from "@/lib/youtube/page/navigation";
@@ -292,7 +293,7 @@ function isFeedNavigation(detail: unknown) {
 }
 
 function handleNavigationStart(event: Event) {
-  const isFeedTarget = event instanceof CustomEvent && isFeedNavigation(event.detail);
+  const isFeedTarget = isCustomEvent(event) && isFeedNavigation(event.detail);
   if (isFeedTarget) {
     prefetchFeedNatives();
   }

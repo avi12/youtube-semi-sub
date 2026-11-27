@@ -15,6 +15,7 @@ import {
   SUBSCRIBED_ATTRIBUTE
 } from "#channel-button/page/page-anchor";
 import { readIsSignedIn, readPageData, readUrlVideoId } from "#channel-button/page/page-data-source";
+import { isCustomEvent, isNode } from "@/lib/dom-guards";
 import { createFrameScheduler, SUBTREE_CHILD_LIST, whenDocumentParsed } from "@/lib/utils/dom";
 import { onYouTubeNavigate } from "@/lib/youtube/page/navigation";
 import { getYouTubeSite } from "@/lib/youtube/site";
@@ -218,9 +219,9 @@ function trackPage() {
 
   // YouTube flips its own button the moment Subscribe is pressed, before the request completes
   function handleSubscriptionChanged(event: Event) {
-    const parsed = subscriptionChangedDetailSchema.safeParse(event instanceof CustomEvent ? event.detail : undefined);
+    const parsed = subscriptionChangedDetailSchema.safeParse(isCustomEvent(event) ? event.detail : undefined);
     const isFromThisChannelsControl =
-      !!mounted && event.target instanceof Node && mounted.target.anchor.elContainer.contains(event.target);
+      !!mounted && isNode(event.target) && mounted.target.anchor.elContainer.contains(event.target);
     if (!parsed.success || !mounted || !isFromThisChannelsControl) {
       return;
     }

@@ -1,3 +1,4 @@
+import { isElement } from "@/lib/dom-guards";
 import { parseJson } from "@/lib/utils/json";
 import { z } from "@/lib/zod";
 
@@ -91,7 +92,7 @@ function syncHost(elHost: Element) {
 }
 
 function syncWithin(node: Node) {
-  if (!(node instanceof Element)) {
+  if (!isElement(node)) {
     return;
   }
 

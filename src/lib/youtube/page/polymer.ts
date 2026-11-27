@@ -1,5 +1,5 @@
-import { functionSchema } from "@/lib/schemas/function";
 import { z } from "@/lib/zod";
+import { createGuard, VOID_METHOD_SCHEMA } from "@/lib/zod-guard";
 
 /** A www.youtube.com Polymer element: renders from `data` and accepts model writes through `set` */
 export interface PolymerElement extends HTMLElement {
@@ -9,24 +9,26 @@ export interface PolymerElement extends HTMLElement {
 
 const POLYMER_GLOBAL = "Polymer";
 
-const polymerGlobalSchema = z.looseObject({
-  flush: functionSchema
-});
+const isPolymerGlobal = createGuard(z.object({ flush: VOID_METHOD_SCHEMA }));
 
-const polymerElementSchema = z.object({
-  set: functionSchema
-});
+const hasPolymerSetter = createGuard(
+  z.object({
+    set: z.function({
+      input: [z.string(), z.unknown()],
+      output: z.void()
+    })
+  })
+);
 
 /** `data` is checked with `in`: Polymer defines it on the prototype, and an unset one reads as undefined */
 export function isPolymerElement(element: Element): element is PolymerElement {
-  return "data" in element && polymerElementSchema.safeParse(element).success;
+  return "data" in element && hasPolymerSetter(element);
 }
 
 /** Renders Polymer's pending DOM changes now, so they can be measured; a no-op where Polymer isn't loaded (m) */
 export function flushPolymer() {
   const polymer: unknown = Object.getOwnPropertyDescriptor(globalThis, POLYMER_GLOBAL)?.value;
-  const parsed = polymerGlobalSchema.safeParse(polymer);
-  if (parsed.success) {
-    parsed.data.flush.call(polymer);
+  if (isPolymerGlobal(polymer)) {
+    polymer.flush.call(polymer);
   }
 }

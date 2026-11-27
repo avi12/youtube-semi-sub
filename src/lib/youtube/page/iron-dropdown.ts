@@ -1,5 +1,6 @@
-import { functionSchema } from "@/lib/schemas/function";
+import { isHtmlElement } from "@/lib/dom-guards";
 import { z } from "@/lib/zod";
+import { createGuard, VOID_METHOD_SCHEMA } from "@/lib/zod-guard";
 
 /** YouTube's popup menus: a fixed-position overlay lined up with the element that opened it */
 export interface IronDropdownElement extends HTMLElement {
@@ -11,13 +12,15 @@ export interface IronDropdownElement extends HTMLElement {
 
 export const IRON_DROPDOWN_SELECTOR = "tp-yt-iron-dropdown";
 
-const ironDropdownSchema = z.object({
-  refit: functionSchema,
-  close: functionSchema
-});
+const hasDropdownMethods = createGuard(
+  z.object({
+    refit: VOID_METHOD_SCHEMA,
+    close: VOID_METHOD_SCHEMA
+  })
+);
 
 export function isIronDropdown(target: unknown): target is IronDropdownElement {
-  return target instanceof HTMLElement && "positionTarget" in target && ironDropdownSchema.safeParse(target).success;
+  return isHtmlElement(target) && "positionTarget" in target && hasDropdownMethods(target);
 }
 
 export const ironDropdownElementSchema = z.custom<IronDropdownElement>(isIronDropdown);

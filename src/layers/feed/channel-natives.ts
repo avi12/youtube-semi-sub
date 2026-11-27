@@ -43,7 +43,7 @@ type ChannelNatives = z.infer<typeof channelNativesSchema>;
 
 const cacheEntrySchema = z.object({
   fetchedAt: z.number(),
-  natives: z.custom<Promise<ChannelNatives | null>>(value => value instanceof Promise),
+  natives: z.promise(channelNativesSchema.nullable()),
   result: channelNativesSchema.nullable().optional()
 });
 type CacheEntry = z.infer<typeof cacheEntrySchema>;
